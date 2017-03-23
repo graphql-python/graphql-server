@@ -17,7 +17,7 @@ def execution_to_dict(execution_result):
 
 
 def executions_to_dict(execution_results):
-    return map(execution_to_dict, execution_results)
+    return list(map(execution_to_dict, execution_results))
 
 
 def test_allows_get_with_query_param():
