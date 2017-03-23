@@ -3,12 +3,12 @@ from setuptools import setup, find_packages
 required_packages = ['graphql-core', 'promise']
 
 setup(
-    name='graphql-server',
+    name='graphql-server-core',
     version='1.0.dev20170322001',
     description='GraphQL Server tools for powering your server',
     long_description=open('README.rst').read(),
-    url='https://github.com/graphql-python/graphql-server',
-    download_url='https://github.com/graphql-python/graphql-server/releases',
+    url='https://github.com/graphql-python/graphql-server-core',
+    download_url='https://github.com/graphql-python/graphql-server-core/releases',
     author='Syrus Akbary',
     author_email='me@syrusakbary.com',
     license='MIT',

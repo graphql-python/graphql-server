@@ -22,9 +22,9 @@ GraphQL Server powers the following integrations
 | WebOb (Pyramid, Pylons)   | `webob-graphql <https://github.com/graphql-python/webob-graphql/>`__       |
 +---------------------------+----------------------------------------------------------------------------+
 
-.. |Build Status| image:: https://travis-ci.org/graphql-python/graphql-server.svg?branch=master
-   :target: https://travis-ci.org/graphql-python/graphql-server
-.. |Coverage Status| image:: https://coveralls.io/repos/graphql-python/graphql-server/badge.svg?branch=master&service=github
-   :target: https://coveralls.io/github/graphql-python/graphql-server?branch=master
-.. |PyPI version| image:: https://badge.fury.io/py/graphql-server.svg
-   :target: https://badge.fury.io/py/graphql-server
+.. |Build Status| image:: https://travis-ci.org/graphql-python/graphql-server-core.svg?branch=master
+   :target: https://travis-ci.org/graphql-python/graphql-server-core
+.. |Coverage Status| image:: https://coveralls.io/repos/graphql-python/graphql-server-core/badge.svg?branch=master&service=github
+   :target: https://coveralls.io/github/graphql-python/graphql-server-core?branch=master
+.. |PyPI version| image:: https://badge.fury.io/py/graphql-server-core.svg
+   :target: https://badge.fury.io/py/graphql-server-core
