@@ -182,7 +182,7 @@ def execute_graphql_request(schema, params, allow_only_query=False, **kwargs):
                 405,
                 'Can only perform a {} operation from a POST request.'.format(operation_ast.operation),
                 headers={
-                    'Allow': ['POST'],
+                    'Allow': 'POST',
                 }
             )
 
