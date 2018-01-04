@@ -1,12 +1,14 @@
 import json
-from collections import namedtuple, MutableMapping
+from collections import MutableMapping, namedtuple
 
 import six
+
 from graphql import Source, execute, parse, validate
 from graphql.error import format_error as format_graphql_error
 from graphql.error import GraphQLError
 from graphql.execution import ExecutionResult
 from graphql.utils.get_operation_ast import get_operation_ast
+from promise import promisify
 
 from .error import HttpQueryError
 
@@ -126,7 +128,7 @@ def get_graphql_params(data, query_data):
 
 def get_response(schema, params, catch=None, allow_only_query=False, **kwargs):
     try:
-        execution_result = execute_graphql_request(
+        execution_result = execute_graphql(
             schema,
             params,
             allow_only_query,
@@ -157,6 +159,19 @@ def format_execution_result(execution_result, format_error):
         response = None
 
     return GraphQLResponse(response, status_code)
+
+
+def execute_graphql(*args, **kwargs):
+    return_promise = kwargs.get('return_promise', False)
+    if return_promise:
+        return execute_graphql_request_as_promise(*args, **kwargs)
+    else:
+        return execute_graphql_request(*args, **kwargs)
+
+
+@promisify
+def execute_graphql_request_as_promise(*args, **kwargs):
+    return execute_graphql_request(*args, **kwargs)
 
 
 def execute_graphql_request(schema, params, allow_only_query=False, **kwargs):
