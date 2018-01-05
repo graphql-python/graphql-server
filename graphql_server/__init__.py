@@ -171,7 +171,7 @@ def execute_graphql_request(schema, params, allow_only_query=False, parser=parse
         raise HttpQueryError(400, 'Must provide query string.')
 
     try:
-        ast, validation_errors = parse_query(params.query, schema)
+        ast, validation_errors = parser(params.query, schema)
         if validation_errors:
             return ExecutionResult(
                 errors=validation_errors,
