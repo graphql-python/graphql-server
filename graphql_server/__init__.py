@@ -159,14 +159,19 @@ def format_execution_result(execution_result, format_error):
     return GraphQLResponse(response, status_code)
 
 
-def execute_graphql_request(schema, params, allow_only_query=False, **kwargs):
+def parse_query(query, schema):
+    source = Source(query, name='GraphQL request')
+    ast = parse(source)
+    validation_errors = validate(schema, ast)
+    return ast, validation_errors
+
+
+def execute_graphql_request(schema, params, allow_only_query=False, parser=parse_query, **kwargs):
     if not params.query:
         raise HttpQueryError(400, 'Must provide query string.')
 
     try:
-        source = Source(params.query, name='GraphQL request')
-        ast = parse(source)
-        validation_errors = validate(schema, ast)
+        ast, validation_errors = parser(params.query, schema)
         if validation_errors:
             return ExecutionResult(
                 errors=validation_errors,
