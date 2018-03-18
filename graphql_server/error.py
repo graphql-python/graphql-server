@@ -11,3 +11,6 @@ class HttpQueryError(Exception):
             other.status_code == self.status_code and \
             other.message == self.message and \
             other.headers == self.headers
+
+    def __hash__(self):
+        return hash((self.status_code, self.message, self.headers))
