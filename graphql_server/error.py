@@ -1,3 +1,6 @@
+import json
+
+
 class HttpQueryError(Exception):
     def __init__(self, status_code, message=None, is_graphql_error=False, headers=None):
         self.status_code = status_code
@@ -11,3 +14,6 @@ class HttpQueryError(Exception):
             other.status_code == self.status_code and \
             other.message == self.message and \
             other.headers == self.headers
+
+    def __hash__(self):
+        return hash((self.status_code, self.message, json.dumps(self.headers)))
