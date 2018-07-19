@@ -4,7 +4,7 @@ required_packages = ["graphql-core>=2.1", "promise"]
 
 setup(
     name="graphql-server-core",
-    version="1.1rc0",
+    version="1.1",
     description="GraphQL Server tools for powering your server",
     long_description=open("README.rst").read(),
     url="https://github.com/graphql-python/graphql-server-core",
