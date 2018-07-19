@@ -8,7 +8,8 @@ from graphql.execution import ExecutionResult
 
 from .error import HttpQueryError
 
-if False:
+# Necessary for static type checking
+if False:  # flake8: noqa
     from typing import List, Dict, Optional, Tuple, Any, Union, Callable, Type
     from graphql import GraphQLSchema, GraphQLBackend
 
