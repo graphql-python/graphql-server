@@ -203,6 +203,7 @@ def load_json_body(data):
 
 
 __all__ = [
+    "HttpQueryError",
     "default_format_error",
     "SkipException",
     "run_http_query",
