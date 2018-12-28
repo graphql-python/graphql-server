@@ -13,9 +13,9 @@ from graphql.execution import ExecutionResult
 from .error import HttpQueryError
 
 # Necessary for static type checking
-if False:  # flake8: noqa
-    from typing import List, Dict, Optional, Tuple, Any, Union, Callable, Type
-    from graphql import GraphQLSchema, GraphQLBackend
+if False:
+    from typing import List, Dict, Optional, Tuple, Any, Union, Callable, Type  # noqa: F401
+    from graphql import GraphQLSchema, GraphQLBackend  # noqa: F401
 
 
 class SkipException(Exception):
