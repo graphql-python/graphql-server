@@ -1,5 +1,9 @@
 import json
-from collections import namedtuple, MutableMapping
+from collections import namedtuple
+try:
+    from collections.abc import MutableMapping
+except ImportError:  # Python < 3.3
+    from collections import MutableMapping
 
 import six
 from graphql import get_default_backend
