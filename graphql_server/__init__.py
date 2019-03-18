@@ -1,8 +1,10 @@
 import json
-from collections import namedtuple, MutableMapping
+from inspect import isawaitable
+from collections import namedtuple
+from collections.abc import MutableMapping
 
 import six
-from graphql import get_default_backend
+from graphql import execute, parse, OperationType
 from graphql.error import format_error as default_format_error
 from graphql.execution import ExecutionResult
 
@@ -11,7 +13,7 @@ from .error import HttpQueryError
 # Necessary for static type checking
 if False:  # flake8: noqa
     from typing import List, Dict, Optional, Tuple, Any, Union, Callable, Type
-    from graphql import GraphQLSchema, GraphQLBackend
+    from graphql import GraphQLSchema
 
 
 class SkipException(Exception):
@@ -22,7 +24,7 @@ GraphQLParams = namedtuple("GraphQLParams", "query,variables,operation_name")
 GraphQLResponse = namedtuple("GraphQLResponse", "result,status_code")
 
 
-def run_http_query(
+async def run_http_query(
     schema,  # type: GraphQLSchema
     request_method,  # type: str
     data,  # type: Union[Dict, List[Dict]]
@@ -68,7 +70,7 @@ def run_http_query(
     all_params = [get_graphql_params(entry, extra_data) for entry in data]
 
     responses = [
-        get_response(schema, params, catch_exc, allow_only_query, **execute_options)
+        await get_response(schema, params, catch_exc, allow_only_query, **execute_options)
         for params in all_params
     ]
 
@@ -123,7 +125,7 @@ def get_graphql_params(data, query_data):
     return GraphQLParams(query, load_json_variables(variables), operation_name)
 
 
-def get_response(
+async def get_response(
     schema,  # type: GraphQLSchema
     params,  # type: GraphQLParams
     catch,  # type: Type[BaseException]
@@ -132,7 +134,7 @@ def get_response(
 ):
     # type: (...) -> Optional[ExecutionResult]
     try:
-        execution_result = execute_graphql_request(
+        execution_result = await execute_graphql_request(
             schema, params, allow_only_query, **kwargs
         )
     except catch:
@@ -149,49 +151,51 @@ def format_execution_result(
     status_code = 200
 
     if execution_result:
-        if execution_result.invalid:
+        if execution_result.errors:
             status_code = 400
-        response = execution_result.to_dict(format_error=format_error)
+        response = execution_result._asdict()
     else:
         response = None
 
     return GraphQLResponse(response, status_code)
 
 
-def execute_graphql_request(
+async def execute_graphql_request(
     schema,  # type: GraphQLSchema
     params,  # type: GraphQLParams
     allow_only_query=False,  # type: bool
-    backend=None,  # type: GraphQLBackend
     **kwargs  # type: Dict
 ):
     if not params.query:
         raise HttpQueryError(400, "Must provide query string.")
 
     try:
-        if not backend:
-            backend = get_default_backend()
-        document = backend.document_from_string(schema, params.query)
+        document = parse(params.query)
     except Exception as e:
-        return ExecutionResult(errors=[e], invalid=True)
+        return ExecutionResult(errors=[e])
 
     if allow_only_query:
-        operation_type = document.get_operation_type(params.operation_name)
-        if operation_type and operation_type != "query":
+        operations = [definition.operation for definition in document.definitions]
+        is_query = [op == OperationType.QUERY for op in operations]
+        if is_query and not all(is_query):
             raise HttpQueryError(
                 405,
                 "Can only perform a {} operation from a POST request.".format(
-                    operation_type
+                    document.definitions[0].operation
                 ),
                 headers={"Allow": "POST"},
             )
 
     try:
-        return document.execute(
-            operation_name=params.operation_name, variables=params.variables, **kwargs
+        result = execute(
+            schema, document,
+            operation_name=params.operation_name, variable_values=params.variables, **kwargs
         )
+        if not isawaitable(result):
+            return result
+        return await result
     except Exception as e:
-        return ExecutionResult(errors=[e], invalid=True)
+        return ExecutionResult(errors=[e])
 
 
 def load_json_body(data):
