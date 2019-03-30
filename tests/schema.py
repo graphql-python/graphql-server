@@ -14,7 +14,7 @@ QueryRootType = GraphQLObjectType(
         'thrower': GraphQLField(GraphQLNonNull(GraphQLString),
                                 resolver=resolve_raises),
         'request': GraphQLField(GraphQLNonNull(GraphQLString),
-                                resolver=lambda obj, info: context.args.get('q')),  # noqa
+                                resolver=lambda obj, info: context.args.get('q')),  # noqa: F821
         'context': GraphQLField(GraphQLNonNull(GraphQLString),
                                 resolver=lambda obj, info: context),  # noqa
         'test': GraphQLField(
