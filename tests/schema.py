@@ -1,4 +1,5 @@
-from graphql.type.definition import GraphQLArgument, GraphQLField, GraphQLNonNull, GraphQLObjectType
+from graphql.type.definition import (GraphQLArgument, GraphQLField,
+                                     GraphQLNonNull, GraphQLObjectType)
 from graphql.type.scalars import GraphQLString
 from graphql.type.schema import GraphQLSchema
 
@@ -10,11 +11,12 @@ def resolve_raises(*_):
 QueryRootType = GraphQLObjectType(
     name='QueryRoot',
     fields={
-        'thrower': GraphQLField(GraphQLNonNull(GraphQLString), resolver=resolve_raises),
+        'thrower': GraphQLField(GraphQLNonNull(GraphQLString),
+                                resolver=resolve_raises),
         'request': GraphQLField(GraphQLNonNull(GraphQLString),
-                                resolver=lambda obj, info: context.args.get('q')),
+                                resolver=lambda obj, info: context.args.get('q')),  # noqa
         'context': GraphQLField(GraphQLNonNull(GraphQLString),
-                                resolver=lambda obj, info: context),
+                                resolver=lambda obj, info: context),  # noqa
         'test': GraphQLField(
             type=GraphQLString,
             args={
