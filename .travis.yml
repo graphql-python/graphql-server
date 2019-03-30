@@ -1,3 +1,4 @@
+language: python
 matrix:
   include:
     - env: TOXENV=py27
