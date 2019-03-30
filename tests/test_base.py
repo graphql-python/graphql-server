@@ -1,15 +1,18 @@
 from pytest import raises
 import json
-from graphql_server import (run_http_query, GraphQLParams,
-                            HttpQueryError, default_format_error)
+from graphql_server import (
+    run_http_query,
+    GraphQLParams,
+    HttpQueryError,
+    default_format_error,
+)
 from .schema import schema
 
 
 def execution_to_dict(execution_result):
     result = {}
     if execution_result.invalid:
-        result["errors"] = [default_format_error(e) for e in
-                            execution_result.errors]
+        result["errors"] = [default_format_error(e) for e in execution_result.errors]
     if execution_result.data:
         result["data"] = execution_result.data
 
@@ -21,90 +24,83 @@ def executions_to_dict(execution_results):
 
 
 def test_allows_get_with_query_param():
-    query = '{test}'
-    results, params = run_http_query(schema,
-                                     'get',
-                                     {},
-                                     query_data=dict(query=query))
+    query = "{test}"
+    results, params = run_http_query(schema, "get", {}, query_data=dict(query=query))
 
-    assert executions_to_dict(results) == [{
-        'data': {'test': "Hello World"},
-    }]
-    assert params == [GraphQLParams(query=query,
-                                    variables=None,
-                                    operation_name=None)]
+    assert executions_to_dict(results) == [{"data": {"test": "Hello World"}}]
+    assert params == [GraphQLParams(query=query, variables=None, operation_name=None)]
 
 
 def test_allows_get_with_variable_values():
-    results, params = run_http_query(schema, 'get', {}, query_data=dict(
-        query='query helloWho($who: String){ test(who: $who) }',
-        variables=json.dumps({'who': "Dolly"})
-    ))
+    results, params = run_http_query(
+        schema,
+        "get",
+        {},
+        query_data=dict(
+            query="query helloWho($who: String){ test(who: $who) }",
+            variables=json.dumps({"who": "Dolly"}),
+        ),
+    )
 
-    assert executions_to_dict(results) == [{
-        'data': {'test': "Hello Dolly"},
-    }]
+    assert executions_to_dict(results) == [{"data": {"test": "Hello Dolly"}}]
 
 
 def test_allows_get_with_operation_name():
-    results, params = run_http_query(schema, 'get', {}, query_data=dict(
-        query='''
+    results, params = run_http_query(
+        schema,
+        "get",
+        {},
+        query_data=dict(
+            query="""
         query helloYou { test(who: "You"), ...shared }
         query helloWorld { test(who: "World"), ...shared }
         query helloDolly { test(who: "Dolly"), ...shared }
         fragment shared on QueryRoot {
           shared: test(who: "Everyone")
         }
-        ''',
-        operationName='helloWorld'
-    ))
+        """,
+            operationName="helloWorld",
+        ),
+    )
 
-    assert executions_to_dict(results) == [{
-        'data': {
-            'test': 'Hello World',
-            'shared': 'Hello Everyone'
-        },
-    }]
+    assert executions_to_dict(results) == [
+        {"data": {"test": "Hello World", "shared": "Hello Everyone"}}
+    ]
 
 
 def test_reports_validation_errors():
-    results, params = run_http_query(schema, 'get', {}, query_data=dict(
-        query='{ test, unknownOne, unknownTwo }'
-    ))
+    results, params = run_http_query(
+        schema, "get", {}, query_data=dict(query="{ test, unknownOne, unknownTwo }")
+    )
 
     err_1 = 'Cannot query field "unknownOne" on type "QueryRoot".'
     err_2 = 'Cannot query field "unknownTwo" on type "QueryRoot".'
 
-    assert executions_to_dict(results) == [{
-        'errors': [
-            {
-                'message': err_1,
-                'locations': [{'line': 1, 'column': 9}]
-            },
-            {
-                'message': err_2,
-                'locations': [{'line': 1, 'column': 21}]
-            }
-        ]
-    }]
+    assert executions_to_dict(results) == [
+        {
+            "errors": [
+                {"message": err_1, "locations": [{"line": 1, "column": 9}]},
+                {"message": err_2, "locations": [{"line": 1, "column": 21}]},
+            ]
+        }
+    ]
 
 
 def test_errors_when_missing_operation_name():
-    results, params = run_http_query(schema, 'get', {}, query_data=dict(
-        query='''
+    results, params = run_http_query(
+        schema,
+        "get",
+        {},
+        query_data=dict(
+            query="""
         query TestQuery { test }
         mutation TestMutation { writeTest { test } }
-        '''
-    ))
-    msg = 'Must provide operation name if query contains multiple operations.'
+        """
+        ),
+    )
+    msg = "Must provide operation name if query contains multiple operations."
 
-    assert executions_to_dict(results) == [{
-        'errors': [
-            {
-                'message': msg
-            }
-        ]
-    }]
+    assert executions_to_dict(results) == [{"errors": [{"message": msg}]}]
 
 
 # def test_errors_when_sending_a_mutation_via_get():
@@ -411,15 +407,14 @@ def test_errors_when_missing_operation_name():
 
 def test_handles_unsupported_http_methods():
     with raises(HttpQueryError) as exc_info:
-        run_http_query(schema, 'put', None)
+        run_http_query(schema, "put", None)
 
     assert exc_info.value == HttpQueryError(
         405,
-        'GraphQL only supports GET and POST requests.',
-        headers={
-            'Allow': 'GET, POST'
-        }
+        "GraphQL only supports GET and POST requests.",
+        headers={"Allow": "GET, POST"},
     )
+
 
 # def test_passes_request_into_request_context(client):
 #     response = client.get(url_string(query='{request}', q='testing'))
@@ -495,8 +490,8 @@ def test_handles_unsupported_http_methods():
 #         # 'id': 1,
 #         'data': {'test': "Hello Dolly"}
 #     }]
- 
-          
+
+
 # @pytest.mark.parametrize('app', [create_app(batch=True)])
 # def test_batch_allows_post_with_operation_name(client):
 #     response = client.post(
