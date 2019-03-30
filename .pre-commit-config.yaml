@@ -26,3 +26,4 @@ repos:
     rev: 3.7.7
     hooks:
     -   id: flake8
+        exclude: tests/schema.py
