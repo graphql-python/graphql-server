@@ -1,21 +1,17 @@
 import json
 from collections import namedtuple
-try:
-    from collections.abc import MutableMapping
-except ImportError:  # Python < 3.3
-    from collections import MutableMapping
+from collections.abc import MutableMapping
 
 import six
-from graphql import get_default_backend
-from graphql.error import format_error as default_format_error
-from graphql.execution import ExecutionResult
+from graphql import (ExecutionResult, GraphQLError, execute, get_operation_ast,
+                     parse, validate, validate_schema)
 
 from .error import HttpQueryError
 
 # Necessary for static type checking
 if False:
     from typing import List, Dict, Optional, Tuple, Any, Union, Callable, Type  # noqa: F401
-    from graphql import GraphQLSchema, GraphQLBackend  # noqa: F401
+    from graphql import GraphQLSchema  # noqa: F401
 
 
 class SkipException(Exception):
@@ -166,36 +162,41 @@ def execute_graphql_request(
     schema,  # type: GraphQLSchema
     params,  # type: GraphQLParams
     allow_only_query=False,  # type: bool
-    backend=None,  # type: GraphQLBackend
-    **kwargs  # type: Dict
 ):
     if not params.query:
         raise HttpQueryError(400, "Must provide query string.")
 
+    schema_validation_errors = validate_schema(schema)
+    if schema_validation_errors:
+        return ExecutionResult(data=None, errors=schema_validation_errors)
+
     try:
-        if not backend:
-            backend = get_default_backend()
-        document = backend.document_from_string(schema, params.query)
+        document = parse(params.query)
+    except GraphQLError as e:
+        return ExecutionResult(data=None, errors=[e])
     except Exception as e:
-        return ExecutionResult(errors=[e], invalid=True)
+        e = GraphQLError(str(e), original_error=e)
+        return ExecutionResult(data=None, errors=[e])
 
     if allow_only_query:
-        operation_type = document.get_operation_type(params.operation_name)
-        if operation_type and operation_type != "query":
+        operation_ast = get_operation_ast(document, params.operation_name)
+        if operation_ast and operation_ast.operation.value != 'query':
             raise HttpQueryError(
                 405,
                 "Can only perform a {} operation from a POST request.".format(
-                    operation_type
+                    operation_ast.operation.value
                 ),
                 headers={"Allow": "POST"},
             )
 
-    try:
-        return document.execute(
-            operation_name=params.operation_name, variables=params.variables, **kwargs
-        )
-    except Exception as e:
-        return ExecutionResult(errors=[e], invalid=True)
+    validation_errors = validate(schema, document)
+    if validation_errors:
+        return ExecutionResult(data=None, errors=validation_errors)
+
+    return execute(
+        schema, document,
+        variable_values=params.variables,
+        operation_name=params.operation_name)
 
 
 def load_json_body(data):
@@ -208,7 +209,6 @@ def load_json_body(data):
 
 __all__ = [
     "HttpQueryError",
-    "default_format_error",
     "SkipException",
     "run_http_query",
     "encode_execution_results",
