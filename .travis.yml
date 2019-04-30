@@ -11,7 +11,10 @@ matrix:
   - python: '3.5'
     env: TOX_ENV=py35
   - python: '3.6'
-    env: TOX_ENV=py36,import-order,flake8,mypy
+    env: TOX_ENV=py36
+  - python: '3.7'
+    env: TOX_ENV=py37,import-order,flake8,mypy
+    dist: xenial
 cache:
   directories:
   - $HOME/.cache/pip

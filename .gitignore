@@ -1,12 +1,16 @@
 *.pyc
-.idea
-.cache
-.tox
+*.pyo
+
 *.egg
 *.egg-info
-.coverage
-/build/
 
+.cache
+.coverage
+.idea
+.mypy_cache
+.pytest_cache
+.tox
+.venv
+
+/build/
 /dist/
-/.mypy_cache
-/.pytest_cache

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# the documentation can be created from the docstrings
+# with pdoc (https://pdoc3.github.io/pdoc/)
+
+pdoc --html --overwrite --html-dir docs graphql_server
