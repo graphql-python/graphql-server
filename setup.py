@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-required_packages = ["graphql-core>=2.1", "promise"]
+required_packages = ["graphql-core>=2.1,<3", "promise"]
 
 setup(
     name="graphql-server-core",
@@ -30,7 +30,7 @@ setup(
     keywords="api graphql protocol rest",
     packages=find_packages(exclude=["tests"]),
     install_requires=required_packages,
-    tests_require=["pytest>=2.7.3"],
+    tests_require=["pytest>=3.0"],
     include_package_data=True,
     zip_safe=False,
     platforms="any",

@@ -9,26 +9,49 @@ for building GraphQL servers or integrations into existing web frameworks using
 
 
 import json
-from collections import MutableMapping, namedtuple
+from collections import namedtuple
 
 import six
 from graphql import get_default_backend
 from graphql.error import format_error as default_format_error
 from graphql.execution import ExecutionResult
+from graphql.type import GraphQLSchema
 
 from .error import HttpQueryError
 
+try:  # pragma: no cover (Python >= 3.3)
+    from collections.abc import MutableMapping
+except ImportError:  # pragma: no cover (Python < 3.3)
+    # noinspection PyUnresolvedReferences,PyProtectedMember
+    from collections import MutableMapping
+
 # Necessary for static type checking
+# noinspection PyUnreachableCode
 if False:  # flake8: noqa
-    from typing import List, Dict, Optional, Tuple, Any, Union, Callable, Type
-    from graphql import GraphQLSchema, GraphQLBackend
+    from typing import Any, Callable, Dict, List, Optional, Type, Union
+    from graphql import GraphQLBackend
 
 
 __all__ = [
     "run_http_query",
     "encode_execution_results",
     "load_json_body",
-    "HttpQueryError"]
+    "json_encode",
+    "json_encode_pretty",
+    "HttpQueryError",
+    "RequestParams",
+    "ServerResults",
+    "ServerResponse",
+]
+
+
+# The public data structures
+
+RequestParams = namedtuple("RequestParams", "query variables operation_name")
+
+ServerResults = namedtuple("ServerResults", "results params")
+
+ServerResponse = namedtuple("ServerResponse", "body status_code")
 
 
 # The public helper functions
@@ -41,7 +64,7 @@ def run_http_query(
     query_data=None,  # type: Optional[Dict]
     batch_enabled=False,  # type: bool
     catch=False,  # type: bool
-    **execute_options  # type: Dict
+    **execute_options  # type: Any
 ):
     """Execute GraphQL coming from an HTTP query against a given schema.
 
@@ -55,9 +78,11 @@ def run_http_query(
     All other keyword arguments are passed on to the GraphQL-Core function for
     executing GraphQL queries.
 
-    This functions returns a tuple with the list of ExecutionResults as first item
+    Returns a ServerResults tuple with the list of ExecutionResults as first item
     and the list of parameters that have been used for execution as second item.
     """
+    if not isinstance(schema, GraphQLSchema):
+        raise TypeError("Expected a GraphQL schema, but received {!r}.".format(schema))
     if request_method not in ("get", "post"):
         raise HttpQueryError(
             405,
@@ -78,7 +103,7 @@ def run_http_query(
     if not is_batch:
         if not isinstance(data, (dict, MutableMapping)):
             raise HttpQueryError(
-                400, "GraphQL params should be a dict. Received {}.".format(data)
+                400, "GraphQL params should be a dict. Received {!r}.".format(data)
             )
         data = [data]
     elif not batch_enabled:
@@ -94,12 +119,12 @@ def run_http_query(
 
     all_params = [get_graphql_params(entry, extra_data) for entry in data]
 
-    responses = [
+    results = [
         get_response(schema, params, catch_exc, allow_only_query, **execute_options)
         for params in all_params
     ]
 
-    return responses, all_params
+    return ServerResults(results, all_params)
 
 
 def encode_execution_results(
@@ -108,7 +133,7 @@ def encode_execution_results(
     is_batch=False,  # type: bool
     encode=None,  # type: Callable[[Dict], Any]
 ):
-    # type: (...) -> Tuple[Any, int]
+    # type: (...) -> ServerResponse
     """Serialize the ExecutionResults.
 
     This function takes the ExecutionResults that are returned by run_http_query()
@@ -117,18 +142,21 @@ def encode_execution_results(
     the first one will be used. You can also pass a custom function that formats the
     errors in the ExecutionResults, expecting a dictionary as result and another custom
     function that is used to serialize the output.
+
+    Returns a ServerResponse tuple with the serialized response as the first item and
+    a status code of 200 or 400 in case any result was invalid as the second item.
     """
-    responses = [
+    results = [
         format_execution_result(execution_result, format_error or default_format_error)
         for execution_result in execution_results
     ]
-    result, status_codes = zip(*responses)
+    result, status_codes = zip(*results)
     status_code = max(status_codes)
 
     if not is_batch:
         result = result[0]
 
-    return (encode or json_encode)(result), status_code
+    return ServerResponse((encode or json_encode)(result), status_code)
 
 
 def load_json_body(data):
@@ -144,11 +172,25 @@ def load_json_body(data):
         raise HttpQueryError(400, "POST body sent invalid JSON.")
 
 
+def json_encode(data):
+    # type: (Union[Dict,List]) -> str
+    """Serialize the given data(a dictionary or a list) using JSON.
+
+    The given data (a dictionary or a list) will be serialized using JSON
+    and returned as a string that will be nicely formatted if you set pretty=True.
+    """
+    return json.dumps(data, separators=(",", ":"))
+
+
+def json_encode_pretty(data):
+    # type: (Union[Dict,List]) -> str
+    """Serialize the given data using JSON with nice formatting."""
+    return json.dumps(data, indent=2, separators=(",", ": "))
+
+
 # Some more private helpers
 
-GraphQLParams = namedtuple("GraphQLParams", "query variables operation_name")
-
-GraphQLResponse = namedtuple("GraphQLResponse", "result status_code")
+FormattedResult = namedtuple("FormattedResult", "result status_code")
 
 
 class _NoException(Exception):
@@ -156,20 +198,20 @@ class _NoException(Exception):
 
 
 def get_graphql_params(data, query_data):
-    # type: (Dict, Dict) -> GraphQLParams
+    # type: (Dict, Dict) -> RequestParams
     """Fetch GraphQL query, variables and operation name parameters from given data.
 
     You need to pass both the data from the HTTP request body and the HTTP query string.
     Params from the request body will take precedence over those from the query string.
 
-    You will get a GraphQLParams object with these parameters as attributes in return.
+    You will get a RequestParams tuple with these parameters in return.
     """
     query = data.get("query") or query_data.get("query")
     variables = data.get("variables") or query_data.get("variables")
     # document_id = data.get('documentId')
     operation_name = data.get("operationName") or query_data.get("operationName")
 
-    return GraphQLParams(query, load_json_variables(variables), operation_name)
+    return RequestParams(query, load_json_variables(variables), operation_name)
 
 
 def load_json_variables(variables):
@@ -190,12 +232,12 @@ def load_json_variables(variables):
 
 def execute_graphql_request(
     schema,  # type: GraphQLSchema
-    params,  # type: GraphQLParams
+    params,  # type: RequestParams
     allow_only_query=False,  # type: bool
     backend=None,  # type: GraphQLBackend
-    **kwargs  # type: Dict
+    **kwargs  # type: Any
 ):
-    """Execute a GraphQL request and return a ExecutionResult.
+    """Execute a GraphQL request and return an ExecutionResult.
 
     You need to pass the GraphQL schema and the GraphQLParams that you can get
     with the get_graphql_params() function. If you only want to allow GraphQL query
@@ -235,10 +277,10 @@ def execute_graphql_request(
 
 def get_response(
     schema,  # type: GraphQLSchema
-    params,  # type: GraphQLParams
+    params,  # type: RequestParams
     catch_exc,  # type: Type[BaseException]
     allow_only_query=False,  # type: bool
-    **kwargs  # type: Dict
+    **kwargs  # type: Any
 ):
     # type: (...) -> Optional[ExecutionResult]
     """Get an individual execution result as response, with option to catch errors.
@@ -246,7 +288,7 @@ def get_response(
     This does the same as execute_graphql_request() except that you can catch errors
     that belong to an exception class that you need to pass as a parameter.
     """
-
+    # noinspection PyBroadException
     try:
         execution_result = execute_graphql_request(
             schema, params, allow_only_query, **kwargs
@@ -261,10 +303,10 @@ def format_execution_result(
     execution_result,  # type: Optional[ExecutionResult]
     format_error,  # type: Optional[Callable[[Exception], Dict]]
 ):
-    # type: (...) -> GraphQLResponse
+    # type: (...) -> FormattedResult
     """Format an execution result into a GraphQLResponse.
 
-    This converts the given execution result into a GraphQLResponse that contains
+    This converts the given execution result into a FormattedResult that contains
     the ExecutionResult converted to a dictionary and an appropriate status code.
     """
     status_code = 200
@@ -276,17 +318,4 @@ def format_execution_result(
     else:
         response = None
 
-    return GraphQLResponse(response, status_code)
-
-
-def json_encode(data, pretty=False):
-    # type: (Union[Dict,List], bool) -> str
-    """Serialize the given data using JSON.
-
-    The given data (a dictionary or a list) will be serialized using JSON
-    and returned as a string that will be nicely formatted if you set pretty=True.
-    """
-    if not pretty:
-        return json.dumps(data, separators=(",", ":"))
-
-    return json.dumps(data, indent=2, separators=(",", ": "))
+    return FormattedResult(response, status_code)
