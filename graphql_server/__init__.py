@@ -27,7 +27,8 @@ except ImportError:  # pragma: no cover (Python < 3.3)
 
 # Necessary for static type checking
 # noinspection PyUnreachableCode
-if False:  # flake8: noqa
+if False:  # pragma: no cover
+    # flake8: noqa
     from typing import Any, Callable, Dict, List, Optional, Type, Union
     from graphql import GraphQLBackend
 

@@ -1,6 +1,8 @@
 # GraphQL-Server-Core
 
-[![Build Status](https://travis-ci.org/graphql-python/graphql-server-core.svg?branch=master)](https://travis-ci.org/graphql-python/graphql-server-core) [![Coverage Status](https://coveralls.io/repos/graphql-python/graphql-server-core/badge.svg?branch=master&service=github)](https://coveralls.io/github/graphql-python/graphql-server-core?branch=master) [![PyPI version](https://badge.fury.io/py/graphql-server-core.svg)](https://badge.fury.io/py/graphql-server-core)
+[![PyPI version](https://badge.fury.io/py/graphql-server-core.svg)](https://badge.fury.io/py/graphql-server-core)
+[![Build Status](https://travis-ci.org/graphql-python/graphql-server-core.svg?branch=master)](https://travis-ci.org/graphql-python/graphql-server-core)
+[![Coverage Status](https://codecov.io/gh/graphql-python/graphql-server-core/branch/master/graph/badge.svg)](https://codecov.io/gh/graphql-python/graphql-server-core)
 
 GraphQL-Server-Core is a base library that serves as a helper
 for building GraphQL servers or integrations into existing web frameworks using

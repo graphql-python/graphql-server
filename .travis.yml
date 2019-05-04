@@ -22,11 +22,11 @@ cache:
   - $HOME/.cache/pip
   - $TRAVIS_BUILD_DIR/.tox
 install:
-- pip install tox coveralls
+- pip install tox codecov
 script:
-- tox -e $TOX_ENV -- --cov=graphql_server
+- tox -e $TOX_ENV -- --cov-report term-missing --cov=graphql_server
 after_success:
-- coveralls
+- codecov
 deploy:
   provider: pypi
   user: syrusakbary
