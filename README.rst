@@ -33,12 +33,13 @@ Django             `graphene-django <https://github.com/graphql-python/graphene-
 Documentation
 -------------
 
-The ``graphql_server`` package provides these three public helper
-functions:
+The ``graphql_server`` package provides these public helper functions:
 
 -  ``run_http_query``
 -  ``encode_execution_results``
 -  ``laod_json_body``
+-  ``json_encode``
+-  ``json_encode_pretty``
 
 All functions in the package are annotated with type hints and
 docstrings, and you can build HTML documentation from these using

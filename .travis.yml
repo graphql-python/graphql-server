@@ -1,20 +1,22 @@
 language: python
-sudo: false
 matrix:
   include:
-  - python: pypy
-    env: TOX_ENV=pypy
-  - python: '2.7'
-    env: TOX_ENV=py27
-  - python: '3.4'
-    env: TOX_ENV=py34
-  - python: '3.5'
-    env: TOX_ENV=py35
+  - python: '3.7'
+    env: TOX_ENV=black,flake8,mypy,py37
+    dist: xenial
+    sudo: true # required workaround for https://github.com/travis-ci/travis-ci/issues/9815
   - python: '3.6'
     env: TOX_ENV=py36
-  - python: '3.7'
-    env: TOX_ENV=py37,import-order,flake8,mypy
-    dist: xenial
+  - python: '3.5'
+    env: TOX_ENV=py35
+  - python: '3.4'
+    env: TOX_ENV=py34
+  - python: '2.7'
+    env: TOX_ENV=py27
+  - python: 'pypy3.5'
+    env: TOX_ENV=pypy3
+  - python: 'pypy'
+    env: TOX_ENV=pypy
 cache:
   directories:
   - $HOME/.cache/pip
