@@ -15,7 +15,9 @@ import six
 from graphql import get_default_backend
 from graphql.error import format_error as default_format_error
 from graphql.execution import ExecutionResult
+from graphql.execution.executors.sync import SyncExecutor
 from graphql.type import GraphQLSchema
+from promise import Promise, is_thenable
 
 from .error import HttpQueryError
 
@@ -120,9 +122,19 @@ def run_http_query(
 
     all_params = [get_graphql_params(entry, extra_data) for entry in data]
 
-    results = [
-        get_response(schema, params, catch_exc, allow_only_query, **execute_options)
+    executor = execute_options.get("executor")
+    response_executor = executor if executor else SyncExecutor()
+
+    response_promises = [
+        response_executor.execute(
+            get_response, schema, params, catch_exc, allow_only_query, **execute_options
+        )
         for params in all_params
+    ]
+    response_executor.wait_until_finished()
+
+    results = [
+        result.get() if is_thenable(result) else result for result in response_promises
     ]
 
     return ServerResults(results, all_params)
