@@ -11,8 +11,7 @@ for building GraphQL servers or integrations into existing web frameworks using
 import json
 from collections import namedtuple
 
-import six
-from graphql import get_default_backend
+#from graphql import get_default_backend
 from graphql.error import format_error as default_format_error
 from graphql.execution import ExecutionResult
 from graphql.type import GraphQLSchema
@@ -59,13 +58,13 @@ ServerResponse = namedtuple("ServerResponse", "body status_code")
 
 
 def run_http_query(
-    schema,  # type: GraphQLSchema
-    request_method,  # type: str
-    data,  # type: Union[Dict, List[Dict]]
-    query_data=None,  # type: Optional[Dict]
-    batch_enabled=False,  # type: bool
-    catch=False,  # type: bool
-    **execute_options  # type: Any
+    schema: GraphQLSchema,
+    request_method: str,
+    data: Union[Dict, List[Dict]],
+    query_data: Optional[Dict] = None,
+    batch_enabled: bool =False,
+    catch: bool = False,
+    **execute_options: Any
 ):
     """Execute GraphQL coming from an HTTP query against a given schema.
 
@@ -83,7 +82,7 @@ def run_http_query(
     and the list of parameters that have been used for execution as second item.
     """
     if not isinstance(schema, GraphQLSchema):
-        raise TypeError("Expected a GraphQL schema, but received {!r}.".format(schema))
+        raise TypeError(f"Expected a GraphQL schema, but received {repr(schema)}.")
     if request_method not in ("get", "post"):
         raise HttpQueryError(
             405,
@@ -104,7 +103,7 @@ def run_http_query(
     if not is_batch:
         if not isinstance(data, (dict, MutableMapping)):
             raise HttpQueryError(
-                400, "GraphQL params should be a dict. Received {!r}.".format(data)
+                400, f"GraphQL params should be a dict. Received {repr(data)}."
             )
         data = [data]
     elif not batch_enabled:
@@ -223,7 +222,7 @@ def load_json_variables(variables):
     deserialized from JSON to a dictionary first if necessary. In case of
     invalid JSON input, an HttpQueryError will be raised.
     """
-    if variables and isinstance(variables, six.string_types):
+    if variables and isinstance(variables, str):
         try:
             return json.loads(variables)
         except Exception:
@@ -251,8 +250,8 @@ def execute_graphql_request(
         raise HttpQueryError(400, "Must provide query string.")
 
     try:
-        if not backend:
-            backend = get_default_backend()
+        #if not backend:
+        #    backend = get_default_backend()
         document = backend.document_from_string(schema, params.query)
     except Exception as e:
         return ExecutionResult(errors=[e], invalid=True)
@@ -262,9 +261,7 @@ def execute_graphql_request(
         if operation_type and operation_type != "query":
             raise HttpQueryError(
                 405,
-                "Can only perform a {} operation from a POST request.".format(
-                    operation_type
-                ),
+                f"Can only perform a {operation_type} operation from a POST request.",
                 headers={"Allow": "POST"},
             )
 
