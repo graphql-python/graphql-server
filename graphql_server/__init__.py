@@ -10,7 +10,7 @@ for building GraphQL servers or integrations into existing web frameworks using
 
 import json
 from collections import namedtuple
-
+from typing import TYPE_CHECKING
 #from graphql import get_default_backend
 from graphql.error import format_error as default_format_error
 from graphql.execution import ExecutionResult
@@ -18,18 +18,13 @@ from graphql.type import GraphQLSchema
 
 from .error import HttpQueryError
 
-try:  # pragma: no cover (Python >= 3.3)
-    from collections.abc import MutableMapping
-except ImportError:  # pragma: no cover (Python < 3.3)
-    # noinspection PyUnresolvedReferences,PyProtectedMember
-    from collections import MutableMapping
+from collections import MutableMapping
 
 # Necessary for static type checking
 # noinspection PyUnreachableCode
-if False:  # pragma: no cover
+if TYPE_CHECKING:  # pragma: no cover
     # flake8: noqa
     from typing import Any, Callable, Dict, List, Optional, Type, Union
-    from graphql import GraphQLBackend
 
 
 __all__ = [
@@ -62,7 +57,7 @@ def run_http_query(
     request_method: str,
     data: Union[Dict, List[Dict]],
     query_data: Optional[Dict] = None,
-    batch_enabled: bool =False,
+    batch_enabled: bool = False,
     catch: bool = False,
     **execute_options: Any
 ):
