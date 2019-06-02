@@ -10,21 +10,16 @@ for building GraphQL servers or integrations into existing web frameworks using
 
 import json
 from collections import namedtuple
-from typing import TYPE_CHECKING
 #from graphql import get_default_backend
 from graphql.error import format_error as default_format_error
 from graphql.execution import ExecutionResult
-from graphql.type import GraphQLSchema
+from graphql import parse, graphql as graphql_,  get_operation_root_type, DocumentNode, OperationDefinitionNode, GraphQLSchema
 
 from .error import HttpQueryError
 
 from collections import MutableMapping
 
-# Necessary for static type checking
-# noinspection PyUnreachableCode
-if TYPE_CHECKING:  # pragma: no cover
-    # flake8: noqa
-    from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 
 __all__ = [
@@ -51,6 +46,10 @@ ServerResponse = namedtuple("ServerResponse", "body status_code")
 
 # The public helper functions
 
+def get_operation_node(doc: DocumentNode) -> OperationDefinitionNode:
+    operation_node = doc.definitions[0]
+    assert isinstance(operation_node, OperationDefinitionNode)
+    return operation_node
 
 def run_http_query(
     schema: GraphQLSchema,
@@ -229,7 +228,7 @@ def execute_graphql_request(
     schema,  # type: GraphQLSchema
     params,  # type: RequestParams
     allow_only_query=False,  # type: bool
-    backend=None,  # type: GraphQLBackend
+    #backend=None,  # type: GraphQLBackend
     **kwargs  # type: Any
 ):
     """Execute a GraphQL request and return an ExecutionResult.
@@ -244,16 +243,13 @@ def execute_graphql_request(
     if not params.query:
         raise HttpQueryError(400, "Must provide query string.")
 
-    try:
-        #if not backend:
-        #    backend = get_default_backend()
-        document = backend.document_from_string(schema, params.query)
-    except Exception as e:
-        return ExecutionResult(errors=[e], invalid=True)
-
     if allow_only_query:
-        operation_type = document.get_operation_type(params.operation_name)
-        if operation_type and operation_type != "query":
+        document = parse(params.query)
+
+        op_node = get_operation_node(document)
+        query_type = schema.query_type
+        operation_type = get_operation_root_type(schema, op_node)
+        if operation_type and operation_type != query_type:
             raise HttpQueryError(
                 405,
                 f"Can only perform a {operation_type} operation from a POST request.",
@@ -261,7 +257,7 @@ def execute_graphql_request(
             )
 
     try:
-        return document.execute(
+        return graphql_(
             operation_name=params.operation_name, variables=params.variables, **kwargs
         )
     except Exception as e:
