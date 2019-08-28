@@ -530,3 +530,36 @@ def test_batch_allows_post_with_operation_name():
     assert as_dicts(results) == [
         {"data": {"test": "Hello World", "shared": "Hello Everyone"}}
     ]
+
+
+def test_get_reponses_using_executor():
+    class TestExecutor(object):
+        called = False
+        waited = False
+        cleaned = False
+
+        def wait_until_finished(self):
+            TestExecutor.waited = True
+
+        def clean(self):
+            TestExecutor.cleaned = True
+
+        def execute(self, fn, *args, **kwargs):
+            TestExecutor.called = True
+            return fn(*args, **kwargs)
+
+    query = "{test}"
+    results, params = run_http_query(
+        schema,
+        "get",
+        {},
+        dict(query=query),
+        executor=TestExecutor(),
+        return_promise=True,
+    )
+
+    assert as_dicts(results) == [{"data": {"test": "Hello World"}}]
+    assert params == [RequestParams(query=query, variables=None, operation_name=None)]
+    assert TestExecutor.called
+    assert TestExecutor.waited
+    assert TestExecutor.cleaned
