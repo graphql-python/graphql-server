@@ -4,9 +4,10 @@ required_packages = ["graphql-core>=2.1,<3", "promise"]
 
 setup(
     name="graphql-server-core",
-    version="1.1.1",
+    version="1.1.2",
     description="GraphQL Server tools for powering your server",
-    long_description=open("README.rst").read(),
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
     url="https://github.com/graphql-python/graphql-server-core",
     download_url="https://github.com/graphql-python/graphql-server-core/releases",
     author="Syrus Akbary",
@@ -30,7 +31,7 @@ setup(
     keywords="api graphql protocol rest",
     packages=find_packages(exclude=["tests"]),
     install_requires=required_packages,
-    tests_require=["pytest>=3.0"],
+    tests_require=["pytest>=3.0,<4"],
     include_package_data=True,
     zip_safe=False,
     platforms="any",
