@@ -31,7 +31,7 @@ The `graphql_server` package provides these public helper functions:
 
  * `run_http_query`
  * `encode_execution_results`
- * `laod_json_body`
+ * `load_json_body`
  * `json_encode`
  * `json_encode_pretty`
 
