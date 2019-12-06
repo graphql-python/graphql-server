@@ -25,6 +25,13 @@ def test_json_encode_pretty():
     assert result == '{\n  "query": "{test}"\n}'
 
 
+def test_json_encode_with_pretty_argument():
+    result = json_encode({"query": "{test}"}, pretty=False)
+    assert result == '{"query":"{test}"}'
+    result = json_encode({"query": "{test}"}, pretty=True)
+    assert result == '{\n  "query": "{test}"\n}'
+
+
 def test_load_json_body_as_dict():
     result = load_json_body('{"query": "{test}"}')
     assert result == {"query": "{test}"}

@@ -185,13 +185,15 @@ def load_json_body(data):
         raise HttpQueryError(400, "POST body sent invalid JSON.")
 
 
-def json_encode(data):
-    # type: (Union[Dict,List]) -> str
+def json_encode(data, pretty=False):
+    # type: (Union[Dict,List],Optional[bool]) -> str
     """Serialize the given data(a dictionary or a list) using JSON.
 
     The given data (a dictionary or a list) will be serialized using JSON
     and returned as a string that will be nicely formatted if you set pretty=True.
     """
+    if pretty:
+        return json_encode_pretty(data)
     return json.dumps(data, separators=(",", ":"))
 
 
