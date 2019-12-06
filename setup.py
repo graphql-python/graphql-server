@@ -4,7 +4,7 @@ required_packages = ["graphql-core>=2.1,<3", "promise"]
 
 setup(
     name="graphql-server-core",
-    version="1.1.2",
+    version="1.1.3",
     description="GraphQL Server tools for powering your server",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
@@ -25,6 +25,7 @@ setup(
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: Implementation :: PyPy",
         "License :: OSI Approved :: MIT License",
     ],
