@@ -122,20 +122,32 @@ def run_http_query(
 
     all_params = [get_graphql_params(entry, extra_data) for entry in data]
 
-    executor = execute_options.get("executor")
-    response_executor = executor if executor else SyncExecutor()
+    if execute_options.get("return_promise"):
+        results = [
+            get_response(schema, params, catch_exc, allow_only_query, **execute_options)
+            for params in all_params
+        ]
+    else:
+        executor = execute_options.get("executor")
+        response_executor = executor if executor else SyncExecutor()
 
-    response_promises = [
-        response_executor.execute(
-            get_response, schema, params, catch_exc, allow_only_query, **execute_options
-        )
-        for params in all_params
-    ]
-    response_executor.wait_until_finished()
+        response_promises = [
+            response_executor.execute(
+                get_response,
+                schema,
+                params,
+                catch_exc,
+                allow_only_query,
+                **execute_options
+            )
+            for params in all_params
+        ]
+        response_executor.wait_until_finished()
 
-    results = [
-        result.get() if is_thenable(result) else result for result in response_promises
-    ]
+        results = [
+            result.get() if is_thenable(result) else result
+            for result in response_promises
+        ]
 
     return ServerResults(results, all_params)
 
