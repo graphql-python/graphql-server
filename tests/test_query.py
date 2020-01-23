@@ -1,7 +1,11 @@
 import json
 
-from graphql.error import GraphQLError
+from pytest import raises
+
 from promise import Promise
+
+from graphql.error import GraphQLError, GraphQLSyntaxError
+from graphql.execution import ExecutionResult
 
 from graphql_server import (
     HttpQueryError,
@@ -13,7 +17,6 @@ from graphql_server import (
     load_json_body,
     run_http_query,
 )
-from pytest import raises
 
 from .schema import schema
 from .utils import as_dicts
@@ -529,7 +532,7 @@ def test_batch_allows_post_with_operation_name():
     ]
 
 
-def test_get_reponses_using_executor():
+def test_get_responses_using_executor():
     class TestExecutor(object):
         called = False
         waited = False
@@ -550,6 +553,10 @@ def test_get_reponses_using_executor():
         schema, "get", {}, dict(query=query), executor=TestExecutor(),
     )
 
+    assert isinstance(results, list)
+    assert len(results) == 1
+    assert isinstance(results[0], ExecutionResult)
+
     assert as_dicts(results) == [{"data": {"test": "Hello World"}}]
     assert params == [RequestParams(query=query, variables=None, operation_name=None)]
     assert TestExecutor.called
@@ -557,7 +564,7 @@ def test_get_reponses_using_executor():
     assert not TestExecutor.cleaned
 
 
-def test_get_reponses_using_executor_return_promise():
+def test_get_responses_using_executor_return_promise():
     class TestExecutor(object):
         called = False
         waited = False
@@ -583,6 +590,9 @@ def test_get_reponses_using_executor_return_promise():
         return_promise=True,
     )
 
+    assert isinstance(result_promises, list)
+    assert len(result_promises) == 1
+    assert isinstance(result_promises[0], Promise)
     results = Promise.all(result_promises).get()
 
     assert as_dicts(results) == [{"data": {"test": "Hello World"}}]
@@ -590,3 +600,51 @@ def test_get_reponses_using_executor_return_promise():
     assert TestExecutor.called
     assert not TestExecutor.waited
     assert TestExecutor.cleaned
+
+
+def test_syntax_error_using_executor_return_promise():
+    class TestExecutor(object):
+        called = False
+        waited = False
+        cleaned = False
+
+        def wait_until_finished(self):
+            TestExecutor.waited = True
+
+        def clean(self):
+            TestExecutor.cleaned = True
+
+        def execute(self, fn, *args, **kwargs):
+            TestExecutor.called = True
+            return fn(*args, **kwargs)
+
+    query = "this is a syntax error"
+    result_promises, params = run_http_query(
+        schema,
+        "get",
+        {},
+        dict(query=query),
+        executor=TestExecutor(),
+        return_promise=True,
+    )
+
+    assert isinstance(result_promises, list)
+    assert len(result_promises) == 1
+    assert isinstance(result_promises[0], Promise)
+    results = Promise.all(result_promises).get()
+
+    assert isinstance(results, list)
+    assert len(results) == 1
+    result = results[0]
+    assert isinstance(result, ExecutionResult)
+
+    assert result.data is None
+    assert isinstance(result.errors, list)
+    assert len(result.errors) == 1
+    error = result.errors[0]
+    assert isinstance(error, GraphQLSyntaxError)
+
+    assert params == [RequestParams(query=query, variables=None, operation_name=None)]
+    assert not TestExecutor.called
+    assert not TestExecutor.waited
+    assert not TestExecutor.cleaned

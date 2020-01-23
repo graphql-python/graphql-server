@@ -12,12 +12,14 @@ import json
 from collections import namedtuple
 
 import six
+
+from promise import promisify, is_thenable
+
 from graphql import get_default_backend
 from graphql.error import format_error as default_format_error
 from graphql.execution import ExecutionResult
 from graphql.execution.executors.sync import SyncExecutor
 from graphql.type import GraphQLSchema
-from promise import Promise, is_thenable
 
 from .error import HttpQueryError
 
@@ -304,6 +306,11 @@ def execute_graphql_request(
         return ExecutionResult(errors=[e], invalid=True)
 
 
+@promisify
+def execute_graphql_request_as_promise(*args, **kwargs):
+    return execute_graphql_request(*args, **kwargs)
+
+
 def get_response(
     schema,  # type: GraphQLSchema
     params,  # type: RequestParams
@@ -318,10 +325,13 @@ def get_response(
     that belong to an exception class that you need to pass as a parameter.
     """
     # noinspection PyBroadException
+    execute = (
+        execute_graphql_request_as_promise
+        if kwargs.get("return_promise", False)
+        else execute_graphql_request
+    )
     try:
-        execution_result = execute_graphql_request(
-            schema, params, allow_only_query, **kwargs
-        )
+        execution_result = execute(schema, params, allow_only_query, **kwargs)
     except catch_exc:
         return None
 
