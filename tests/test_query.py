@@ -1,6 +1,7 @@
 import json
 
 from graphql.error import GraphQLError
+from promise import Promise
 
 from graphql_server import (
     HttpQueryError,
@@ -15,11 +16,7 @@ from graphql_server import (
 from pytest import raises
 
 from .schema import schema
-
-
-def as_dicts(results):
-    """Convert execution results to a list of tuples of dicts for better comparison."""
-    return [result.to_dict(dict_class=dict) for result in results]
+from .utils import as_dicts
 
 
 def test_request_params():
@@ -550,6 +547,34 @@ def test_get_reponses_using_executor():
 
     query = "{test}"
     results, params = run_http_query(
+        schema, "get", {}, dict(query=query), executor=TestExecutor(),
+    )
+
+    assert as_dicts(results) == [{"data": {"test": "Hello World"}}]
+    assert params == [RequestParams(query=query, variables=None, operation_name=None)]
+    assert TestExecutor.called
+    assert TestExecutor.waited
+    assert not TestExecutor.cleaned
+
+
+def test_get_reponses_using_executor_return_promise():
+    class TestExecutor(object):
+        called = False
+        waited = False
+        cleaned = False
+
+        def wait_until_finished(self):
+            TestExecutor.waited = True
+
+        def clean(self):
+            TestExecutor.cleaned = True
+
+        def execute(self, fn, *args, **kwargs):
+            TestExecutor.called = True
+            return fn(*args, **kwargs)
+
+    query = "{test}"
+    result_promises, params = run_http_query(
         schema,
         "get",
         {},
@@ -558,8 +583,10 @@ def test_get_reponses_using_executor():
         return_promise=True,
     )
 
+    results = Promise.all(result_promises).get()
+
     assert as_dicts(results) == [{"data": {"test": "Hello World"}}]
     assert params == [RequestParams(query=query, variables=None, operation_name=None)]
     assert TestExecutor.called
-    assert TestExecutor.waited
+    assert not TestExecutor.waited
     assert TestExecutor.cleaned
