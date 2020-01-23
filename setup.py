@@ -1,10 +1,11 @@
 from setuptools import setup, find_packages
 
-required_packages = ["graphql-core>=2.1,<3", "promise"]
+required_packages = ["graphql-core>=2.3,<3", "promise>=2.3,<3"]
+tests_require = ["pytest==4.6.9", "pytest-cov==2.8.1"]
 
 setup(
     name="graphql-server-core",
-    version="1.1.3",
+    version="1.2.0",
     description="GraphQL Server tools for powering your server",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
@@ -20,8 +21,6 @@ setup(
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.3",
-        "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
@@ -32,7 +31,8 @@ setup(
     keywords="api graphql protocol rest",
     packages=find_packages(exclude=["tests"]),
     install_requires=required_packages,
-    tests_require=["pytest>=3.0,<4"],
+    tests_require=tests_require,
+    extras_require={"test": tests_require},
     include_package_data=True,
     zip_safe=False,
     platforms="any",

@@ -1,8 +1,6 @@
-# flake8: noqa
+import asyncio
 
-import pytest
-
-asyncio = pytest.importorskip("asyncio")
+from promise import Promise
 
 from graphql.execution.executors.asyncio import AsyncioExecutor
 from graphql.type.definition import (
@@ -13,7 +11,6 @@ from graphql.type.definition import (
 from graphql.type.scalars import GraphQLString
 from graphql.type.schema import GraphQLSchema
 from graphql_server import RequestParams, run_http_query
-from promise import Promise
 
 from .utils import as_dicts
 
@@ -22,9 +19,8 @@ def resolve_error_sync(_obj, _info):
     raise ValueError("error sync")
 
 
-@asyncio.coroutine
-def resolve_error_async(_obj, _info):
-    yield from asyncio.sleep(0.001)
+async def resolve_error_async(_obj, _info):
+    await asyncio.sleep(0.001)
     raise ValueError("error async")
 
 
@@ -32,9 +28,8 @@ def resolve_field_sync(_obj, _info):
     return "sync"
 
 
-@asyncio.coroutine
-def resolve_field_async(_obj, info):
-    yield from asyncio.sleep(0.001)
+async def resolve_field_async(_obj, info):
+    await asyncio.sleep(0.001)
     return "async"
 
 
@@ -53,7 +48,7 @@ QueryRootType = GraphQLObjectType(
 schema = GraphQLSchema(QueryRootType)
 
 
-def test_get_reponses_using_asyncioexecutor():
+def test_get_responses_using_asyncio_executor():
     class TestExecutor(AsyncioExecutor):
         called = False
         waited = False
@@ -75,8 +70,7 @@ def test_get_reponses_using_asyncioexecutor():
 
     loop = asyncio.get_event_loop()
 
-    @asyncio.coroutine
-    def get_results():
+    async def get_results():
         result_promises, params = run_http_query(
             schema,
             "get",
@@ -85,7 +79,7 @@ def test_get_reponses_using_asyncioexecutor():
             executor=TestExecutor(loop=loop),
             return_promise=True,
         )
-        results = yield from Promise.all(result_promises)
+        results = await Promise.all(result_promises)
         return results, params
 
     results, params = loop.run_until_complete(get_results())

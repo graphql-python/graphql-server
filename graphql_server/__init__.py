@@ -296,7 +296,9 @@ def execute_graphql_request(
 
     try:
         return document.execute(
-            operation_name=params.operation_name, variables=params.variables, **kwargs
+            operation_name=params.operation_name,
+            variable_values=params.variables,
+            **kwargs
         )
     except Exception as e:
         return ExecutionResult(errors=[e], invalid=True)
