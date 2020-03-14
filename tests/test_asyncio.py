@@ -1,15 +1,11 @@
-import asyncio
-
-from promise import Promise
-
 from graphql.execution.executors.asyncio import AsyncioExecutor
-from graphql.type.definition import (
-    GraphQLField,
-    GraphQLNonNull,
-    GraphQLObjectType,
-)
+from graphql.type.definition import (GraphQLField, GraphQLNonNull,
+                                     GraphQLObjectType)
 from graphql.type.scalars import GraphQLString
 from graphql.type.schema import GraphQLSchema
+from promise import Promise
+
+import asyncio
 from graphql_server import RequestParams, run_http_query
 
 from .utils import as_dicts

@@ -1,2 +1,7 @@
 include README.md
 include LICENSE
+include CONTRIBUTING.md
+
+include tox.ini
+
+global-exclude *.py[co] __pycache__

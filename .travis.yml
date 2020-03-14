@@ -1,28 +1,18 @@
 language: python
-matrix:
-  include:
-    - python: "3.7"
-      env: TOX_ENV=black,flake8,mypy,py37
-    - python: "3.6"
-      env: TOX_ENV=py36
-    - python: "3.5"
-      env: TOX_ENV=py35
-    - python: "2.7"
-      env: TOX_ENV=py27
-    - python: pypy3
-      env: TOX_ENV=pypy3
-    - python: pypy
-      env: TOX_ENV=pypy
-cache:
-  directories:
-    - "$HOME/.cache/pip"
-    - "$TRAVIS_BUILD_DIR/.tox"
-install:
-  - pip install tox codecov
-script:
-  - tox -e $TOX_ENV -- --cov-report term-missing --cov=graphql_server
-after_success:
-  - codecov
+sudo: false
+python:
+  - 2.7
+  - 3.5
+  - 3.6
+  - 3.7
+  - 3.8
+  - 3.9-dev
+  - pypy
+  - pypy3
+cache: pip
+install: pip install tox-travis codecov
+script: tox
+after_success: codecov
 deploy:
   provider: pypi
   on:
