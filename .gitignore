@@ -11,6 +11,7 @@
 .pytest_cache
 .tox
 .venv
+.vscode
 
 /build/
 /dist/
