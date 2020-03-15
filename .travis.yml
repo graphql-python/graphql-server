@@ -13,6 +13,14 @@ matrix:
   include:
     - python: 3.6
       env: TOXENV=flake8
+    - python: 3.6
+      env: TOXENV=black
+    - python: 3.6
+      env: TOXENV=import-order
+    - python: 3.6
+      env: TOXENV=mypy
+    - python: 3.6
+      env: TOXENV=manifest
 cache: pip
 install: pip install tox-travis codecov
 script: tox
