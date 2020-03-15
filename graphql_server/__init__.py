@@ -326,7 +326,9 @@ def get_response(
     that belong to an exception class that you need to pass as a parameter.
     """
     # Note: PyCharm will display a error due to the triple dot being used on Callable.
-    execute = execute_graphql_request  # type: Callable[..., Union[Promise[ExecutionResult], ExecutionResult]]
+    execute = (
+        execute_graphql_request
+    )  # type: Callable[..., Union[Promise[ExecutionResult], ExecutionResult]]
     if kwargs.get("return_promise", False):
         execute = execute_graphql_request_as_promise
 

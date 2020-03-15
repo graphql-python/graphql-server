@@ -1,6 +1,5 @@
 from graphql.execution.executors.asyncio import AsyncioExecutor
-from graphql.type.definition import (GraphQLField, GraphQLNonNull,
-                                     GraphQLObjectType)
+from graphql.type.definition import GraphQLField, GraphQLNonNull, GraphQLObjectType
 from graphql.type.scalars import GraphQLString
 from graphql.type.schema import GraphQLSchema
 from promise import Promise

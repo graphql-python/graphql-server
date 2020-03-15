@@ -1,5 +1,9 @@
-from graphql.type.definition import (GraphQLArgument, GraphQLField,
-                                     GraphQLNonNull, GraphQLObjectType)
+from graphql.type.definition import (
+    GraphQLArgument,
+    GraphQLField,
+    GraphQLNonNull,
+    GraphQLObjectType,
+)
 from graphql.type.scalars import GraphQLString
 from graphql.type.schema import GraphQLSchema
 

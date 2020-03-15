@@ -5,9 +5,14 @@ from graphql.execution import ExecutionResult
 from graphql.language.location import SourceLocation
 from pytest import raises
 
-from graphql_server import (HttpQueryError, ServerResponse,
-                            encode_execution_results, json_encode,
-                            json_encode_pretty, load_json_body)
+from graphql_server import (
+    HttpQueryError,
+    ServerResponse,
+    encode_execution_results,
+    json_encode,
+    json_encode_pretty,
+    load_json_body,
+)
 
 
 def test_json_encode():

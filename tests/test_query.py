@@ -5,9 +5,16 @@ from graphql.execution import ExecutionResult
 from promise import Promise
 from pytest import raises
 
-from graphql_server import (HttpQueryError, RequestParams, ServerResults,
-                            encode_execution_results, json_encode,
-                            json_encode_pretty, load_json_body, run_http_query)
+from graphql_server import (
+    HttpQueryError,
+    RequestParams,
+    ServerResults,
+    encode_execution_results,
+    json_encode,
+    json_encode_pretty,
+    load_json_body,
+    run_http_query,
+)
 
 from .schema import schema
 from .utils import as_dicts
