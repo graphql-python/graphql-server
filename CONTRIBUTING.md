@@ -47,7 +47,7 @@ Then activate the environment with `conda activate graphql-sc-dev`.
 Proceed to install all dependencies by running:
 
 ```console
-pip install -e.[dev]
+pip install -e ".[dev]"
 ```
 
 And you ready to start development!
@@ -91,4 +91,3 @@ Then uncomment the `requires = tox-conda` line on `tox.ini` file.
 
 Run `tox` and you will see all the environments being created 
 and all passing tests. :rocket:
-
