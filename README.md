@@ -42,3 +42,6 @@ You can also use one of the existing integrations listed above as
 blueprint to build your own integration or GraphQL server implementations.
 
 Please let us know when you have built something new, so we can list it here.
+
+## Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md)

@@ -1,2 +1,13 @@
+include MANIFEST.in
+
 include README.md
 include LICENSE
+include CONTRIBUTING.md
+
+include codecov.yml
+include tox.ini
+
+graft tests
+prune bin
+
+global-exclude *.py[co] __pycache__

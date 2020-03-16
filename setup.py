@@ -1,7 +1,22 @@
 from setuptools import setup, find_packages
 
-required_packages = ["graphql-core>=2.3,<3", "promise>=2.3,<3"]
-tests_require = ["pytest==4.6.9", "pytest-cov==2.8.1"]
+install_requires = [
+    "graphql-core>=2.3,<3",
+    "promise>=2.3,<3",
+]
+
+tests_requires = [
+    "pytest==4.6.9",
+    "pytest-cov==2.8.1"
+]
+
+dev_requires = [
+    'flake8==3.7.9',
+    'isort<4.0.0',
+    'black==19.10b0',
+    'mypy==0.761',
+    'check-manifest>=0.40,<1',
+] + tests_requires
 
 setup(
     name="graphql-server-core",
@@ -30,9 +45,12 @@ setup(
     ],
     keywords="api graphql protocol rest",
     packages=find_packages(exclude=["tests"]),
-    install_requires=required_packages,
-    tests_require=tests_require,
-    extras_require={"test": tests_require},
+    install_requires=install_requires,
+    tests_require=tests_requires,
+    extras_require={
+        'test': tests_requires,
+        'dev': dev_requires,
+    },
     include_package_data=True,
     zip_safe=False,
     platforms="any",

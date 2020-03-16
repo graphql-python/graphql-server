@@ -13,7 +13,7 @@ from collections import namedtuple
 
 import six
 
-from promise import promisify, is_thenable
+from promise import promisify, is_thenable, Promise
 
 from graphql import get_default_backend
 from graphql.error import format_error as default_format_error
@@ -266,6 +266,7 @@ def execute_graphql_request(
     backend=None,  # type: GraphQLBackend
     **kwargs  # type: Any
 ):
+    # type: (...) -> ExecutionResult
     """Execute a GraphQL request and return an ExecutionResult.
 
     You need to pass the GraphQL schema and the GraphQLParams that you can get
@@ -318,18 +319,20 @@ def get_response(
     allow_only_query=False,  # type: bool
     **kwargs  # type: Any
 ):
-    # type: (...) -> Optional[ExecutionResult]
+    # type: (...) -> Optional[Union[ExecutionResult, Promise[ExecutionResult]]]
     """Get an individual execution result as response, with option to catch errors.
 
     This does the same as execute_graphql_request() except that you can catch errors
     that belong to an exception class that you need to pass as a parameter.
     """
-    # noinspection PyBroadException
+    # Note: PyCharm will display a error due to the triple dot being used on Callable.
     execute = (
-        execute_graphql_request_as_promise
-        if kwargs.get("return_promise", False)
-        else execute_graphql_request
-    )
+        execute_graphql_request
+    )  # type: Callable[..., Union[Promise[ExecutionResult], ExecutionResult]]
+    if kwargs.get("return_promise", False):
+        execute = execute_graphql_request_as_promise
+
+    # noinspection PyBroadException
     try:
         execution_result = execute(schema, params, allow_only_query, **kwargs)
     except catch_exc:
@@ -350,11 +353,10 @@ def format_execution_result(
     """
     status_code = 200
 
+    response = None
     if execution_result:
         if execution_result.invalid:
             status_code = 400
         response = execution_result.to_dict(format_error=format_error)
-    else:
-        response = None
 
     return FormattedResult(response, status_code)

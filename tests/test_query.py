@@ -1,11 +1,9 @@
 import json
 
-from pytest import raises
-
-from promise import Promise
-
 from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.execution import ExecutionResult
+from promise import Promise
+from pytest import raises
 
 from graphql_server import (
     HttpQueryError,

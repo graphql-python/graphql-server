@@ -3,6 +3,7 @@ import json
 from graphql.error import GraphQLError
 from graphql.execution import ExecutionResult
 from graphql.language.location import SourceLocation
+from pytest import raises
 
 from graphql_server import (
     HttpQueryError,
@@ -12,7 +13,6 @@ from graphql_server import (
     json_encode_pretty,
     load_json_body,
 )
-from pytest import raises
 
 
 def test_json_encode():
