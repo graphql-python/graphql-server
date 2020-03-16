@@ -2,7 +2,7 @@ from functools import partial
 
 from flask import Response, request
 from flask.views import View
-from graphql_server import (HttpQueryError, default_format_error,
+from graphql_server import (HttpQueryError, format_error_default,
                             encode_execution_results, json_encode,
                             load_json_body, run_http_query)
 
@@ -59,7 +59,7 @@ class GraphQLView(View):
             graphiql_html_title=self.graphiql_html_title,
         )
 
-    format_error = staticmethod(default_format_error)
+    format_error = staticmethod(format_error_default)
     encode = staticmethod(json_encode)
 
     def dispatch_request(self):

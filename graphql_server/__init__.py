@@ -30,6 +30,7 @@ __all__ = [
     "GraphQLResponse",
     "ServerResponse",
     "format_execution_result",
+    "format_error_default",
 ]
 
 
