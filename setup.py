@@ -17,6 +17,10 @@ dev_requires = [
     "check-manifest>=0.40,<1",
 ] + tests_requires
 
+install_flask_requires = [
+    "flask>=0.7.0",
+]
+
 setup(
     name="graphql-server-core",
     version="2.0.0",
@@ -44,6 +48,7 @@ setup(
     extras_require={
         'test': tests_requires,
         'dev': dev_requires,
+        "flask": install_flask_requires,
     },
     include_package_data=True,
     zip_safe=False,
