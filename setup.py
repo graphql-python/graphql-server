@@ -21,6 +21,8 @@ install_flask_requires = [
     "flask>=0.7.0",
 ]
 
+install_all_requires = install_requires + install_flask_requires
+
 setup(
     name="graphql-server-core",
     version="2.0.0",
@@ -44,10 +46,11 @@ setup(
     keywords="api graphql protocol rest",
     packages=find_packages(exclude=["tests"]),
     install_requires=install_requires,
-    tests_require=tests_requires,
+    tests_require=install_all_requires + tests_requires,
     extras_require={
-        'test': tests_requires,
-        'dev': dev_requires,
+        "all": install_all_requires,
+        "test": tests_requires,
+        "dev": dev_requires,
         "flask": install_flask_requires,
     },
     include_package_data=True,
