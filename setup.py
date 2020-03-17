@@ -20,7 +20,7 @@ dev_requires = [
 
 setup(
     name="graphql-server-core",
-    version="1.2.0",
+    version="2.0.0",
     description="GraphQL Server tools for powering your server",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
