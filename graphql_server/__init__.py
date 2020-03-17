@@ -13,8 +13,16 @@ from collections import namedtuple
 from collections.abc import MutableMapping
 from typing import Optional, List, Callable, Dict, Any, Union, Type
 
-from graphql import (GraphQLSchema, ExecutionResult, GraphQLError, parse, get_operation_ast,
-                     validate_schema, validate, execute)
+from graphql import (
+    GraphQLSchema,
+    ExecutionResult,
+    GraphQLError,
+    parse,
+    get_operation_ast,
+    validate_schema,
+    validate,
+    execute,
+)
 from graphql import format_error as format_error_default
 
 from promise import promisify, Promise
@@ -31,7 +39,7 @@ __all__ = [
     "GraphQLParams",
     "GraphQLResponse",
     "ServerResponse",
-    "format_execution_result"
+    "format_execution_result",
 ]
 
 
@@ -52,7 +60,7 @@ def run_http_query(
     query_data: Optional[Dict] = None,
     batch_enabled: bool = False,
     catch: bool = False,
-    **execute_options: Dict[str, Any]
+    **execute_options: Dict[str, Any],
 ) -> GraphQLResponse:
     """Execute GraphQL coming from an HTTP query against a given schema.
 
@@ -103,9 +111,14 @@ def run_http_query(
     if not is_batch:
         extra_data = query_data or {}
 
-    all_params: List[GraphQLParams] = [get_graphql_params(entry, extra_data) for entry in data]
+    all_params: List[GraphQLParams] = [
+        get_graphql_params(entry, extra_data) for entry in data
+    ]
 
-    results = [get_response(schema, params, catch_exc, allow_only_query, **execute_options) for params in all_params]
+    results = [
+        get_response(schema, params, catch_exc, allow_only_query, **execute_options)
+        for params in all_params
+    ]
 
     return GraphQLResponse(results, all_params)
 
@@ -209,7 +222,7 @@ def execute_graphql_request(
     schema: GraphQLSchema,
     params: GraphQLParams,
     allow_only_query: bool = False,
-    **kwargs
+    **kwargs,
 ) -> ExecutionResult:
     """Execute a GraphQL request and return an ExecutionResult.
 
@@ -242,7 +255,7 @@ def execute_graphql_request(
         operation_ast = get_operation_ast(document, params.operation_name)
         if operation_ast:
             operation = operation_ast.operation.value
-            if operation != 'query':
+            if operation != "query":
                 raise HttpQueryError(
                     405,
                     f"Can only perform a {operation} operation from a POST request.",
@@ -253,7 +266,13 @@ def execute_graphql_request(
     if validation_errors:
         return ExecutionResult(data=None, errors=validation_errors)
 
-    return execute(schema, document, variable_values=params.variables, operation_name=params.operation_name, **kwargs)
+    return execute(
+        schema,
+        document,
+        variable_values=params.variables,
+        operation_name=params.operation_name,
+        **kwargs,
+    )
 
 
 @promisify
@@ -266,7 +285,7 @@ def get_response(
     params: GraphQLParams,
     catch_exc: Type[BaseException],
     allow_only_query: bool = False,
-    **kwargs
+    **kwargs,
 ) -> Optional[Union[ExecutionResult, Promise[ExecutionResult]]]:
     """Get an individual execution result as response, with option to catch errors.
 
@@ -274,7 +293,9 @@ def get_response(
     that belong to an exception class that you need to pass as a parameter.
     """
     # Note: PyCharm will display a error due to the triple dot being used on Callable.
-    execute_request: Callable[..., Union[Promise[ExecutionResult], ExecutionResult]] = execute_graphql_request
+    execute_request: Callable[
+        ..., Union[Promise[ExecutionResult], ExecutionResult]
+    ] = execute_graphql_request
     if kwargs.get("return_promise", False):
         execute_request = execute_graphql_request_as_promise
 
@@ -289,7 +310,7 @@ def get_response(
 
 def format_execution_result(
     execution_result: Optional[ExecutionResult],
-    format_error: Optional[Callable[[Exception], Dict]] = format_error_default
+    format_error: Optional[Callable[[Exception], Dict]] = format_error_default,
 ) -> GraphQLResponse:
     """Format an execution result into a GraphQLResponse.
 
@@ -304,6 +325,6 @@ def format_execution_result(
             response = {"errors": [format_error(e) for e in execution_result.errors]}
             status_code = 400
         else:
-            response = {'data': execution_result.data}
+            response = {"data": execution_result.data}
 
     return FormattedResult(response, status_code)

@@ -13,7 +13,7 @@ def resolve_thrower(*_args):
 
 
 def resolve_request(_obj, info):
-    return info.context.get('q')
+    return info.context.get("q")
 
 
 def resolve_context(_obj, info):

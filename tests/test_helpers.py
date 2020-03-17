@@ -82,7 +82,10 @@ def test_encode_execution_results_with_error():
             None,
             [
                 GraphQLError(
-                    "Some error", source=Source(body="Some error"), positions=[1], path=["somePath"]
+                    "Some error",
+                    source=Source(body="Some error"),
+                    positions=[1],
+                    path=["somePath"],
                 )
             ],
         ),
@@ -122,7 +125,10 @@ def test_encode_execution_results_with_format_error():
             None,
             [
                 GraphQLError(
-                    "Some msg", source=Source("Some msg"), positions=[1], path=["some", "path"]
+                    "Some msg",
+                    source=Source("Some msg"),
+                    positions=[1],
+                    path=["some", "path"],
                 )
             ],
         )

@@ -8,5 +8,9 @@ def as_dicts(results: List[ExecutionResult]):
     return [
         {
             "data": result.data,
-            "errors": [error.formatted for error in result.errors] if result.errors else result.errors
-        } for result in results]
+            "errors": [error.formatted for error in result.errors]
+            if result.errors
+            else result.errors,
+        }
+        for result in results
+    ]

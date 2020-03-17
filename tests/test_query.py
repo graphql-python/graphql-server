@@ -13,7 +13,7 @@ from graphql_server import (
     load_json_body,
     run_http_query,
     format_execution_result,
-    encode_execution_results
+    encode_execution_results,
 )
 
 from .schema import schema
@@ -72,7 +72,9 @@ def test_allows_get_with_operation_name():
         ),
     )
 
-    assert as_dicts(results) == [{"data": {"test": "Hello World", "shared": "Hello Everyone"}, "errors": None}]
+    assert as_dicts(results) == [
+        {"data": {"test": "Hello World", "shared": "Hello Everyone"}, "errors": None}
+    ]
 
 
 def test_reports_validation_errors():
@@ -87,14 +89,14 @@ def test_reports_validation_errors():
                 {
                     "message": "Cannot query field 'unknownOne' on type 'QueryRoot'.",
                     "locations": [{"line": 1, "column": 9}],
-                    "path": None
+                    "path": None,
                 },
                 {
                     "message": "Cannot query field 'unknownTwo' on type 'QueryRoot'.",
                     "locations": [{"line": 1, "column": 21}],
-                    "path": None
+                    "path": None,
                 },
-            ]
+            ],
         }
     ]
 
@@ -141,9 +143,9 @@ def test_errors_when_missing_operation_name():
                         "Must provide operation name"
                         " if query contains multiple operations."
                     ),
-                    "path": None
+                    "path": None,
                 }
-            ]
+            ],
         }
     ]
     assert isinstance(results[0].errors[0], GraphQLError)
@@ -407,7 +409,7 @@ def test_handles_errors_caused_by_a_lack_of_query():
 def test_handles_errors_caused_by_invalid_query_type():
     results, params = run_http_query(schema, "get", dict(query=42))
 
-    assert results == [(None, [{'message': 'Must provide Source. Received: 42'}])]
+    assert results == [(None, [{"message": "Must provide Source. Received: 42"}])]
 
 
 def test_handles_batch_correctly_if_is_disabled():
@@ -454,7 +456,8 @@ def test_handles_bad_schema():
         run_http_query("not a schema", "get", {})  # type: ignore
 
     assert str(exc_info.value) == (
-        "Expected a GraphQL schema, but received 'not a schema'.")
+        "Expected a GraphQL schema, but received 'not a schema'."
+    )
 
 
 def test_handles_unsupported_http_methods():
