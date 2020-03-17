@@ -1,8 +1,8 @@
 import json
 
+from graphql import Source
 from graphql.error import GraphQLError
 from graphql.execution import ExecutionResult
-from graphql.language.location import SourceLocation
 from pytest import raises
 
 from graphql_server import (
@@ -10,7 +10,6 @@ from graphql_server import (
     ServerResponse,
     encode_execution_results,
     json_encode,
-    json_encode_pretty,
     load_json_body,
 )
 
@@ -18,11 +17,6 @@ from graphql_server import (
 def test_json_encode():
     result = json_encode({"query": "{test}"})
     assert result == '{"query":"{test}"}'
-
-
-def test_json_encode_pretty():
-    result = json_encode_pretty({"query": "{test}"})
-    assert result == '{\n  "query": "{test}"\n}'
 
 
 def test_json_encode_with_pretty_argument():
@@ -88,7 +82,7 @@ def test_encode_execution_results_with_error():
             None,
             [
                 GraphQLError(
-                    "Some error", locations=[SourceLocation(1, 2)], path=["somePath"]
+                    "Some error", source=Source(body="Some error"), positions=[1], path=["somePath"]
                 )
             ],
         ),
@@ -100,7 +94,6 @@ def test_encode_execution_results_with_error():
     assert isinstance(output.body, str)
     assert isinstance(output.status_code, int)
     assert json.loads(output.body) == {
-        "data": None,
         "errors": [
             {
                 "message": "Some error",
@@ -108,26 +101,6 @@ def test_encode_execution_results_with_error():
                 "path": ["somePath"],
             }
         ],
-    }
-    assert output.status_code == 200
-
-
-def test_encode_execution_results_with_invalid():
-    execution_results = [
-        ExecutionResult(
-            None,
-            [GraphQLError("SyntaxError", locations=[SourceLocation(1, 2)])],
-            invalid=True,
-        ),
-        ExecutionResult({"result": 42}, None),
-    ]
-
-    output = encode_execution_results(execution_results)
-    assert isinstance(output, ServerResponse)
-    assert isinstance(output.body, str)
-    assert isinstance(output.status_code, int)
-    assert json.loads(output.body) == {
-        "errors": [{"message": "SyntaxError", "locations": [{"line": 1, "column": 2}]}]
     }
     assert output.status_code == 400
 
@@ -149,7 +122,7 @@ def test_encode_execution_results_with_format_error():
             None,
             [
                 GraphQLError(
-                    "Some msg", locations=[SourceLocation(1, 2)], path=["some", "path"]
+                    "Some msg", source=Source("Some msg"), positions=[1], path=["some", "path"]
                 )
             ],
         )
@@ -157,7 +130,7 @@ def test_encode_execution_results_with_format_error():
 
     def format_error(error):
         return {
-            "msg": str(error),
+            "msg": error.message,
             "loc": "{}:{}".format(error.locations[0].line, error.locations[0].column),
             "pth": "/".join(error.path),
         }
@@ -167,10 +140,9 @@ def test_encode_execution_results_with_format_error():
     assert isinstance(output.body, str)
     assert isinstance(output.status_code, int)
     assert json.loads(output.body) == {
-        "data": None,
         "errors": [{"msg": "Some msg", "loc": "1:2", "pth": "some/path"}],
     }
-    assert output.status_code == 200
+    assert output.status_code == 400
 
 
 def test_encode_execution_results_with_batch():
@@ -211,88 +183,6 @@ def test_encode_execution_results_with_batch_and_empty_result():
     assert output.status_code == 200
 
 
-def test_encode_execution_results_with_batch_and_error():
-    execution_results = [
-        ExecutionResult({"result": 1}, None),
-        ExecutionResult(
-            None,
-            [
-                GraphQLError(
-                    "No data here", locations=[SourceLocation(1, 2)], path=["somePath"]
-                )
-            ],
-        ),
-        ExecutionResult({"result": 3}, None),
-    ]
-
-    output = encode_execution_results(execution_results, is_batch=True)
-    assert isinstance(output, ServerResponse)
-    assert isinstance(output.body, str)
-    assert isinstance(output.status_code, int)
-    assert json.loads(output.body) == [
-        {"data": {"result": 1}},
-        {
-            "data": None,
-            "errors": [
-                {
-                    "message": "No data here",
-                    "locations": [{"line": 1, "column": 2}],
-                    "path": ["somePath"],
-                }
-            ],
-        },
-        {"data": {"result": 3}},
-    ]
-    assert output.status_code == 200
-
-
-def test_encode_execution_results_with_batch_and_invalid():
-    execution_results = [
-        ExecutionResult({"result": 1}, None),
-        ExecutionResult(
-            None,
-            [
-                GraphQLError(
-                    "No data here", locations=[SourceLocation(1, 2)], path=["somePath"]
-                )
-            ],
-        ),
-        ExecutionResult({"result": 3}, None),
-        ExecutionResult(
-            None,
-            [GraphQLError("SyntaxError", locations=[SourceLocation(1, 2)])],
-            invalid=True,
-        ),
-        ExecutionResult({"result": 5}, None),
-    ]
-
-    output = encode_execution_results(execution_results, is_batch=True)
-    assert isinstance(output, ServerResponse)
-    assert isinstance(output.body, str)
-    assert isinstance(output.status_code, int)
-    assert json.loads(output.body) == [
-        {"data": {"result": 1}},
-        {
-            "data": None,
-            "errors": [
-                {
-                    "message": "No data here",
-                    "locations": [{"line": 1, "column": 2}],
-                    "path": ["somePath"],
-                }
-            ],
-        },
-        {"data": {"result": 3}},
-        {
-            "errors": [
-                {"message": "SyntaxError", "locations": [{"line": 1, "column": 2}]}
-            ]
-        },
-        {"data": {"result": 5}},
-    ]
-    assert output.status_code == 400
-
-
 def test_encode_execution_results_with_encode():
     execution_results = [ExecutionResult({"result": None}, None)]
 
@@ -305,19 +195,3 @@ def test_encode_execution_results_with_encode():
     assert isinstance(output.status_code, int)
     assert output.body == "{'data': {'result': None}}"
     assert output.status_code == 200
-
-
-def test_encode_execution_results_with_pretty():
-    execution_results = [ExecutionResult({"test": "Hello World"}, None)]
-
-    output = encode_execution_results(execution_results, encode=json_encode_pretty)
-    body = output.body
-    assert body == "{\n" '  "data": {\n' '    "test": "Hello World"\n' "  }\n" "}"
-
-
-def test_encode_execution_results_not_pretty_by_default():
-    execution_results = [ExecutionResult({"test": "Hello World"}, None)]
-    # execution_results = [ExecutionResult({"result": None}, None)]
-
-    output = encode_execution_results(execution_results)
-    assert output.body == '{"data":{"test":"Hello World"}}'

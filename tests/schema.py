@@ -1,41 +1,35 @@
-from graphql.type.definition import (
+from graphql import (
     GraphQLArgument,
     GraphQLField,
     GraphQLNonNull,
     GraphQLObjectType,
+    GraphQLString,
+    GraphQLSchema,
 )
-from graphql.type.scalars import GraphQLString
-from graphql.type.schema import GraphQLSchema
 
 
-def resolve_error(*_args):
-    raise ValueError("Throws!")
+def resolve_thrower(*_args):
+    raise Exception("Throws!")
 
 
 def resolve_request(_obj, info):
-    return info.context.get("q")
+    return info.context.get('q')
 
 
 def resolve_context(_obj, info):
     return str(info.context)
 
 
-def resolve_test(_obj, _info, who="World"):
-    return "Hello {}".format(who)
-
-
-NonNullString = GraphQLNonNull(GraphQLString)
-
 QueryRootType = GraphQLObjectType(
     name="QueryRoot",
     fields={
-        "error": GraphQLField(NonNullString, resolver=resolve_error),
-        "request": GraphQLField(NonNullString, resolver=resolve_request),
-        "context": GraphQLField(NonNullString, resolver=resolve_context),
+        "thrower": GraphQLField(GraphQLNonNull(GraphQLString), resolve=resolve_thrower),
+        "request": GraphQLField(GraphQLNonNull(GraphQLString), resolve=resolve_request),
+        "context": GraphQLField(GraphQLNonNull(GraphQLString), resolve=resolve_context),
         "test": GraphQLField(
-            GraphQLString,
-            {"who": GraphQLArgument(GraphQLString)},
-            resolver=resolve_test,
+            type_=GraphQLString,
+            args={"who": GraphQLArgument(GraphQLString)},
+            resolve=lambda obj, info, who="World": "Hello %s" % who,
         ),
     },
 )
@@ -43,9 +37,7 @@ QueryRootType = GraphQLObjectType(
 MutationRootType = GraphQLObjectType(
     name="MutationRoot",
     fields={
-        "writeTest": GraphQLField(
-            type=QueryRootType, resolver=lambda *_args: QueryRootType
-        )
+        "writeTest": GraphQLField(type_=QueryRootType, resolve=lambda *_: QueryRootType)
     },
 )
 

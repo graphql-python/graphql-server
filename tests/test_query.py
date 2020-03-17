@@ -1,19 +1,19 @@
 import json
+from typing import List
 
 from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.execution import ExecutionResult
-from promise import Promise
 from pytest import raises
 
 from graphql_server import (
     HttpQueryError,
-    RequestParams,
-    ServerResults,
-    encode_execution_results,
+    GraphQLParams,
+    GraphQLResponse,
     json_encode,
-    json_encode_pretty,
     load_json_body,
     run_http_query,
+    format_execution_result,
+    encode_execution_results
 )
 
 from .schema import schema
@@ -21,23 +21,23 @@ from .utils import as_dicts
 
 
 def test_request_params():
-    assert issubclass(RequestParams, tuple)
+    assert issubclass(GraphQLParams, tuple)
     # noinspection PyUnresolvedReferences
-    assert RequestParams._fields == ("query", "variables", "operation_name")
+    assert GraphQLParams._fields == ("query", "variables", "operation_name")
 
 
 def test_server_results():
-    assert issubclass(ServerResults, tuple)
+    assert issubclass(GraphQLResponse, tuple)
     # noinspection PyUnresolvedReferences
-    assert ServerResults._fields == ("results", "params")
+    assert GraphQLResponse._fields == ("results", "params")
 
 
 def test_allows_get_with_query_param():
     query = "{test}"
     results, params = run_http_query(schema, "get", {}, dict(query=query))
 
-    assert as_dicts(results) == [{"data": {"test": "Hello World"}}]
-    assert params == [RequestParams(query=query, variables=None, operation_name=None)]
+    assert as_dicts(results) == [{"data": {"test": "Hello World"}, "errors": None}]
+    assert params == [GraphQLParams(query=query, variables=None, operation_name=None)]
 
 
 def test_allows_get_with_variable_values():
@@ -51,7 +51,7 @@ def test_allows_get_with_variable_values():
         ),
     )
 
-    assert as_dicts(results) == [{"data": {"test": "Hello Dolly"}}]
+    assert as_dicts(results) == [{"data": {"test": "Hello Dolly"}, "errors": None}]
 
 
 def test_allows_get_with_operation_name():
@@ -72,9 +72,7 @@ def test_allows_get_with_operation_name():
         ),
     )
 
-    assert as_dicts(results) == [
-        {"data": {"test": "Hello World", "shared": "Hello Everyone"}}
-    ]
+    assert as_dicts(results) == [{"data": {"test": "Hello World", "shared": "Hello Everyone"}, "errors": None}]
 
 
 def test_reports_validation_errors():
@@ -84,14 +82,17 @@ def test_reports_validation_errors():
 
     assert as_dicts(results) == [
         {
+            "data": None,
             "errors": [
                 {
-                    "message": 'Cannot query field "unknownOne" on type "QueryRoot".',
+                    "message": "Cannot query field 'unknownOne' on type 'QueryRoot'.",
                     "locations": [{"line": 1, "column": 9}],
+                    "path": None
                 },
                 {
-                    "message": 'Cannot query field "unknownTwo" on type "QueryRoot".',
+                    "message": "Cannot query field 'unknownTwo' on type 'QueryRoot'.",
                     "locations": [{"line": 1, "column": 21}],
+                    "path": None
                 },
             ]
         }
@@ -132,12 +133,15 @@ def test_errors_when_missing_operation_name():
 
     assert as_dicts(results) == [
         {
+            "data": None,
             "errors": [
                 {
+                    "locations": None,
                     "message": (
                         "Must provide operation name"
                         " if query contains multiple operations."
-                    )
+                    ),
+                    "path": None
                 }
             ]
         }
@@ -217,7 +221,7 @@ def test_allows_mutation_to_exist_within_a_get():
         ),
     )
 
-    assert as_dicts(results) == [{"data": {"test": "Hello World"}}]
+    assert as_dicts(results) == [{"data": {"test": "Hello World"}, "errors": None}]
 
 
 def test_allows_sending_a_mutation_via_post():
@@ -228,7 +232,7 @@ def test_allows_sending_a_mutation_via_post():
         query_data=dict(query="mutation TestMutation { writeTest { test } }"),
     )
 
-    assert as_dicts(results) == [{"data": {"writeTest": {"test": "Hello World"}}}]
+    assert results == [({"writeTest": {"test": "Hello World"}}, None)]
 
 
 def test_allows_post_with_url_encoding():
@@ -236,7 +240,7 @@ def test_allows_post_with_url_encoding():
         schema, "post", {}, query_data=dict(query="{test}")
     )
 
-    assert as_dicts(results) == [{"data": {"test": "Hello World"}}]
+    assert results == [({"test": "Hello World"}, None)]
 
 
 def test_supports_post_json_query_with_string_variables():
@@ -250,7 +254,20 @@ def test_supports_post_json_query_with_string_variables():
         ),
     )
 
-    assert as_dicts(results) == [{"data": {"test": "Hello Dolly"}}]
+    assert results == [({"test": "Hello Dolly"}, None)]
+
+
+def test_supports_post_json_query_with_json_variables():
+    result = load_json_body(
+        """
+        {
+            "query": "query helloWho($who: String){ test(who: $who) }",
+            "variables": {"who": "Dolly"}
+        }
+        """
+    )
+
+    assert result["variables"] == {"who": "Dolly"}
 
 
 def test_supports_post_url_encoded_query_with_string_variables():
@@ -264,7 +281,7 @@ def test_supports_post_url_encoded_query_with_string_variables():
         ),
     )
 
-    assert as_dicts(results) == [{"data": {"test": "Hello Dolly"}}]
+    assert results == [({"test": "Hello Dolly"}, None)]
 
 
 def test_supports_post_json_query_with_get_variable_values():
@@ -275,7 +292,7 @@ def test_supports_post_json_query_with_get_variable_values():
         query_data=dict(variables={"who": "Dolly"}),
     )
 
-    assert as_dicts(results) == [{"data": {"test": "Hello Dolly"}}]
+    assert results == [({"test": "Hello Dolly"}, None)]
 
 
 def test_post_url_encoded_query_with_get_variable_values():
@@ -286,7 +303,7 @@ def test_post_url_encoded_query_with_get_variable_values():
         query_data=dict(variables='{"who": "Dolly"}'),
     )
 
-    assert as_dicts(results) == [{"data": {"test": "Hello Dolly"}}]
+    assert results == [({"test": "Hello Dolly"}, None)]
 
 
 def test_supports_post_raw_text_query_with_get_variable_values():
@@ -297,7 +314,7 @@ def test_supports_post_raw_text_query_with_get_variable_values():
         query_data=dict(variables='{"who": "Dolly"}'),
     )
 
-    assert as_dicts(results) == [{"data": {"test": "Hello Dolly"}}]
+    assert results == [({"test": "Hello Dolly"}, None)]
 
 
 def test_allows_post_with_operation_name():
@@ -317,9 +334,7 @@ def test_allows_post_with_operation_name():
         ),
     )
 
-    assert as_dicts(results) == [
-        {"data": {"test": "Hello World", "shared": "Hello Everyone"}}
-    ]
+    assert results == [({"test": "Hello World", "shared": "Hello Everyone"}, None)]
 
 
 def test_allows_post_with_get_operation_name():
@@ -339,55 +354,46 @@ def test_allows_post_with_get_operation_name():
         query_data=dict(operationName="helloWorld"),
     )
 
-    assert as_dicts(results) == [
-        {"data": {"test": "Hello World", "shared": "Hello Everyone"}}
-    ]
+    assert results == [({"test": "Hello World", "shared": "Hello Everyone"}, None)]
 
 
 def test_supports_pretty_printing_data():
-    results, params = run_http_query(schema, "get", dict(query="{test}"))
-    body = encode_execution_results(results, encode=json_encode_pretty).body
+    results, params = run_http_query(schema, "get", data=dict(query="{test}"))
+    result = {"data": results[0].data}
 
-    assert body == "{\n" '  "data": {\n' '    "test": "Hello World"\n' "  }\n" "}"
+    assert json_encode(result, pretty=True) == (
+        "{\n" '  "data": {\n' '    "test": "Hello World"\n' "  }\n" "}"
+    )
 
 
 def test_not_pretty_data_by_default():
-    results, params = run_http_query(schema, "get", dict(query="{test}"))
-    body = encode_execution_results(results).body
+    results, params = run_http_query(schema, "get", data=dict(query="{test}"))
+    result = {"data": results[0].data}
 
-    assert body == '{"data":{"test":"Hello World"}}'
+    assert json_encode(result) == '{"data":{"test":"Hello World"}}'
 
 
 def test_handles_field_errors_caught_by_graphql():
-    results, params = run_http_query(schema, "get", dict(query="{error}"))
+    results, params = run_http_query(schema, "get", data=dict(query="{thrower}"))
 
-    assert as_dicts(results) == [
-        {
-            "data": None,
-            "errors": [
-                {
-                    "message": "Throws!",
-                    "locations": [{"line": 1, "column": 2}],
-                    "path": ["error"],
-                }
-            ],
-        }
+    assert results == [
+        (None, [{"message": "Throws!", "locations": [(1, 2)], "path": ["thrower"]}])
     ]
 
 
 def test_handles_syntax_errors_caught_by_graphql():
-    results, params = run_http_query(schema, "get", dict(query="syntaxerror"))
+    results, params = run_http_query(schema, "get", data=dict(query="syntaxerror"))
 
-    assert as_dicts(results) == [
-        {
-            "errors": [
+    assert results == [
+        (
+            None,
+            [
                 {
-                    "locations": [{"line": 1, "column": 1}],
-                    "message": "Syntax Error GraphQL (1:1)"
-                    ' Unexpected Name "syntaxerror"\n\n1: syntaxerror\n   ^\n',
+                    "locations": [(1, 1)],
+                    "message": "Syntax Error: Unexpected Name 'syntaxerror'",
                 }
-            ]
-        }
+            ],
+        )
     ]
 
 
@@ -401,9 +407,7 @@ def test_handles_errors_caused_by_a_lack_of_query():
 def test_handles_errors_caused_by_invalid_query_type():
     results, params = run_http_query(schema, "get", dict(query=42))
 
-    assert as_dicts(results) == [
-        {"errors": [{"message": "The query must be a string"}]}
-    ]
+    assert results == [(None, [{'message': 'Must provide Source. Received: 42'}])]
 
 
 def test_handles_batch_correctly_if_is_disabled():
@@ -447,10 +451,10 @@ def test_handles_poorly_formed_variables():
 def test_handles_bad_schema():
     with raises(TypeError) as exc_info:
         # noinspection PyTypeChecker
-        run_http_query("not a schema", "get", {"query": "{error}"})  # type: ignore
+        run_http_query("not a schema", "get", {})  # type: ignore
 
-    msg = str(exc_info.value)
-    assert msg == "Expected a GraphQL schema, but received 'not a schema'."
+    assert str(exc_info.value) == (
+        "Expected a GraphQL schema, but received 'not a schema'.")
 
 
 def test_handles_unsupported_http_methods():
@@ -464,12 +468,54 @@ def test_handles_unsupported_http_methods():
     )
 
 
-def test_passes_request_into_request_context():
-    results, params = run_http_query(
-        schema, "get", {}, dict(query="{request}"), context_value={"q": "testing"}
+def test_format_execution_result():
+    result = format_execution_result(None)
+    assert result == GraphQLResponse(None, 200)
+    data = {"answer": 42}
+    result = format_execution_result(ExecutionResult(data, None))
+    assert result == GraphQLResponse({"data": data}, 200)
+    errors = [GraphQLError("bad")]
+    result = format_execution_result(ExecutionResult(None, errors))
+    assert result == GraphQLResponse({"errors": errors}, 400)
+
+
+def test_encode_execution_results():
+    data = {"answer": 42}
+    errors = [GraphQLError("bad")]
+    results = [ExecutionResult(data, None), ExecutionResult(None, errors)]
+    result = encode_execution_results(results)
+    assert result == ('{"data":{"answer":42}}', 400)
+
+
+def test_encode_execution_results_batch():
+    data = {"answer": 42}
+    errors = [GraphQLError("bad")]
+    results = [ExecutionResult(data, None), ExecutionResult(None, errors)]
+    result = encode_execution_results(results, is_batch=True)
+    assert result == (
+        '[{"data":{"answer":42}},'
+        '{"errors":[{"message":"bad","locations":null,"path":null}]}]',
+        400,
     )
 
-    assert as_dicts(results) == [{"data": {"request": "testing"}}]
+
+def test_encode_execution_results_not_encoded():
+    data = {"answer": 42}
+    results = [ExecutionResult(data, None)]
+    result = encode_execution_results(results, encode=lambda r: r)
+    assert result == ({"data": data}, 200)
+
+
+def test_passes_request_into_request_context():
+    results, params = run_http_query(
+        schema,
+        "get",
+        {},
+        query_data=dict(query="{request}"),
+        context_value={"q": "testing"},
+    )
+
+    assert results == [({"request": "testing"}, None)]
 
 
 def test_supports_pretty_printing_context():
@@ -478,24 +524,24 @@ def test_supports_pretty_printing_context():
             return "CUSTOM CONTEXT"
 
     results, params = run_http_query(
-        schema, "get", {}, dict(query="{context}"), context_value=Context()
+        schema, "get", {}, query_data=dict(query="{context}"), context_value=Context()
     )
 
-    assert as_dicts(results) == [{"data": {"context": "CUSTOM CONTEXT"}}]
+    assert results == [({"context": "CUSTOM CONTEXT"}, None)]
 
 
 def test_post_multipart_data():
     query = "mutation TestMutation { writeTest { test } }"
     results, params = run_http_query(schema, "post", {}, query_data=dict(query=query))
 
-    assert as_dicts(results) == [{"data": {"writeTest": {"test": "Hello World"}}}]
+    assert results == [({"writeTest": {"test": "Hello World"}}, None)]
 
 
 def test_batch_allows_post_with_json_encoding():
     data = load_json_body('[{"query": "{test}"}]')
     results, params = run_http_query(schema, "post", data, batch_enabled=True)
 
-    assert as_dicts(results) == [{"data": {"test": "Hello World"}}]
+    assert results == [({"test": "Hello World"}, None)]
 
 
 def test_batch_supports_post_json_query_with_json_variables():
@@ -505,7 +551,7 @@ def test_batch_supports_post_json_query_with_json_variables():
     )
     results, params = run_http_query(schema, "post", data, batch_enabled=True)
 
-    assert as_dicts(results) == [{"data": {"test": "Hello Dolly"}}]
+    assert results == [({"test": "Hello Dolly"}, None)]
 
 
 def test_batch_allows_post_with_operation_name():
@@ -525,124 +571,4 @@ def test_batch_allows_post_with_operation_name():
     data = load_json_body(json_encode(data))
     results, params = run_http_query(schema, "post", data, batch_enabled=True)
 
-    assert as_dicts(results) == [
-        {"data": {"test": "Hello World", "shared": "Hello Everyone"}}
-    ]
-
-
-def test_get_responses_using_executor():
-    class TestExecutor(object):
-        called = False
-        waited = False
-        cleaned = False
-
-        def wait_until_finished(self):
-            TestExecutor.waited = True
-
-        def clean(self):
-            TestExecutor.cleaned = True
-
-        def execute(self, fn, *args, **kwargs):
-            TestExecutor.called = True
-            return fn(*args, **kwargs)
-
-    query = "{test}"
-    results, params = run_http_query(
-        schema, "get", {}, dict(query=query), executor=TestExecutor(),
-    )
-
-    assert isinstance(results, list)
-    assert len(results) == 1
-    assert isinstance(results[0], ExecutionResult)
-
-    assert as_dicts(results) == [{"data": {"test": "Hello World"}}]
-    assert params == [RequestParams(query=query, variables=None, operation_name=None)]
-    assert TestExecutor.called
-    assert TestExecutor.waited
-    assert not TestExecutor.cleaned
-
-
-def test_get_responses_using_executor_return_promise():
-    class TestExecutor(object):
-        called = False
-        waited = False
-        cleaned = False
-
-        def wait_until_finished(self):
-            TestExecutor.waited = True
-
-        def clean(self):
-            TestExecutor.cleaned = True
-
-        def execute(self, fn, *args, **kwargs):
-            TestExecutor.called = True
-            return fn(*args, **kwargs)
-
-    query = "{test}"
-    result_promises, params = run_http_query(
-        schema,
-        "get",
-        {},
-        dict(query=query),
-        executor=TestExecutor(),
-        return_promise=True,
-    )
-
-    assert isinstance(result_promises, list)
-    assert len(result_promises) == 1
-    assert isinstance(result_promises[0], Promise)
-    results = Promise.all(result_promises).get()
-
-    assert as_dicts(results) == [{"data": {"test": "Hello World"}}]
-    assert params == [RequestParams(query=query, variables=None, operation_name=None)]
-    assert TestExecutor.called
-    assert not TestExecutor.waited
-    assert TestExecutor.cleaned
-
-
-def test_syntax_error_using_executor_return_promise():
-    class TestExecutor(object):
-        called = False
-        waited = False
-        cleaned = False
-
-        def wait_until_finished(self):
-            TestExecutor.waited = True
-
-        def clean(self):
-            TestExecutor.cleaned = True
-
-        def execute(self, fn, *args, **kwargs):
-            TestExecutor.called = True
-            return fn(*args, **kwargs)
-
-    query = "this is a syntax error"
-    result_promises, params = run_http_query(
-        schema,
-        "get",
-        {},
-        dict(query=query),
-        executor=TestExecutor(),
-        return_promise=True,
-    )
-
-    assert isinstance(result_promises, list)
-    assert len(result_promises) == 1
-    assert isinstance(result_promises[0], Promise)
-    results = Promise.all(result_promises).get()
-
-    assert isinstance(results, list)
-    assert len(results) == 1
-    result = results[0]
-    assert isinstance(result, ExecutionResult)
-
-    assert result.data is None
-    assert isinstance(result.errors, list)
-    assert len(result.errors) == 1
-    error = result.errors[0]
-    assert isinstance(error, GraphQLSyntaxError)
-
-    assert params == [RequestParams(query=query, variables=None, operation_name=None)]
-    assert not TestExecutor.called
-    assert not TestExecutor.waited
-    assert not TestExecutor.cleaned
+    assert results == [({"test": "Hello World", "shared": "Hello Everyone"}, None)]

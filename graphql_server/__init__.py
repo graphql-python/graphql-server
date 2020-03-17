@@ -9,7 +9,8 @@ for building GraphQL servers or integrations into existing web frameworks using
 
 
 import json
-from collections import namedtuple, MutableMapping
+from collections import namedtuple
+from collections.abc import MutableMapping
 from typing import Optional, List, Callable, Dict, Any, Union, Type
 
 from graphql import (GraphQLSchema, ExecutionResult, GraphQLError, parse, get_operation_ast,
@@ -30,6 +31,7 @@ __all__ = [
     "GraphQLParams",
     "GraphQLResponse",
     "ServerResponse",
+    "format_execution_result"
 ]
 
 
@@ -121,7 +123,7 @@ def json_encode(data: Union[Dict, List], pretty: bool = False) -> str:
 
 def encode_execution_results(
     execution_results: List[Optional[ExecutionResult]],
-    format_error: Callable[[Exception], Dict],
+    format_error: Callable[[Exception], Dict] = format_error_default,
     is_batch: bool = False,
     encode: Callable[[Dict], Any] = json_encode,
 ) -> ServerResponse:
