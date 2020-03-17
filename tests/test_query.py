@@ -1,7 +1,6 @@
 import json
-from typing import List
 
-from graphql.error import GraphQLError, GraphQLSyntaxError
+from graphql.error import GraphQLError
 from graphql.execution import ExecutionResult
 from pytest import raises
 

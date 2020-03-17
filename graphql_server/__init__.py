@@ -236,7 +236,8 @@ def execute_graphql_request(
     if not params.query:
         raise HttpQueryError(400, "Must provide query string.")
 
-    # Validate the schema and return a list of errors if it does not satisfy the Type System.
+    # Validate the schema and return a list of errors if it
+    # does not satisfy the Type System.
     schema_validation_errors = validate_schema(schema)
     if schema_validation_errors:
         return ExecutionResult(data=None, errors=schema_validation_errors)
