@@ -25,8 +25,6 @@ from graphql import (
 )
 from graphql import format_error as format_error_default
 
-from promise import promisify, Promise
-
 from .error import HttpQueryError
 
 
@@ -60,7 +58,7 @@ def run_http_query(
     query_data: Optional[Dict] = None,
     batch_enabled: bool = False,
     catch: bool = False,
-    **execute_options: Dict[str, Any],
+    **execute_options,
 ) -> GraphQLResponse:
     """Execute GraphQL coming from an HTTP query against a given schema.
 
@@ -276,33 +274,22 @@ def execute_graphql_request(
     )
 
 
-@promisify
-def execute_graphql_request_as_promise(*args, **kwargs):
-    return execute_graphql_request(*args, **kwargs)
-
-
 def get_response(
     schema: GraphQLSchema,
     params: GraphQLParams,
     catch_exc: Type[BaseException],
     allow_only_query: bool = False,
     **kwargs,
-) -> Optional[Union[ExecutionResult, Promise[ExecutionResult]]]:
+) -> Optional[ExecutionResult]:
     """Get an individual execution result as response, with option to catch errors.
 
     This does the same as execute_graphql_request() except that you can catch errors
     that belong to an exception class that you need to pass as a parameter.
     """
-    # Note: PyCharm will display a error due to the triple dot being used on Callable.
-    execute_request: Callable[
-        ..., Union[Promise[ExecutionResult], ExecutionResult]
-    ] = execute_graphql_request
-    if kwargs.get("return_promise", False):
-        execute_request = execute_graphql_request_as_promise
 
     # noinspection PyBroadException
     try:
-        execution_result = execute_request(schema, params, allow_only_query, **kwargs)
+        execution_result = execute_graphql_request(schema, params, allow_only_query, **kwargs)
     except catch_exc:
         return None
 
