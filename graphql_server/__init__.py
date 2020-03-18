@@ -11,7 +11,7 @@ for building GraphQL servers or integrations into existing web frameworks using
 import json
 from collections import namedtuple
 from collections.abc import MutableMapping
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Type, Union
 
 from graphql import ExecutionResult, GraphQLError, GraphQLSchema, execute
 from graphql import format_error as format_error_default
@@ -125,7 +125,7 @@ def json_encode(data: Union[Dict, List], pretty: bool = False) -> str:
 
 def encode_execution_results(
     execution_results: List[Optional[ExecutionResult]],
-    format_error: Callable[[Exception], Dict] = format_error_default,
+    format_error: Callable[[GraphQLError], Dict] = format_error_default,
     is_batch: bool = False,
     encode: Callable[[Dict], Any] = json_encode,
 ) -> ServerResponse:
@@ -212,7 +212,7 @@ def execute_graphql_request(
     params: GraphQLParams,
     allow_only_query: bool = False,
     **kwargs,
-) -> ExecutionResult:
+) -> Union[Awaitable[ExecutionResult], ExecutionResult]:
     """Execute a GraphQL request and return an ExecutionResult.
 
     You need to pass the GraphQL schema and the GraphQLParams that you can get
@@ -271,7 +271,7 @@ def get_response(
     catch_exc: Type[BaseException],
     allow_only_query: bool = False,
     **kwargs,
-) -> Optional[ExecutionResult]:
+) -> Optional[Union[Awaitable[ExecutionResult], ExecutionResult]]:
     """Get an individual execution result as response, with option to catch errors.
 
     This does the same as execute_graphql_request() except that you can catch errors
@@ -291,8 +291,8 @@ def get_response(
 
 def format_execution_result(
     execution_result: Optional[ExecutionResult],
-    format_error: Optional[Callable[[Exception], Dict]] = format_error_default,
-) -> GraphQLResponse:
+    format_error: Optional[Callable[[GraphQLError], Dict]] = format_error_default,
+) -> FormattedResult:
     """Format an execution result into a GraphQLResponse.
 
     This converts the given execution result into a FormattedResult that contains
@@ -303,7 +303,8 @@ def format_execution_result(
 
     if execution_result:
         if execution_result.errors:
-            response = {"errors": [format_error(e) for e in execution_result.errors]}
+            fe = [format_error(e) for e in execution_result.errors]  # type: ignore
+            response = {"errors": fe}
             status_code = 400
         else:
             response = {"data": execution_result.data}
