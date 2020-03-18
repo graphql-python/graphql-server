@@ -5,17 +5,17 @@ from graphql.execution import ExecutionResult
 from pytest import raises
 
 from graphql_server import (
-    HttpQueryError,
     GraphQLParams,
     GraphQLResponse,
+    HttpQueryError,
+    encode_execution_results,
+    format_execution_result,
     json_encode,
     load_json_body,
     run_http_query,
-    format_execution_result,
-    encode_execution_results,
 )
 
-from .schema import schema, invalid_schema
+from .schema import invalid_schema, schema
 from .utils import as_dicts
 
 
@@ -41,9 +41,9 @@ def test_validate_schema():
                 {
                     "locations": None,
                     "message": "Query root type must be provided.",
-                    "path": None
+                    "path": None,
                 }
-            ]
+            ],
         }
     ]
 

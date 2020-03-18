@@ -11,22 +11,13 @@ for building GraphQL servers or integrations into existing web frameworks using
 import json
 from collections import namedtuple
 from collections.abc import MutableMapping
-from typing import Optional, List, Callable, Dict, Any, Union, Type
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
-from graphql import (
-    GraphQLSchema,
-    ExecutionResult,
-    GraphQLError,
-    parse,
-    get_operation_ast,
-    validate_schema,
-    validate,
-    execute,
-)
+from graphql import ExecutionResult, GraphQLError, GraphQLSchema, execute
 from graphql import format_error as format_error_default
+from graphql import get_operation_ast, parse, validate, validate_schema
 
 from .error import HttpQueryError
-
 
 __all__ = [
     "run_http_query",
@@ -289,7 +280,9 @@ def get_response(
 
     # noinspection PyBroadException
     try:
-        execution_result = execute_graphql_request(schema, params, allow_only_query, **kwargs)
+        execution_result = execute_graphql_request(
+            schema, params, allow_only_query, **kwargs
+        )
     except catch_exc:
         return None
 

@@ -3,8 +3,8 @@ from graphql import (
     GraphQLField,
     GraphQLNonNull,
     GraphQLObjectType,
-    GraphQLString,
     GraphQLSchema,
+    GraphQLString,
 )
 
 
