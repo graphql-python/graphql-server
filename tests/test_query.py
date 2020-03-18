@@ -15,7 +15,7 @@ from graphql_server import (
     encode_execution_results,
 )
 
-from .schema import schema
+from .schema import schema, invalid_schema
 from .utils import as_dicts
 
 
@@ -29,6 +29,23 @@ def test_server_results():
     assert issubclass(GraphQLResponse, tuple)
     # noinspection PyUnresolvedReferences
     assert GraphQLResponse._fields == ("results", "params")
+
+
+def test_validate_schema():
+    query = "{test}"
+    results, params = run_http_query(invalid_schema, "get", {}, dict(query=query))
+    assert as_dicts(results) == [
+        {
+            "data": None,
+            "errors": [
+                {
+                    "locations": None,
+                    "message": "Query root type must be provided.",
+                    "path": None
+                }
+            ]
+        }
+    ]
 
 
 def test_allows_get_with_query_param():

@@ -42,3 +42,4 @@ MutationRootType = GraphQLObjectType(
 )
 
 schema = GraphQLSchema(QueryRootType, MutationRootType)
+invalid_schema = GraphQLSchema()
