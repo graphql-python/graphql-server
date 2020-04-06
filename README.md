@@ -35,6 +35,8 @@ The `graphql_server` package provides these public helper functions:
  * `json_encode`
  * `json_encode_pretty`
 
+**NOTE:** the `json_encode_pretty` is kept as backward compatibility change as it uses `json_encode` with `pretty` parameter set to `True`.
+
 All functions in the package are annotated with type hints and docstrings,
 and you can build HTML documentation from these using `bin/build_docs`.
 

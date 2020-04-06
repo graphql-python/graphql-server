@@ -10,6 +10,7 @@ from graphql_server import (
     ServerResponse,
     encode_execution_results,
     json_encode,
+    json_encode_pretty,
     load_json_body,
 )
 
@@ -201,3 +202,19 @@ def test_encode_execution_results_with_encode():
     assert isinstance(output.status_code, int)
     assert output.body == "{'data': {'result': None}}"
     assert output.status_code == 200
+
+
+def test_encode_execution_results_with_pretty_encode():
+    execution_results = [ExecutionResult({"test": "Hello World"}, None)]
+
+    output = encode_execution_results(execution_results, encode=json_encode_pretty)
+    body = output.body
+    assert body == "{\n" '  "data": {\n' '    "test": "Hello World"\n' "  }\n" "}"
+
+
+def test_encode_execution_results_not_pretty_by_default():
+    execution_results = [ExecutionResult({"test": "Hello World"}, None)]
+    # execution_results = [ExecutionResult({"result": None}, None)]
+
+    output = encode_execution_results(execution_results)
+    assert output.body == '{"data":{"test":"Hello World"}}'

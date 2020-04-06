@@ -24,6 +24,7 @@ __all__ = [
     "encode_execution_results",
     "load_json_body",
     "json_encode",
+    "json_encode_pretty",
     "HttpQueryError",
     "GraphQLParams",
     "GraphQLResponse",
@@ -121,6 +122,10 @@ def json_encode(data: Union[Dict, List], pretty: bool = False) -> str:
     if not pretty:
         return json.dumps(data, separators=(",", ":"))
     return json.dumps(data, indent=2, separators=(",", ": "))
+
+
+def json_encode_pretty(data: Union[Dict, List]) -> str:
+    return json_encode(data, True)
 
 
 def encode_execution_results(
