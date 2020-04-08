@@ -408,7 +408,7 @@ def test_handles_syntax_errors_caught_by_graphql():
             [
                 {
                     "locations": [(1, 1)],
-                    "message": "Syntax Error: Unexpected Name 'syntaxerror'",
+                    "message": "Syntax Error: Unexpected Name 'syntaxerror'.",
                 }
             ],
         )
@@ -425,7 +425,7 @@ def test_handles_errors_caused_by_a_lack_of_query():
 def test_handles_errors_caused_by_invalid_query_type():
     results, params = run_http_query(schema, "get", dict(query=42))
 
-    assert results == [(None, [{"message": "Must provide Source. Received: 42"}])]
+    assert results == [(None, [{"message": "Must provide Source. Received: 42."}])]
 
 
 def test_handles_batch_correctly_if_is_disabled():
