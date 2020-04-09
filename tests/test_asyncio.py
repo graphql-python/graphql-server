@@ -1,0 +1,74 @@
+import asyncio
+
+from graphql.type.definition import (
+    GraphQLField,
+    GraphQLNonNull,
+    GraphQLObjectType,
+)
+from graphql.type.scalars import GraphQLString
+from graphql.type.schema import GraphQLSchema
+from promise import Promise
+from pytest import mark
+
+from graphql_server import GraphQLParams, run_http_query
+
+from .utils import as_dicts
+
+
+def resolve_error_sync(_obj, _info):
+    raise ValueError("error sync")
+
+
+async def resolve_error_async(_obj, _info):
+    await asyncio.sleep(0.001)
+    raise ValueError("error async")
+
+
+def resolve_field_sync(_obj, _info):
+    return "sync"
+
+
+async def resolve_field_async(_obj, info):
+    await asyncio.sleep(0.001)
+    return "async"
+
+
+NonNullString = GraphQLNonNull(GraphQLString)
+
+QueryRootType = GraphQLObjectType(
+    name="QueryRoot",
+    fields={
+        "errorSync": GraphQLField(NonNullString, resolve=resolve_error_sync),
+        "errorAsync": GraphQLField(NonNullString, resolve=resolve_error_async),
+        "fieldSync": GraphQLField(NonNullString, resolve=resolve_field_sync),
+        "fieldAsync": GraphQLField(NonNullString, resolve=resolve_field_async),
+    },
+)
+
+schema = GraphQLSchema(QueryRootType)
+
+
+@mark.asyncio
+def test_get_responses_using_asyncio_executor():
+    query = "{fieldSync fieldAsync}"
+
+    loop = asyncio.get_event_loop()
+
+    async def get_results():
+        result_promises, params = run_http_query(
+            schema, "get", {}, dict(query=query), run_sync=False
+        )
+        results = await Promise.all(result_promises)
+        return results, params
+
+    try:
+        results, params = loop.run_until_complete(get_results())
+    finally:
+        loop.close()
+
+    expected_results = [
+        {"data": {"fieldSync": "sync", "fieldAsync": "async"}, "errors": None}
+    ]
+
+    assert as_dicts(results) == expected_results
+    assert params == [GraphQLParams(query=query, variables=None, operation_name=None)]

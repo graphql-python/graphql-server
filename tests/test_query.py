@@ -424,7 +424,6 @@ def test_handles_errors_caused_by_a_lack_of_query():
 
 def test_handles_errors_caused_by_invalid_query_type():
     results, params = run_http_query(schema, "get", dict(query=42))
-
     assert results == [(None, [{"message": "Must provide Source. Received: 42."}])]
 
 

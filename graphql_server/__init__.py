@@ -6,16 +6,16 @@ GraphQL-Server-Core is a base library that serves as a helper
 for building GraphQL servers or integrations into existing web frameworks using
 [GraphQL-Core](https://github.com/graphql-python/graphql-core).
 """
-
-
 import json
 from collections import namedtuple
 from collections.abc import MutableMapping
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
-from graphql import ExecutionResult, GraphQLError, GraphQLSchema, execute
+from graphql import ExecutionResult, GraphQLError, GraphQLSchema, OperationType
 from graphql import format_error as format_error_default
-from graphql import get_operation_ast, parse, validate, validate_schema
+from graphql import get_operation_ast, parse
+from graphql.graphql import graphql, graphql_sync
+from graphql.pyutils import AwaitableOrValue
 
 from .error import HttpQueryError
 
@@ -50,6 +50,7 @@ def run_http_query(
     query_data: Optional[Dict] = None,
     batch_enabled: bool = False,
     catch: bool = False,
+    run_sync: bool = True,
     **execute_options,
 ) -> GraphQLResponse:
     """Execute GraphQL coming from an HTTP query against a given schema.
@@ -105,11 +106,12 @@ def run_http_query(
         get_graphql_params(entry, extra_data) for entry in data
     ]
 
-    results = [
-        get_response(schema, params, catch_exc, allow_only_query, **execute_options)
+    results: List[Optional[AwaitableOrValue[ExecutionResult]]] = [
+        get_response(
+            schema, params, catch_exc, allow_only_query, run_sync, **execute_options
+        )
         for params in all_params
     ]
-
     return GraphQLResponse(results, all_params)
 
 
@@ -212,82 +214,63 @@ def load_json_variables(variables: Optional[Union[str, Dict]]) -> Optional[Dict]
     return variables  # type: ignore
 
 
-def execute_graphql_request(
-    schema: GraphQLSchema,
-    params: GraphQLParams,
-    allow_only_query: bool = False,
-    **kwargs,
-) -> Union[Awaitable[ExecutionResult], ExecutionResult]:
-    """Execute a GraphQL request and return an ExecutionResult.
-
-    You need to pass the GraphQL schema and the GraphQLParams that you can get
-    with the get_graphql_params() function. If you only want to allow GraphQL query
-    operations, then set allow_only_query=True. You can also specify a custom
-    GraphQLBackend instance that shall be used by GraphQL-Core instead of the
-    default one. All other keyword arguments are passed on to the GraphQL-Core
-    function for executing GraphQL queries.
-    """
-    if not params.query:
-        raise HttpQueryError(400, "Must provide query string.")
-
-    # Validate the schema and return a list of errors if it
-    # does not satisfy the Type System.
-    schema_validation_errors = validate_schema(schema)
-    if schema_validation_errors:
-        return ExecutionResult(data=None, errors=schema_validation_errors)
-
-    # Parse the query and return ExecutionResult with errors found.
-    # Any Exception is parsed as GraphQLError.
-    try:
-        document = parse(params.query)
-    except GraphQLError as e:
-        return ExecutionResult(data=None, errors=[e])
-    except Exception as e:
-        e = GraphQLError(str(e), original_error=e)
-        return ExecutionResult(data=None, errors=[e])
-
-    if allow_only_query:
-        operation_ast = get_operation_ast(document, params.operation_name)
-        if operation_ast:
-            operation = operation_ast.operation.value
-            if operation != "query":
-                raise HttpQueryError(
-                    405,
-                    f"Can only perform a {operation} operation from a POST request.",
-                    headers={"Allow": "POST"},
-                )
-
-    validation_errors = validate(schema, document)
-    if validation_errors:
-        return ExecutionResult(data=None, errors=validation_errors)
-
-    return execute(
-        schema,
-        document,
-        variable_values=params.variables,
-        operation_name=params.operation_name,
-        **kwargs,
-    )
-
-
 def get_response(
     schema: GraphQLSchema,
     params: GraphQLParams,
     catch_exc: Type[BaseException],
     allow_only_query: bool = False,
+    run_sync: bool = True,
     **kwargs,
-) -> Optional[Union[Awaitable[ExecutionResult], ExecutionResult]]:
+) -> Optional[AwaitableOrValue[ExecutionResult]]:
     """Get an individual execution result as response, with option to catch errors.
 
-    This does the same as execute_graphql_request() except that you can catch errors
-    that belong to an exception class that you need to pass as a parameter.
+    This does the same as graphql_impl() except that you can either
+    throw an error on the ExecutionResult if allow_only_query is set to True
+    or catch errors that belong to an exception class that you need to pass
+    as a parameter.
     """
+
+    if not params.query:
+        raise HttpQueryError(400, "Must provide query string.")
 
     # noinspection PyBroadException
     try:
-        execution_result = execute_graphql_request(
-            schema, params, allow_only_query, **kwargs
-        )
+        # Parse document to trigger a new HttpQueryError if allow_only_query is True
+        try:
+            document = parse(params.query)
+        except GraphQLError as e:
+            return ExecutionResult(data=None, errors=[e])
+        except Exception as e:
+            e = GraphQLError(str(e), original_error=e)
+            return ExecutionResult(data=None, errors=[e])
+
+        if allow_only_query:
+            operation_ast = get_operation_ast(document, params.operation_name)
+            if operation_ast:
+                operation = operation_ast.operation.value
+                if operation != OperationType.QUERY.value:
+                    raise HttpQueryError(
+                        405,
+                        f"Can only perform a {operation} operation from a POST request.",  # noqa
+                        headers={"Allow": "POST"},
+                    )
+
+        if run_sync:
+            execution_result = graphql_sync(
+                schema=schema,
+                source=params.query,
+                variable_values=params.variables,
+                operation_name=params.operation_name,
+                **kwargs,
+            )
+        else:
+            execution_result = graphql(  # type: ignore
+                schema=schema,
+                source=params.query,
+                variable_values=params.variables,
+                operation_name=params.operation_name,
+                **kwargs,
+            )
     except catch_exc:
         return None
 
