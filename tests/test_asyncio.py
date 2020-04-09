@@ -7,7 +7,6 @@ from graphql.type.definition import (
 )
 from graphql.type.scalars import GraphQLString
 from graphql.type.schema import GraphQLSchema
-from promise import Promise
 from pytest import mark
 
 from graphql_server import GraphQLParams, run_http_query
@@ -58,7 +57,7 @@ def test_get_responses_using_asyncio_executor():
         result_promises, params = run_http_query(
             schema, "get", {}, dict(query=query), run_sync=False
         )
-        results = await Promise.all(result_promises)
+        results = [await result for result in result_promises]
         return results, params
 
     try:
