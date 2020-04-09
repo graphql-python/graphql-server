@@ -7,7 +7,6 @@ from graphql.type.definition import (
 )
 from graphql.type.scalars import GraphQLString
 from graphql.type.schema import GraphQLSchema
-from pytest import mark
 
 from graphql_server import GraphQLParams, run_http_query
 
@@ -47,7 +46,6 @@ QueryRootType = GraphQLObjectType(
 schema = GraphQLSchema(QueryRootType)
 
 
-@mark.asyncio
 def test_get_responses_using_asyncio_executor():
     query = "{fieldSync fieldAsync}"
 
@@ -57,8 +55,8 @@ def test_get_responses_using_asyncio_executor():
         result_promises, params = run_http_query(
             schema, "get", {}, dict(query=query), run_sync=False
         )
-        results = [await result for result in result_promises]
-        return results, params
+        res = [await result for result in result_promises]
+        return res, params
 
     try:
         results, params = loop.run_until_complete(get_results())
