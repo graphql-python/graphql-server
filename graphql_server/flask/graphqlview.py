@@ -6,6 +6,7 @@ from graphql_server import (HttpQueryError, format_error_default,
                             encode_execution_results, json_encode,
                             load_json_body, run_http_query)
 
+from graphql.error import GraphQLError
 from graphql.type.schema import GraphQLSchema
 
 from .render_graphiql import render_graphiql
@@ -17,7 +18,6 @@ class GraphQLView(View):
     root_value = None
     pretty = False
     graphiql = False
-    backend = None
     graphiql_version = None
     graphiql_template = None
     graphiql_html_title = None
@@ -43,9 +43,6 @@ class GraphQLView(View):
 
     def get_middleware(self):
         return self.middleware
-
-    def get_backend(self):
-        return self.backend
 
     def get_executor(self):
         return self.executor
@@ -86,7 +83,6 @@ class GraphQLView(View):
                 query_data=request.args,
                 batch_enabled=self.batch,
                 catch=catch,
-                backend=self.get_backend(),
 
                 # Execute options
                 root_value=self.get_root_value(),
@@ -114,10 +110,9 @@ class GraphQLView(View):
             )
 
         except HttpQueryError as e:
+            parsed_error = GraphQLError(e.message)
             return Response(
-                self.encode({
-                    'errors': [self.format_error(e)]
-                }),
+                self.encode(dict(errors=[self.format_error(parsed_error)])),
                 status=e.status_code,
                 headers=e.headers,
                 content_type='application/json'
