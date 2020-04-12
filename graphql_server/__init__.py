@@ -231,11 +231,11 @@ def get_response(
     as a parameter.
     """
 
-    if not params.query:
-        raise HttpQueryError(400, "Must provide query string.")
-
     # noinspection PyBroadException
     try:
+        if not params.query:
+            raise HttpQueryError(400, "Must provide query string.")
+
         # Parse document to trigger a new HttpQueryError if allow_only_query is True
         try:
             document = parse(params.query)
