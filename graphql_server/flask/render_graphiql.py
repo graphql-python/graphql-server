@@ -1,8 +1,8 @@
 from flask import render_template_string
 
-GRAPHIQL_VERSION = '0.11.11'
+GRAPHIQL_VERSION = "0.11.11"
 
-TEMPLATE = '''<!--
+TEMPLATE = """<!--
 The request to this GraphQL server provided the header "Accept: text/html"
 and as a result has been presented GraphiQL - an in-browser IDE for
 exploring GraphQL.
@@ -121,11 +121,16 @@ add "&raw" to the end of the URL within a browser.
     );
   </script>
 </body>
-</html>'''
+</html>"""
 
 
-def render_graphiql(params, result, graphiql_version=None,
-                    graphiql_template=None, graphiql_html_title=None):
+def render_graphiql(
+    params,
+    result,
+    graphiql_version=None,
+    graphiql_template=None,
+    graphiql_html_title=None,
+):
     graphiql_version = graphiql_version or GRAPHIQL_VERSION
     template = graphiql_template or TEMPLATE
 
@@ -134,5 +139,5 @@ def render_graphiql(params, result, graphiql_version=None,
         graphiql_version=graphiql_version,
         graphiql_html_title=graphiql_html_title,
         result=result,
-        params=params
+        params=params,
     )
