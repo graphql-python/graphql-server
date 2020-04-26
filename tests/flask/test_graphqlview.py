@@ -1,13 +1,11 @@
 import json
+from io import StringIO
+from urllib.parse import urlencode
 
 import pytest
 from flask import url_for
 
 from .app import create_app
-
-from io import StringIO
-
-from urllib.parse import urlencode
 
 
 @pytest.fixture

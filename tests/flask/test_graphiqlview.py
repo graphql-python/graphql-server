@@ -35,9 +35,11 @@ def test_graphiql_renders_pretty(app, client):
         )
     assert response.status_code == 200
     pretty_response = (
-        ("{\n" '  "data": {\n' '    "test": "Hello World"\n' "  }\n" "}")
-        .replace('"', '\\"')
-        .replace("\n", "\\n")
+        "{\n"
+        '  "data": {\n'
+        '    "test": "Hello World"\n'
+        "  }\n"
+        "}".replace('"', '\\"').replace("\n", "\\n")
     )
 
     assert pretty_response in response.data.decode("utf-8")
