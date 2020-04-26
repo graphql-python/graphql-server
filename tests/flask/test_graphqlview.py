@@ -5,15 +5,9 @@ from flask import url_for
 
 from .app import create_app
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
+from io import StringIO
 
-try:
-    from urllib import urlencode
-except ImportError:
-    from urllib.parse import urlencode
+from urllib.parse import urlencode
 
 
 @pytest.fixture
@@ -131,7 +125,7 @@ def test_errors_when_missing_operation_name(app, client):
     assert response_json(response) == {
         "errors": [
             {
-                "message": "Must provide operation name if query contains multiple operations.",
+                "message": "Must provide operation name if query contains multiple operations.",  # noqa: E501
                 "locations": None,
                 "path": None,
             }
@@ -231,19 +225,6 @@ def test_allows_post_with_url_encoding(app, client):
 
     assert response.status_code == 200
     assert response_json(response) == {"data": {"test": "Hello World"}}
-
-
-# def test_benchmark(client, benchmark):
-#     url = url_string()
-#     data = urlencode(dict(query='{test}'))
-#     def fun():
-#         return client.post(url_string(), data=data, content_type='application/x-www-form-urlencoded')
-
-#     response = benchmark(fun)
-#     assert response.status_code == 200
-#     assert response_json(response) == {
-#         'data': {'test': "Hello World"}
-#     }
 
 
 def test_supports_post_json_query_with_string_variables(app, client):
