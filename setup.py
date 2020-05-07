@@ -7,6 +7,8 @@ install_requires = [
 tests_requires = [
     "pytest>=5.3,<5.4",
     "pytest-cov>=2.8,<3",
+    "aiohttp>=3.5.0,<4",
+    "Jinja2>=2.10.1,<3",
 ]
 
 dev_requires = [
@@ -21,7 +23,14 @@ install_flask_requires = [
     "flask>=0.7.0",
 ]
 
-install_all_requires = install_requires + install_flask_requires
+install_sanic_requires = [
+    "sanic>=19.9.0,<20",
+]
+
+install_all_requires = \
+    install_requires + \
+    install_flask_requires + \
+    install_sanic_requires
 
 setup(
     name="graphql-server-core",
@@ -52,6 +61,7 @@ setup(
         "test": install_all_requires + tests_requires,
         "dev": install_all_requires + dev_requires,
         "flask": install_flask_requires,
+        "sanic": install_sanic_requires,
     },
     include_package_data=True,
     zip_safe=False,
