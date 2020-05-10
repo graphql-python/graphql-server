@@ -50,7 +50,7 @@ setup(
     extras_require={
         "all": install_all_requires,
         "test": install_all_requires + tests_requires,
-        "dev": dev_requires,
+        "dev": install_all_requires + dev_requires,
         "flask": install_flask_requires,
     },
     include_package_data=True,
