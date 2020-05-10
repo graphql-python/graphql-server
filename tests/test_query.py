@@ -92,6 +92,9 @@ def test_allows_get_with_operation_name():
         {"data": {"test": "Hello World", "shared": "Hello Everyone"}, "errors": None}
     ]
 
+    response = encode_execution_results(results)
+    assert response.status_code == 200
+
 
 def test_reports_validation_errors():
     results, params = run_http_query(
@@ -115,6 +118,9 @@ def test_reports_validation_errors():
             ],
         }
     ]
+
+    response = encode_execution_results(results)
+    assert response.status_code == 400
 
 
 def test_non_dict_params_in_non_batch_query():
@@ -397,6 +403,9 @@ def test_handles_field_errors_caught_by_graphql():
     assert results == [
         (None, [{"message": "Throws!", "locations": [(1, 2)], "path": ["thrower"]}])
     ]
+
+    response = encode_execution_results(results)
+    assert response.status_code == 200
 
 
 def test_handles_syntax_errors_caught_by_graphql():

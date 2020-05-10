@@ -294,7 +294,13 @@ def format_execution_result(
         if execution_result.errors:
             fe = [format_error(e) for e in execution_result.errors]  # type: ignore
             response = {"errors": fe}
-            status_code = 400
+
+            if execution_result.errors and any(
+                not getattr(e, "path", None) for e in execution_result.errors
+            ):
+                status_code = 400
+            else:
+                response["data"] = execution_result.data
         else:
             response = {"data": execution_result.data}
 
