@@ -22,7 +22,6 @@ from .render_graphiql import render_graphiql
 
 class GraphQLView(HTTPMethodView):
     schema = None
-    executor = None
     root_value = None
     context = None
     pretty = False
@@ -33,7 +32,7 @@ class GraphQLView(HTTPMethodView):
     batch = False
     jinja_env = None
     max_age = 86400
-    enable_async = True
+    enable_async = False
 
     methods = ["GET", "POST", "PUT", "DELETE"]
 
@@ -63,11 +62,8 @@ class GraphQLView(HTTPMethodView):
     def get_middleware(self):
         return self.middleware
 
-    def get_executor(self):
-        return self.executor
-
-    def render_graphiql(self, params, result):
-        return render_graphiql(
+    async def render_graphiql(self, params, result):
+        return await render_graphiql(
             jinja_env=self.jinja_env,
             params=params,
             result=result,
@@ -90,13 +86,6 @@ class GraphQLView(HTTPMethodView):
 
             pretty = self.pretty or show_graphiql or request.args.get("pretty")
 
-            extra_options = {}
-            executor = self.get_executor()
-            if executor:
-                # We only include it optionally since
-                # executor is not a valid argument in all backends
-                extra_options["executor"] = executor
-
             if request_method != "options":
                 execution_results, all_params = run_http_query(
                     self.schema,
@@ -106,24 +95,21 @@ class GraphQLView(HTTPMethodView):
                     batch_enabled=self.batch,
                     catch=catch,
                     # Execute options
-                    # This check was previously using an isinstance of AsyncioExecutor
-                    check_sync=not (self.enable_async and self.executor is not None),
+                    run_sync=not self.enable_async,
                     root_value=self.get_root_value(),
                     context_value=self.get_context(request),
-                    middleware=self.get_middleware(),
-                    **extra_options
+                    middleware=self.get_middleware()
                 )
+                exec_res = [await ex for ex in execution_results] if self.enable_async else execution_results
                 result, status_code = encode_execution_results(
-                    execution_results,
+                    exec_res,
                     is_batch=isinstance(data, list),
                     format_error=self.format_error,
                     encode=partial(self.encode, pretty=pretty),  # noqa: ignore
                 )
 
                 if show_graphiql:
-                    return await self.render_graphiql(
-                        params=all_params[0], result=result
-                    )
+                    return await self.render_graphiql(params=all_params[0], result=result)
 
                 return HTTPResponse(
                     result, status=status_code, content_type="application/json"
