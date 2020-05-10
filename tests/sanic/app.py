@@ -1,6 +1,5 @@
 from urllib.parse import urlencode
 
-import pytest
 from sanic import Sanic
 from sanic.testing import SanicTestClient
 

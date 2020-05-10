@@ -98,9 +98,13 @@ class GraphQLView(HTTPMethodView):
                     run_sync=not self.enable_async,
                     root_value=self.get_root_value(),
                     context_value=self.get_context(request),
-                    middleware=self.get_middleware()
+                    middleware=self.get_middleware(),
                 )
-                exec_res = [await ex for ex in execution_results] if self.enable_async else execution_results
+                exec_res = (
+                    [await ex for ex in execution_results]
+                    if self.enable_async
+                    else execution_results
+                )
                 result, status_code = encode_execution_results(
                     exec_res,
                     is_batch=isinstance(data, list),
@@ -109,7 +113,9 @@ class GraphQLView(HTTPMethodView):
                 )
 
                 if show_graphiql:
-                    return await self.render_graphiql(params=all_params[0], result=result)
+                    return await self.render_graphiql(
+                        params=all_params[0], result=result
+                    )
 
                 return HTTPResponse(
                     result, status=status_code, content_type="application/json"

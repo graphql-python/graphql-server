@@ -42,7 +42,9 @@ def test_graphiql_jinja_renderer(app, pretty_response):
     assert pretty_response in response.body.decode("utf-8")
 
 
-@pytest.mark.parametrize("app", [create_app(graphiql=True, jinja_env=Environment(enable_async=True))])
+@pytest.mark.parametrize(
+    "app", [create_app(graphiql=True, jinja_env=Environment(enable_async=True))]
+)
 def test_graphiql_jinja_async_renderer(app, pretty_response):
     _, response = app.client.get(
         uri=url_string(query="{test}"), headers={"Accept": "text/html"}
@@ -65,8 +67,7 @@ def test_graphiql_html_is_not_accepted(app):
 def test_graphiql_asyncio_schema(app):
     query = "{a,b,c}"
     _, response = app.client.get(
-        uri=url_string(query=query),
-        headers={"Accept": "text/html"}
+        uri=url_string(query=query), headers={"Accept": "text/html"}
     )
 
     expected_response = (

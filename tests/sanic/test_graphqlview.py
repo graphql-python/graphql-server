@@ -102,7 +102,7 @@ def test_errors_when_missing_operation_name(app):
             {
                 "locations": None,
                 "message": "Must provide operation name if query contains multiple operations.",
-                "path": None
+                "path": None,
             }
         ]
     }
@@ -123,7 +123,7 @@ def test_errors_when_sending_a_mutation_via_get(app):
             {
                 "locations": None,
                 "message": "Can only perform a mutation operation from a POST request.",
-                "path": None
+                "path": None,
             }
         ]
     }
@@ -147,7 +147,7 @@ def test_errors_when_selecting_a_mutation_within_a_get(app):
             {
                 "locations": None,
                 "message": "Can only perform a mutation operation from a POST request.",
-                "path": None
+                "path": None,
             }
         ]
     }
@@ -202,7 +202,7 @@ def test_allows_post_with_url_encoding(app):
     _, response = app.client.post(
         uri=url_string(),
         data=payload,
-        headers={"content-type": "application/x-www-form-urlencoded"}
+        headers={"content-type": "application/x-www-form-urlencoded"},
     )
 
     assert response.status == 200
@@ -387,7 +387,7 @@ def test_handles_syntax_errors_caught_by_graphql(app):
             {
                 "locations": [{"column": 1, "line": 1}],
                 "message": "Syntax Error: Unexpected Name 'syntaxerror'.",
-                "path": None
+                "path": None,
             }
         ]
     }
@@ -400,11 +400,7 @@ def test_handles_errors_caused_by_a_lack_of_query(app):
     assert response.status == 400
     assert response_json(response) == {
         "errors": [
-            {
-                "locations": None,
-                "message": "Must provide query string.",
-                "path": None
-            }
+            {"locations": None, "message": "Must provide query string.", "path": None}
         ]
     }
 
@@ -421,7 +417,7 @@ def test_handles_batch_correctly_if_is_disabled(app):
             {
                 "locations": None,
                 "message": "Batch GraphQL requests are not enabled.",
-                "path": None
+                "path": None,
             }
         ]
     }
@@ -436,11 +432,7 @@ def test_handles_incomplete_json_bodies(app):
     assert response.status == 400
     assert response_json(response) == {
         "errors": [
-            {
-                "locations": None,
-                "message": "POST body sent invalid JSON.",
-                "path": None
-            }
+            {"locations": None, "message": "POST body sent invalid JSON.", "path": None}
         ]
     }
 
@@ -455,11 +447,7 @@ def test_handles_plain_post_text(app):
     assert response.status == 400
     assert response_json(response) == {
         "errors": [
-            {
-                "locations": None,
-                "message": "Must provide query string.",
-                "path": None
-            }
+            {"locations": None, "message": "Must provide query string.", "path": None}
         ]
     }
 
@@ -474,11 +462,7 @@ def test_handles_poorly_formed_variables(app):
     assert response.status == 400
     assert response_json(response) == {
         "errors": [
-            {
-                "locations": None,
-                "message": "Variables are invalid JSON.",
-                "path": None
-            }
+            {"locations": None, "message": "Variables are invalid JSON.", "path": None}
         ]
     }
 
@@ -493,7 +477,7 @@ def test_handles_unsupported_http_methods(app):
             {
                 "locations": None,
                 "message": "GraphQL only supports GET and POST requests.",
-                "path": None
+                "path": None,
             }
         ]
     }
@@ -513,10 +497,7 @@ def test_supports_pretty_printing_on_custom_context_response(app):
 
     assert response.status == 200
     assert "data" in response_json(response)
-    assert (
-        response_json(response)["data"]["context"]
-        == "<Request: GET /graphql>"
-    )
+    assert response_json(response)["data"]["context"] == "<Request: GET /graphql>"
 
 
 @pytest.mark.parametrize("app", [create_app()])
