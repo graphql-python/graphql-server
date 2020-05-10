@@ -105,8 +105,9 @@ def test_encode_execution_results_with_error():
                 "path": ["somePath"],
             }
         ],
+        "data": None,
     }
-    assert output.status_code == 400
+    assert output.status_code == 200
 
 
 def test_encode_execution_results_with_empty_result():
@@ -148,8 +149,9 @@ def test_encode_execution_results_with_format_error():
     assert isinstance(output.status_code, int)
     assert json.loads(output.body) == {
         "errors": [{"msg": "Some msg", "loc": "1:2", "pth": "some/path"}],
+        "data": None,
     }
-    assert output.status_code == 400
+    assert output.status_code == 200
 
 
 def test_encode_execution_results_with_batch():
