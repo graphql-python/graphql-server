@@ -25,7 +25,7 @@ QueryRootType = GraphQLObjectType(
         ),
         "context": GraphQLField(
             GraphQLNonNull(GraphQLString),
-            resolve=lambda obj, info, *args: info.context,
+            resolve=lambda obj, info, *args: info.context["request"],
         ),
         "test": GraphQLField(
             type_=GraphQLString,

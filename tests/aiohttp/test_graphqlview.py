@@ -224,33 +224,6 @@ async def test_allows_sending_a_mutation_via_post(client):
 
 
 @pytest.mark.asyncio
-async def test_errors_when_sending_a_subscription_without_allow(client):
-    response = await client.post(
-        "/graphql",
-        data=json.dumps(
-            dict(
-                query="""
-            subscription TestSubscriptions { subscriptionsTest { test } }
-            """,
-            )
-        ),
-        headers={"content-type": "application/json"},
-    )
-
-    assert response.status == 200
-    assert await response.json() == {
-        "data": None,
-        "errors": [
-            {
-                "message": "Subscriptions are not allowed. You will need to "
-                "either use the subscribe function or pass "
-                "allow_subscriptions=True"
-            },
-        ],
-    }
-
-
-@pytest.mark.asyncio
 async def test_allows_post_with_url_encoding(client):
     data = FormData()
     data.add_field("query", "{test}")
@@ -548,8 +521,9 @@ async def test_handles_unsupported_http_methods(client):
     }
 
 
+@pytest.mark.parametrize("app", [create_app()])
 @pytest.mark.asyncio
-async def test_passes_request_into_request_context(client):
+async def test_passes_request_into_request_context(app, client):
     response = await client.get(url_string(query="{request}", q="testing"))
 
     assert response.status == 200
@@ -559,42 +533,26 @@ async def test_passes_request_into_request_context(client):
 
 
 class TestCustomContext:
-    # @pytest.fixture
-    # def view_kwargs(self, request, view_kwargs):
-    #     # pylint: disable=no-self-use
-    #     # pylint: disable=redefined-outer-name
-    #     view_kwargs.update(context=request.param)
-    #     return view_kwargs
-
-    # @pytest.mark.parametrize(
-    #     ["CUSTOM CONTEXT", {"CUSTOM_CONTEXT": "test"}],
-    #     indirect=True,
-    #     ids=repr,
-    # )
-    @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "app",
-        [create_app(context="CUSTOM CONTEXT"), {"CUSTOM_CONTEXT": "test"}],
-        indirect=True,
-        ids=repr,
+        "app", [create_app(context="CUSTOM CONTEXT")],
     )
+    @pytest.mark.asyncio
     async def test_context_remapped(self, app, client):
         response = await client.get(url_string(query="{context}"))
 
         _json = await response.json()
         assert response.status == 200
-        assert "request" in _json["data"]["context"]
+        assert "Request" in _json["data"]["context"]
         assert "CUSTOM CONTEXT" not in _json["data"]["context"]
 
-    @pytest.mark.parametrize([{"request": "test"}], indirect=True, ids=repr)
+    @pytest.mark.parametrize("app", [create_app(context={"request": "test"})])
     @pytest.mark.asyncio
-    async def test_request_not_replaced(self, client):
+    async def test_request_not_replaced(self, app, client):
         response = await client.get(url_string(query="{context}"))
 
         _json = await response.json()
         assert response.status == 200
-        assert "request" in _json["data"]["context"]
-        assert _json["data"]["context"] == str({"request": "test"})
+        assert _json["data"]["context"] == "test"
 
 
 @pytest.mark.asyncio
