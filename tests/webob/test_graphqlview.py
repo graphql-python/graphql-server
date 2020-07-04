@@ -468,7 +468,10 @@ def test_supports_custom_context(client, settings):
 
     assert response.status_code == 200
     assert "data" in response_json(response)
-    assert response_json(response)["data"]["context"] == "GET /graphql?query=%7Bcontext%7D HTTP/1.0\r\nHost: localhost:80"
+    assert (
+        response_json(response)["data"]["context"]
+        == "GET /graphql?query=%7Bcontext%7D HTTP/1.0\r\nHost: localhost:80"
+    )
 
 
 def test_post_multipart_data(client):

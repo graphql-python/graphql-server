@@ -66,7 +66,9 @@ class GraphQLView:
             request_method = request.method.lower()
             data = self.parse_body(request)
 
-            show_graphiql = request_method == "get" and self.should_display_graphiql(request)
+            show_graphiql = request_method == "get" and self.should_display_graphiql(
+                request
+            )
             catch = show_graphiql
 
             pretty = self.pretty or show_graphiql or request.params.get("pretty")

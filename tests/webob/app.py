@@ -24,10 +24,7 @@ class Client(object):
         request = Request.blank(url, method="GET", **extra)
         context = self.settings.pop("context", request)
         response = GraphQLView(
-            request=request,
-            schema=self.schema,
-            context=context,
-            **self.settings
+            request=request, schema=self.schema, context=context, **self.settings
         )
         return response.dispatch_request(request)
 
@@ -36,10 +33,7 @@ class Client(object):
         request = Request.blank(url, method="POST", **extra)
         context = self.settings.pop("context", request)
         response = GraphQLView(
-            request=request,
-            schema=self.schema,
-            context=context,
-            **self.settings
+            request=request, schema=self.schema, context=context, **self.settings
         )
         return response.dispatch_request(request)
 
@@ -47,9 +41,6 @@ class Client(object):
         request = Request.blank(url, method="PUT", **extra)
         context = self.settings.pop("context", request)
         response = GraphQLView(
-            request=request,
-            schema=self.schema,
-            context=context,
-            **self.settings
+            request=request, schema=self.schema, context=context, **self.settings
         )
         return response.dispatch_request(request)
