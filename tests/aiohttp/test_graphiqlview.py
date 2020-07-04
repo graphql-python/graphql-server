@@ -61,14 +61,21 @@ async def test_graphiql_simple_renderer(app, client, pretty_response):
 class TestJinjaEnv:
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "app", [create_app(graphiql=True, jinja_env=Environment())]
+        "app", [create_app(graphiql=True, jinja_env=Environment(enable_async=True))]
     )
-    async def test_graphiql_jinja_renderer(self, app, client, pretty_response):
+    async def test_graphiql_jinja_renderer_async(self, app, client, pretty_response):
         response = await client.get(
             url_string(query="{test}"), headers={"Accept": "text/html"},
         )
         assert response.status == 200
         assert pretty_response in await response.text()
+
+    async def test_graphiql_jinja_renderer_sync(self, app, client, pretty_response):
+        response = client.get(
+            url_string(query="{test}"), headers={"Accept": "text/html"},
+        )
+        assert response.status == 200
+        assert pretty_response in response.text()
 
 
 @pytest.mark.asyncio

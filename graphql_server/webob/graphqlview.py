@@ -29,6 +29,7 @@ class GraphQLView:
     graphiql_template = None
     middleware = None
     batch = False
+    enable_async = False
     charset = "UTF-8"
 
     def __init__(self, **kwargs):
@@ -74,10 +75,11 @@ class GraphQLView:
                 self.schema,
                 request_method,
                 data,
-                query_data=self.request.params,
+                query_data=request.params,
                 batch_enabled=self.batch,
                 catch=catch,
                 # Execute options
+                run_sync=not self.enable_async,
                 root_value=self.get_root_value(),
                 context_value=self.get_context(request),
                 middleware=self.get_middleware(),
@@ -114,7 +116,8 @@ class GraphQLView:
             )
 
     # WebOb
-    def parse_body(self, request):
+    @staticmethod
+    def parse_body(request):
         # We use mimetype here since we don't need the other
         # information provided by content_type
         content_type = request.content_type
