@@ -1,11 +1,9 @@
-from string import Template
+import json
+import re
 
-from graphql_server.webob.utils import tojson
+GRAPHIQL_VERSION = "0.17.5"
 
-GRAPHIQL_VERSION = "0.7.1"
-
-TEMPLATE = Template(
-    """<!--
+TEMPLATE = """<!--
 The request to this GraphQL server provided the header "Accept: text/html"
 and as a result has been presented GraphiQL - an in-browser IDE for
 exploring GraphQL.
@@ -119,23 +117,60 @@ add "&raw" to the end of the URL within a browser.
   </script>
 </body>
 </html>"""
-)
+
+
+def escape_js_value(value):
+    quotation = False
+    if value.startswith('"') and value.endswith('"'):
+        quotation = True
+        value = value[1: len(value) - 1]
+
+    value = value.replace("\\\\n", "\\\\\\n").replace("\\n", "\\\\n")
+    if quotation:
+        value = '"' + value.replace('\\\\"', '"').replace('"', '\\"') + '"'
+
+    return value
+
+
+def process_var(template, name, value, jsonify=False):
+    pattern = r"{{\s*" + name + r"(\s*|[^}]+)*\s*}}"
+    if jsonify and value not in ["null", "undefined"]:
+        value = json.dumps(value)
+        value = escape_js_value(value)
+
+    return re.sub(pattern, value, template)
+
+
+def simple_renderer(template, **values):
+    replace = ["graphiql_version"]
+    replace_jsonify = ["query", "result", "variables", "operation_name"]
+
+    for r in replace:
+        template = process_var(template, r, values.get(r, ""))
+
+    for r in replace_jsonify:
+        template = process_var(template, r, values.get(r, ""), True)
+
+    return template
 
 
 def render_graphiql(
-    params, result, graphiql_version=None, graphiql_template=None, graphql_url=None
+    graphiql_version=None,
+    graphiql_template=None,
+    params=None,
+    result=None,
 ):
     graphiql_version = graphiql_version or GRAPHIQL_VERSION
     template = graphiql_template or TEMPLATE
 
-    if result != "null":
-        result = tojson(result)
+    template_vars = {
+        "graphiql_version": graphiql_version,
+        "query": params and params.query,
+        "variables": params and params.variables,
+        "operation_name": params and params.operation_name,
+        "result": result,
+    }
 
-    return template.substitute(
-        graphiql_version=graphiql_version,
-        graphql_url=tojson(graphql_url or ""),
-        result=result,
-        query=tojson(params and params.query or None),
-        variables=tojson(params and params.variables or None),
-        operation_name=tojson(params and params.operation_name or None),
-    )
+    source = simple_renderer(template, **template_vars)
+    return source
+

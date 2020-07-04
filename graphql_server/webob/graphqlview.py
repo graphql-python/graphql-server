@@ -1,5 +1,5 @@
 import copy
-from collections import MutableMapping
+from collections.abc import MutableMapping
 from functools import partial
 
 from graphql.error import GraphQLError
