@@ -173,4 +173,3 @@ def render_graphiql(
 
     source = simple_renderer(template, **template_vars)
     return source
-

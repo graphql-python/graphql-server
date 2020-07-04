@@ -22,34 +22,34 @@ class Client(object):
 
     def get(self, url, **extra):
         request = Request.blank(url, method="GET", **extra)
-        context_value = self.settings.pop("context_value", request)
+        context = self.settings.pop("context", request)
         response = GraphQLView(
             request=request,
             schema=self.schema,
-            context_value=context_value,
+            context=context,
             **self.settings
         )
-        return response.dispatch_request()
+        return response.dispatch_request(request)
 
     def post(self, url, **extra):
         extra["POST"] = extra.pop("data")
         request = Request.blank(url, method="POST", **extra)
-        context_value = self.settings.pop("context_value", request)
+        context = self.settings.pop("context", request)
         response = GraphQLView(
             request=request,
             schema=self.schema,
-            context_value=context_value,
+            context=context,
             **self.settings
         )
-        return response.dispatch_request()
+        return response.dispatch_request(request)
 
     def put(self, url, **extra):
         request = Request.blank(url, method="PUT", **extra)
-        context_value = self.settings.pop("context_value", request)
+        context = self.settings.pop("context", request)
         response = GraphQLView(
             request=request,
             schema=self.schema,
-            context_value=context_value,
+            context=context,
             **self.settings
         )
-        return response.dispatch_request()
+        return response.dispatch_request(request)

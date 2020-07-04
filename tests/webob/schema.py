@@ -19,7 +19,7 @@ QueryRootType = GraphQLObjectType(
         "thrower": GraphQLField(GraphQLNonNull(GraphQLString), resolve=resolve_raises),
         "request": GraphQLField(
             GraphQLNonNull(GraphQLString),
-            resolve=lambda obj, info: info.context["request"].args.get("q"),
+            resolve=lambda obj, info: info.context.params.get('q'),
         ),
         "context": GraphQLField(
             GraphQLNonNull(GraphQLString),

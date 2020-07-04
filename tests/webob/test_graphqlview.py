@@ -333,7 +333,7 @@ def test_supports_pretty_printing(client, settings):
 def test_not_pretty_by_default(client, settings):
     response = client.get(url_string(query="{test}"))
 
-    assert response.body.decode() == ('{"data":{"test":"Hello World"}}')
+    assert response.body.decode() == '{"data":{"test":"Hello World"}}'
 
 
 def test_supports_pretty_printing_by_request(client):
@@ -459,7 +459,6 @@ def test_passes_request_into_request_context(client):
     response = client.get(url_string(query="{request}", q="testing"))
 
     assert response.status_code == 200
-    print(response)
     assert response_json(response) == {"data": {"request": "testing"}}
 
 
@@ -469,7 +468,7 @@ def test_supports_custom_context(client, settings):
 
     assert response.status_code == 200
     assert "data" in response_json(response)
-    assert response_json(response) == {"data": {"context": "CUSTOM CONTEXT"}}
+    assert response_json(response)["data"]["context"] == "GET /graphql?query=%7Bcontext%7D HTTP/1.0\r\nHost: localhost:80"
 
 
 def test_post_multipart_data(client):
