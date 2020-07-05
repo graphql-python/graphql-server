@@ -27,6 +27,10 @@ install_sanic_requires = [
     "sanic>=19.9.0,<20",
 ]
 
+install_webob_requires = [
+    "webob>=1.8.6,<2",
+]
+
 install_aiohttp_requires = [
     "aiohttp>=3.5.0,<4",
 ]
@@ -35,6 +39,7 @@ install_all_requires = \
     install_requires + \
     install_flask_requires + \
     install_sanic_requires + \
+    install_webob_requires + \
     install_aiohttp_requires
 
 setup(
@@ -67,6 +72,7 @@ setup(
         "dev": install_all_requires + dev_requires,
         "flask": install_flask_requires,
         "sanic": install_sanic_requires,
+        "webob": install_webob_requires,
         "aiohttp": install_aiohttp_requires,
     },
     include_package_data=True,

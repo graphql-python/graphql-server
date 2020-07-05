@@ -1,0 +1,43 @@
+from graphql.type.definition import (
+    GraphQLArgument,
+    GraphQLField,
+    GraphQLNonNull,
+    GraphQLObjectType,
+)
+from graphql.type.scalars import GraphQLString
+from graphql.type.schema import GraphQLSchema
+
+
+def resolve_raises(*_):
+    raise Exception("Throws!")
+
+
+# Sync schema
+QueryRootType = GraphQLObjectType(
+    name="QueryRoot",
+    fields={
+        "thrower": GraphQLField(GraphQLNonNull(GraphQLString), resolve=resolve_raises),
+        "request": GraphQLField(
+            GraphQLNonNull(GraphQLString),
+            resolve=lambda obj, info: info.context["request"].params.get("q"),
+        ),
+        "context": GraphQLField(
+            GraphQLNonNull(GraphQLString),
+            resolve=lambda obj, info: info.context["request"],
+        ),
+        "test": GraphQLField(
+            type_=GraphQLString,
+            args={"who": GraphQLArgument(GraphQLString)},
+            resolve=lambda obj, info, who=None: "Hello %s" % (who or "World"),
+        ),
+    },
+)
+
+MutationRootType = GraphQLObjectType(
+    name="MutationRoot",
+    fields={
+        "writeTest": GraphQLField(type_=QueryRootType, resolve=lambda *_: QueryRootType)
+    },
+)
+
+Schema = GraphQLSchema(QueryRootType, MutationRootType)
