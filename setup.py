@@ -2,6 +2,7 @@ from setuptools import setup, find_packages
 
 install_requires = [
     "graphql-core>=3.1.0,<4",
+    "typing-extensions>=3.7.4,<4"
 ]
 
 tests_requires = [
