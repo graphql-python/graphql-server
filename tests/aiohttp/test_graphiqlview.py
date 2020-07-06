@@ -97,7 +97,7 @@ async def test_graphiql_get_mutation(app, client):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("app", [create_app(graphiql=True)])
-async def test_graphiql_get_subscriptions(client):
+async def test_graphiql_get_subscriptions(app, client):
     response = await client.get(
         url_string(
             query="subscription TestSubscriptions { subscriptionsTest { test } }"

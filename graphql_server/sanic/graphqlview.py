@@ -2,13 +2,15 @@ import copy
 from cgi import parse_header
 from collections.abc import MutableMapping
 from functools import partial
+from typing import List
 
 from graphql import GraphQLError
 from graphql.type.schema import GraphQLSchema
-from sanic.response import HTTPResponse
+from sanic.response import HTTPResponse, html
 from sanic.views import HTTPMethodView
 
 from graphql_server import (
+    GraphQLParams,
     HttpQueryError,
     encode_execution_results,
     format_error_default,
@@ -16,8 +18,11 @@ from graphql_server import (
     load_json_body,
     run_http_query,
 )
-
-from .render_graphiql import render_graphiql
+from graphql_server.render_graphiql import (
+    GraphiQLConfig,
+    GraphiQLData,
+    render_graphiql_async,
+)
 
 
 class GraphQLView(HTTPMethodView):
@@ -28,6 +33,7 @@ class GraphQLView(HTTPMethodView):
     graphiql = False
     graphiql_version = None
     graphiql_template = None
+    graphiql_html_title = None
     middleware = None
     batch = False
     jinja_env = None
@@ -62,15 +68,6 @@ class GraphQLView(HTTPMethodView):
     def get_middleware(self):
         return self.middleware
 
-    async def render_graphiql(self, params, result):
-        return await render_graphiql(
-            jinja_env=self.jinja_env,
-            params=params,
-            result=result,
-            graphiql_version=self.graphiql_version,
-            graphiql_template=self.graphiql_template,
-        )
-
     format_error = staticmethod(format_error_default)
     encode = staticmethod(json_encode)
 
@@ -87,6 +84,7 @@ class GraphQLView(HTTPMethodView):
             pretty = self.pretty or show_graphiql or request.args.get("pretty")
 
             if request_method != "options":
+                all_params: List[GraphQLParams]
                 execution_results, all_params = run_http_query(
                     self.schema,
                     request_method,
@@ -113,9 +111,19 @@ class GraphQLView(HTTPMethodView):
                 )
 
                 if show_graphiql:
-                    return await self.render_graphiql(
-                        params=all_params[0], result=result
+                    graphiql_data = GraphiQLData(
+                        result=result, **all_params[0]._asdict()  # noqa
                     )
+                    graphiql_config = GraphiQLConfig(
+                        graphiql_version=self.graphiql_version,
+                        graphiql_template=self.graphiql_template,
+                        graphiql_html_title=self.graphiql_html_title,
+                        jinja_env=self.jinja_env,
+                    )
+                    source = await render_graphiql_async(
+                        data=graphiql_data, config=graphiql_config
+                    )
+                    return html(source)
 
                 return HTTPResponse(
                     result, status=status_code, content_type="application/json"
