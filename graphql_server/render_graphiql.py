@@ -89,13 +89,16 @@ add "&raw" to the end of the URL within a browser.
     }
     var fetchURL = locationQuery(otherParams);
     // Defines a GraphQL fetcher using the fetch API.
-    function graphQLFetcher(graphQLParams) {
+    function graphQLFetcher(graphQLParams, opts) {
       return fetch(fetchURL, {
         method: 'post',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
+        headers: Object.assign(
+          {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          opts && opts.headers,
+        ),
         body: JSON.stringify(graphQLParams),
         credentials: 'include',
       }).then(function (response) {
@@ -112,6 +115,10 @@ add "&raw" to the end of the URL within a browser.
       parameters.variables = newVariables;
       updateURL();
     }
+    function onEditHeaders(newHeaders) {
+      parameters.headers = newHeaders;
+      updateURL();
+    }
     function onEditOperationName(newOperationName) {
       parameters.operationName = newOperationName;
       updateURL();
@@ -125,13 +132,16 @@ add "&raw" to the end of the URL within a browser.
         fetcher: subscriptionsFetcher || graphQLFetcher,
         onEditQuery: onEditQuery,
         onEditVariables: onEditVariables,
+        onEditHeaders: onEditHeaders,
         onEditOperationName: onEditOperationName,
         query: {{query|tojson}},
         response: {{result|tojson}},
         variables: {{variables|tojson}},
+        headers: {{headers|tojson}},
         operationName: {{operation_name|tojson}},
         defaultQuery: {{default_query|tojson}},
         headerEditorEnabled: {{header_editor_enabled|tojson}},
+        shouldPersistHeaders: {{should_persist_headers|tojson}}
       }),
       document.getElementById('graphiql')
     );
@@ -154,6 +164,7 @@ class GraphiQLData(TypedDict):
     operation_name: Optional[str]
     result: Optional[str]
     subscription_url: Optional[str]
+    headers: Optional[str]
 
 
 class GraphiQLConfig(TypedDict):
@@ -194,6 +205,7 @@ class GraphiQLOptions(TypedDict):
 
     default_query: Optional[str]
     header_editor_enabled: Optional[bool]
+    should_persist_headers: Optional[bool]
 
 
 def escape_js_value(value: Any) -> Any:
@@ -221,9 +233,10 @@ def process_var(template: str, name: str, value: Any, jsonify=False) -> str:
 def simple_renderer(template: str, **values: Dict[str, Any]) -> str:
     replace = [
         "graphiql_version",
+        "graphiql_html_title",
         "subscription_url",
         "header_editor_enabled",
-        "graphiql_html_title",
+        "should_persist_headers",
     ]
     replace_jsonify = [
         "query",
@@ -231,6 +244,7 @@ def simple_renderer(template: str, **values: Dict[str, Any]) -> str:
         "variables",
         "operation_name",
         "default_query",
+        "headers",
     ]
 
     for r in replace:
@@ -267,9 +281,11 @@ def _render_graphiql(
         "result": data.get("result"),
         "subscription_url": data.get("subscription_url") or "",
         "default_query": options and options.get("default_query") or "",
+        "headers": options and options.get("headers") or "",
         "header_editor_enabled": options
         and options.get("header_editor_enabled")
         or "true",
+        "should_persist_headers": options and options.get("should_persist_headers") or "false"
     }
 
     return graphiql_template, template_vars
