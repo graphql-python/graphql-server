@@ -16,7 +16,11 @@ from graphql_server import (
     load_json_body,
     run_http_query,
 )
-from graphql_server.render_graphiql import GraphiQLData, render_graphiql_sync
+from graphql_server.render_graphiql import (
+    GraphiQLConfig,
+    GraphiQLData,
+    render_graphiql_sync,
+)
 
 
 class GraphQLView:
@@ -28,6 +32,7 @@ class GraphQLView:
     graphiql = False
     graphiql_version = None
     graphiql_template = None
+    graphiql_html_title = None
     middleware = None
     batch = False
     enable_async = False
@@ -99,8 +104,14 @@ class GraphQLView:
                 graphiql_data = GraphiQLData(  # type: ignore
                     result=result, **all_params[0]._asdict()  # noqa
                 )
+                graphiql_config = GraphiQLConfig(
+                    graphiql_version=self.graphiql_version,
+                    graphiql_template=self.graphiql_template,
+                    graphiql_html_title=self.graphiql_html_title,
+                    jinja_env=None,
+                )
                 return Response(
-                    render_graphiql_sync(data=graphiql_data),
+                    render_graphiql_sync(data=graphiql_data, config=graphiql_config),
                     charset=self.charset,
                     content_type="text/html",
                 )
