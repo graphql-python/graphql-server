@@ -89,7 +89,7 @@ class GraphQLView(View):
             )
 
             if show_graphiql:
-                graphiql_data = GraphiQLData(
+                graphiql_data = GraphiQLData(  # type: ignore
                     result=result, **all_params[0]._asdict()  # noqa
                 )
                 graphiql_config = GraphiQLConfig(

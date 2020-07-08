@@ -31,6 +31,7 @@ class GraphQLView:
     graphiql = False
     graphiql_version = None
     graphiql_template = None
+    graphiql_html_title = None
     middleware = None
     batch = False
     jinja_env = None
@@ -158,7 +159,7 @@ class GraphQLView:
             )
 
             if is_graphiql:
-                graphiql_data = GraphiQLData(
+                graphiql_data = GraphiQLData(  # type: ignore
                     result=result,
                     subscription_url=self.subscriptions,
                     **all_params[0]._asdict()  # noqa
@@ -166,6 +167,7 @@ class GraphQLView:
                 graphiql_config = GraphiQLConfig(
                     graphiql_version=self.graphiql_version,
                     graphiql_template=self.graphiql_template,
+                    graphiql_html_title=self.graphiql_html_title,
                     jinja_env=self.jinja_env,
                 )
                 source = await render_graphiql_async(

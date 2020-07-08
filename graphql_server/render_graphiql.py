@@ -258,7 +258,7 @@ def simple_renderer(template: str, **values: Dict[str, Any]) -> str:
 
 def _render_graphiql(
     data: GraphiQLData,
-    config: Optional[GraphiQLConfig] = None,
+    config: GraphiQLConfig,
     options: Optional[GraphiQLOptions] = None,
 ) -> Tuple[str, Dict[str, Any]]:
     """When render_graphiql receives a request which does not Accept JSON, but does
@@ -266,13 +266,11 @@ def _render_graphiql(
     When shown, it will be pre-populated with the result of having executed
     the requested query.
     """
-    if config is None:
-        config = {}
     graphiql_version = config.get("graphiql_version") or GRAPHIQL_VERSION
     graphiql_template = config.get("graphiql_template") or GRAPHIQL_TEMPLATE
     graphiql_html_title = config.get("graphiql_html_title") or "GraphiQL"
 
-    template_vars = {
+    template_vars: Dict[str, Any] = {
         "graphiql_version": graphiql_version,
         "graphiql_html_title": graphiql_html_title,
         "query": data.get("query"),
@@ -280,12 +278,14 @@ def _render_graphiql(
         "operation_name": data.get("operation_name"),
         "result": data.get("result"),
         "subscription_url": data.get("subscription_url") or "",
+        "headers": data.get("headers") or "",
         "default_query": options and options.get("default_query") or "",
-        "headers": options and options.get("headers") or "",
         "header_editor_enabled": options
         and options.get("header_editor_enabled")
         or "true",
-        "should_persist_headers": options and options.get("should_persist_headers") or "false"
+        "should_persist_headers": options
+        and options.get("should_persist_headers")
+        or "false",
     }
 
     return graphiql_template, template_vars
@@ -293,16 +293,16 @@ def _render_graphiql(
 
 async def render_graphiql_async(
     data: GraphiQLData,
-    config: Optional[GraphiQLConfig] = None,
+    config: GraphiQLConfig,
     options: Optional[GraphiQLOptions] = None,
 ) -> str:
     graphiql_template, template_vars = _render_graphiql(data, config, options)
-    jinja_env: Environment = config.get("jinja_env")
+    jinja_env: Optional[Environment] = config.get("jinja_env")
 
     if jinja_env:
         # This method returns a Template. See https://jinja.palletsprojects.com/en/2.11.x/api/#jinja2.Template
         template = jinja_env.from_string(graphiql_template)
-        if jinja_env.is_async:
+        if jinja_env.is_async:  # type: ignore
             source = await template.render_async(**template_vars)
         else:
             source = template.render(**template_vars)
@@ -313,7 +313,7 @@ async def render_graphiql_async(
 
 def render_graphiql_sync(
     data: GraphiQLData,
-    config: Optional[GraphiQLConfig] = None,
+    config: GraphiQLConfig,
     options: Optional[GraphiQLOptions] = None,
 ) -> str:
     graphiql_template, template_vars = _render_graphiql(data, config, options)
