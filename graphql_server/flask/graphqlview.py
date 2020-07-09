@@ -32,6 +32,8 @@ class GraphQLView(View):
     graphiql_html_title = None
     middleware = None
     batch = False
+    subscriptions = None
+    headers = None
 
     methods = ["GET", "POST", "PUT", "DELETE"]
 
@@ -89,8 +91,13 @@ class GraphQLView(View):
             )
 
             if show_graphiql:
-                graphiql_data = GraphiQLData(  # type: ignore
-                    result=result, **all_params[0]._asdict()  # noqa
+                graphiql_data = GraphiQLData(
+                    result=result,
+                    query=getattr(all_params[0], "query"),
+                    variables=getattr(all_params[0], "variables"),
+                    operation_name=getattr(all_params[0], "operation_name"),
+                    subscription_url=self.subscriptions,
+                    headers=self.headers,
                 )
                 graphiql_config = GraphiQLConfig(
                     graphiql_version=self.graphiql_version,

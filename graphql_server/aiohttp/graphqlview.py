@@ -38,6 +38,7 @@ class GraphQLView:
     max_age = 86400
     enable_async = False
     subscriptions = None
+    headers = None
 
     accepted_methods = ["GET", "POST", "PUT", "DELETE"]
 
@@ -159,10 +160,13 @@ class GraphQLView:
             )
 
             if is_graphiql:
-                graphiql_data = GraphiQLData(  # type: ignore
+                graphiql_data = GraphiQLData(
                     result=result,
+                    query=getattr(all_params[0], "query"),
+                    variables=getattr(all_params[0], "variables"),
+                    operation_name=getattr(all_params[0], "operation_name"),
                     subscription_url=self.subscriptions,
-                    **all_params[0]._asdict()  # noqa
+                    headers=self.headers,
                 )
                 graphiql_config = GraphiQLConfig(
                     graphiql_version=self.graphiql_version,

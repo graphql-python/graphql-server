@@ -157,6 +157,9 @@ class GraphiQLData(TypedDict):
 
     subscription_url
         The GraphiQL socket endpoint for using subscriptions in graphql-ws.
+    headers
+        An optional GraphQL string to use as the initial displayed request headers,
+        if None is provided, the stored headers will be used.
     """
 
     query: Optional[str]
@@ -173,9 +176,11 @@ class GraphiQLConfig(TypedDict):
     Has the following attributes:
 
     graphiql_version
-        The version of the provided graphiql package.
+        The version of the provided GraphiQL package.
     graphiql_template
         Inject a Jinja template string to customize GraphiQL.
+    graphiql_html_title
+        Replace the default html title on the GraphiQL.
     jinja_env
         Sets jinja environment to be used to process GraphiQL template.
         If Jinja’s async mode is enabled (by enable_async=True),
@@ -200,6 +205,9 @@ class GraphiQLOptions(TypedDict):
         will use its own default query.
     header_editor_enabled
         An optional boolean which enables the header editor when true.
+        Defaults to false.
+    should_persist_headers
+        An optional boolean which enables to persist headers to storage when true.
         Defaults to false.
     """
 

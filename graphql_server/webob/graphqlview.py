@@ -36,6 +36,8 @@ class GraphQLView:
     middleware = None
     batch = False
     enable_async = False
+    subscriptions = None
+    headers = None
     charset = "UTF-8"
 
     def __init__(self, **kwargs):
@@ -101,8 +103,13 @@ class GraphQLView:
             )
 
             if show_graphiql:
-                graphiql_data = GraphiQLData(  # type: ignore
-                    result=result, **all_params[0]._asdict()  # noqa
+                graphiql_data = GraphiQLData(
+                    result=result,
+                    query=getattr(all_params[0], "query"),
+                    variables=getattr(all_params[0], "variables"),
+                    operation_name=getattr(all_params[0], "operation_name"),
+                    subscription_url=self.subscriptions,
+                    headers=self.headers,
                 )
                 graphiql_config = GraphiQLConfig(
                     graphiql_version=self.graphiql_version,
