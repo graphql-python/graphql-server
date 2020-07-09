@@ -6,7 +6,8 @@ install_requires = [
 ]
 
 tests_requires = [
-    "pytest>=5.3,<5.4",
+    "pytest>=5.4,<5.5",
+    "pytest-asyncio>=0.11.0",
     "pytest-cov>=2.8,<3",
     "aiohttp>=3.5.0,<4",
     "Jinja2>=2.10.1,<3",
