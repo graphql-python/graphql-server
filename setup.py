@@ -1,3 +1,4 @@
+from re import search
 from setuptools import setup, find_packages
 
 install_requires = [
@@ -44,11 +45,17 @@ install_all_requires = \
     install_webob_requires + \
     install_aiohttp_requires
 
+with open("graphql_server/version.py") as version_file:
+    version = search('version = "(.*)"', version_file.read()).group(1)
+
+with open("README.md", encoding="utf-8") as readme_file:
+    readme = readme_file.read()
+
 setup(
     name="graphql-server-core",
-    version="2.0.0",
+    version=version,
     description="GraphQL Server tools for powering your server",
-    long_description=open("README.md", encoding="utf-8").read(),
+    long_description=readme,
     long_description_content_type="text/markdown",
     url="https://github.com/graphql-python/graphql-server-core",
     download_url="https://github.com/graphql-python/graphql-server-core/releases",
