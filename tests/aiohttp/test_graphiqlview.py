@@ -70,13 +70,6 @@ class TestJinjaEnv:
         assert response.status == 200
         assert pretty_response in await response.text()
 
-    async def test_graphiql_jinja_renderer_sync(self, app, client, pretty_response):
-        response = client.get(
-            url_string(query="{test}"), headers={"Accept": "text/html"},
-        )
-        assert response.status == 200
-        assert pretty_response in response.text()
-
 
 @pytest.mark.asyncio
 async def test_graphiql_html_is_not_accepted(client):
@@ -97,7 +90,7 @@ async def test_graphiql_get_mutation(app, client):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("app", [create_app(graphiql=True)])
-async def test_graphiql_get_subscriptions(client):
+async def test_graphiql_get_subscriptions(app, client):
     response = await client.get(
         url_string(
             query="subscription TestSubscriptions { subscriptionsTest { test } }"

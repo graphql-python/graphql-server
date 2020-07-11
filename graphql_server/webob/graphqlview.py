@@ -1,12 +1,14 @@
 import copy
 from collections.abc import MutableMapping
 from functools import partial
+from typing import List
 
 from graphql.error import GraphQLError
 from graphql.type.schema import GraphQLSchema
 from webob import Response
 
 from graphql_server import (
+    GraphQLParams,
     HttpQueryError,
     encode_execution_results,
     format_error_default,
@@ -14,8 +16,11 @@ from graphql_server import (
     load_json_body,
     run_http_query,
 )
-
-from .render_graphiql import render_graphiql
+from graphql_server.render_graphiql import (
+    GraphiQLConfig,
+    GraphiQLData,
+    render_graphiql_sync,
+)
 
 
 class GraphQLView:
@@ -27,9 +32,12 @@ class GraphQLView:
     graphiql = False
     graphiql_version = None
     graphiql_template = None
+    graphiql_html_title = None
     middleware = None
     batch = False
     enable_async = False
+    subscriptions = None
+    headers = None
     charset = "UTF-8"
 
     def __init__(self, **kwargs):
@@ -73,6 +81,7 @@ class GraphQLView:
 
             pretty = self.pretty or show_graphiql or request.params.get("pretty")
 
+            all_params: List[GraphQLParams]
             execution_results, all_params = run_http_query(
                 self.schema,
                 request_method,
@@ -94,8 +103,22 @@ class GraphQLView:
             )
 
             if show_graphiql:
+                graphiql_data = GraphiQLData(
+                    result=result,
+                    query=getattr(all_params[0], "query"),
+                    variables=getattr(all_params[0], "variables"),
+                    operation_name=getattr(all_params[0], "operation_name"),
+                    subscription_url=self.subscriptions,
+                    headers=self.headers,
+                )
+                graphiql_config = GraphiQLConfig(
+                    graphiql_version=self.graphiql_version,
+                    graphiql_template=self.graphiql_template,
+                    graphiql_html_title=self.graphiql_html_title,
+                    jinja_env=None,
+                )
                 return Response(
-                    render_graphiql(params=all_params[0], result=result),
+                    render_graphiql_sync(data=graphiql_data, config=graphiql_config),
                     charset=self.charset,
                     content_type="text/html",
                 )

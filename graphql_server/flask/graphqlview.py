@@ -1,11 +1,13 @@
 from functools import partial
+from typing import List
 
-from flask import Response, request
+from flask import Response, render_template_string, request
 from flask.views import View
 from graphql.error import GraphQLError
 from graphql.type.schema import GraphQLSchema
 
 from graphql_server import (
+    GraphQLParams,
     HttpQueryError,
     encode_execution_results,
     format_error_default,
@@ -13,8 +15,11 @@ from graphql_server import (
     load_json_body,
     run_http_query,
 )
-
-from .render_graphiql import render_graphiql
+from graphql_server.render_graphiql import (
+    GraphiQLConfig,
+    GraphiQLData,
+    render_graphiql_sync,
+)
 
 
 class GraphQLView(View):
@@ -27,6 +32,8 @@ class GraphQLView(View):
     graphiql_html_title = None
     middleware = None
     batch = False
+    subscriptions = None
+    headers = None
 
     methods = ["GET", "POST", "PUT", "DELETE"]
 
@@ -50,15 +57,6 @@ class GraphQLView(View):
     def get_middleware(self):
         return self.middleware
 
-    def render_graphiql(self, params, result):
-        return render_graphiql(
-            params=params,
-            result=result,
-            graphiql_version=self.graphiql_version,
-            graphiql_template=self.graphiql_template,
-            graphiql_html_title=self.graphiql_html_title,
-        )
-
     format_error = staticmethod(format_error_default)
     encode = staticmethod(json_encode)
 
@@ -72,6 +70,7 @@ class GraphQLView(View):
 
             pretty = self.pretty or show_graphiql or request.args.get("pretty")
 
+            all_params: List[GraphQLParams]
             execution_results, all_params = run_http_query(
                 self.schema,
                 request_method,
@@ -88,11 +87,28 @@ class GraphQLView(View):
                 execution_results,
                 is_batch=isinstance(data, list),
                 format_error=self.format_error,
-                encode=partial(self.encode, pretty=pretty),
+                encode=partial(self.encode, pretty=pretty),  # noqa
             )
 
             if show_graphiql:
-                return self.render_graphiql(params=all_params[0], result=result)
+                graphiql_data = GraphiQLData(
+                    result=result,
+                    query=getattr(all_params[0], "query"),
+                    variables=getattr(all_params[0], "variables"),
+                    operation_name=getattr(all_params[0], "operation_name"),
+                    subscription_url=self.subscriptions,
+                    headers=self.headers,
+                )
+                graphiql_config = GraphiQLConfig(
+                    graphiql_version=self.graphiql_version,
+                    graphiql_template=self.graphiql_template,
+                    graphiql_html_title=self.graphiql_html_title,
+                    jinja_env=None,
+                )
+                source = render_graphiql_sync(
+                    data=graphiql_data, config=graphiql_config
+                )
+                return render_template_string(source)
 
             return Response(result, status=status_code, content_type="application/json")
 
