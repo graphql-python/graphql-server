@@ -2,6 +2,7 @@ import json
 
 from graphql.error import GraphQLError
 from graphql.execution import ExecutionResult
+from graphql.validation import ValidationRule
 from pytest import raises
 
 from graphql_server import (
@@ -113,6 +114,68 @@ def test_reports_validation_errors():
                 {
                     "message": "Cannot query field 'unknownTwo' on type 'QueryRoot'.",
                     "locations": [{"line": 1, "column": 21}],
+                    "path": None,
+                },
+            ],
+        }
+    ]
+
+    response = encode_execution_results(results)
+    assert response.status_code == 400
+
+
+def test_reports_custom_validation_errors():
+    class CustomValidationRule(ValidationRule):
+        def enter_field(self, node, *_args):
+            self.report_error(GraphQLError("Custom validation error.", node))
+
+    results, params = run_http_query(
+        schema,
+        "get",
+        {},
+        query_data=dict(query="{ test }"),
+        validation_rules=[CustomValidationRule],
+    )
+
+    assert as_dicts(results) == [
+        {
+            "data": None,
+            "errors": [
+                {
+                    "message": "Custom validation error.",
+                    "locations": [{"line": 1, "column": 3}],
+                    "path": None,
+                }
+            ],
+        }
+    ]
+
+    response = encode_execution_results(results)
+    assert response.status_code == 400
+
+
+def test_reports_max_num_of_validation_errors():
+    results, params = run_http_query(
+        schema,
+        "get",
+        {},
+        query_data=dict(query="{ test, unknownOne, unknownTwo }"),
+        max_errors=1,
+    )
+
+    assert as_dicts(results) == [
+        {
+            "data": None,
+            "errors": [
+                {
+                    "message": "Cannot query field 'unknownOne' on type 'QueryRoot'.",
+                    "locations": [{"line": 1, "column": 9}],
+                    "path": None,
+                },
+                {
+                    "message": "Too many validation errors, error limit reached."
+                    " Validation aborted.",
+                    "locations": None,
                     "path": None,
                 },
             ],
