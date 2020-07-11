@@ -1,3 +1,5 @@
+import copy
+from collections.abc import MutableMapping
 from functools import partial
 from typing import List
 
@@ -18,6 +20,7 @@ from graphql_server import (
 from graphql_server.render_graphiql import (
     GraphiQLConfig,
     GraphiQLData,
+    GraphiQLOptions,
     render_graphiql_sync,
 )
 
@@ -25,6 +28,7 @@ from graphql_server.render_graphiql import (
 class GraphQLView(View):
     schema = None
     root_value = None
+    context = None
     pretty = False
     graphiql = False
     graphiql_version = None
@@ -34,6 +38,9 @@ class GraphQLView(View):
     batch = False
     subscriptions = None
     headers = None
+    default_query = None
+    header_editor_enabled = None
+    should_persist_headers = None
 
     methods = ["GET", "POST", "PUT", "DELETE"]
 
@@ -47,12 +54,18 @@ class GraphQLView(View):
             self.schema, GraphQLSchema
         ), "A Schema is required to be provided to GraphQLView."
 
-    # noinspection PyUnusedLocal
     def get_root_value(self):
         return self.root_value
 
-    def get_context_value(self):
-        return request
+    def get_context(self):
+        context = (
+            copy.copy(self.context)
+            if self.context and isinstance(self.context, MutableMapping)
+            else {}
+        )
+        if isinstance(context, MutableMapping) and "request" not in context:
+            context.update({"request": request})
+        return context
 
     def get_middleware(self):
         return self.middleware
@@ -80,7 +93,7 @@ class GraphQLView(View):
                 catch=catch,
                 # Execute options
                 root_value=self.get_root_value(),
-                context_value=self.get_context_value(),
+                context_value=self.get_context(),
                 middleware=self.get_middleware(),
             )
             result, status_code = encode_execution_results(
@@ -105,8 +118,13 @@ class GraphQLView(View):
                     graphiql_html_title=self.graphiql_html_title,
                     jinja_env=None,
                 )
+                graphiql_options = GraphiQLOptions(
+                    default_query=self.default_query,
+                    header_editor_enabled=self.header_editor_enabled,
+                    should_persist_headers=self.should_persist_headers,
+                )
                 source = render_graphiql_sync(
-                    data=graphiql_data, config=graphiql_config
+                    data=graphiql_data, config=graphiql_config, options=graphiql_options
                 )
                 return render_template_string(source)
 

@@ -18,10 +18,11 @@ QueryRootType = GraphQLObjectType(
         "thrower": GraphQLField(GraphQLNonNull(GraphQLString), resolve=resolve_raises),
         "request": GraphQLField(
             GraphQLNonNull(GraphQLString),
-            resolve=lambda obj, info: info.context.args.get("q"),
+            resolve=lambda obj, info: info.context["request"].args.get("q"),
         ),
         "context": GraphQLField(
-            GraphQLNonNull(GraphQLString), resolve=lambda obj, info: info.context
+            GraphQLNonNull(GraphQLString),
+            resolve=lambda obj, info: info.context["request"],
         ),
         "test": GraphQLField(
             type_=GraphQLString,

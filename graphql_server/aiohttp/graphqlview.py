@@ -19,6 +19,7 @@ from graphql_server import (
 from graphql_server.render_graphiql import (
     GraphiQLConfig,
     GraphiQLData,
+    GraphiQLOptions,
     render_graphiql_async,
 )
 
@@ -39,6 +40,9 @@ class GraphQLView:
     enable_async = False
     subscriptions = None
     headers = None
+    default_query = None
+    header_editor_enabled = None
+    should_persist_headers = None
 
     accepted_methods = ["GET", "POST", "PUT", "DELETE"]
 
@@ -174,8 +178,13 @@ class GraphQLView:
                     graphiql_html_title=self.graphiql_html_title,
                     jinja_env=self.jinja_env,
                 )
+                graphiql_options = GraphiQLOptions(
+                    default_query=self.default_query,
+                    header_editor_enabled=self.header_editor_enabled,
+                    should_persist_headers=self.should_persist_headers,
+                )
                 source = await render_graphiql_async(
-                    data=graphiql_data, config=graphiql_config
+                    data=graphiql_data, config=graphiql_config, options=graphiql_options
                 )
                 return web.Response(text=source, content_type="text/html")
 

@@ -489,14 +489,13 @@ def test_passes_request_into_request_context(app, client):
     assert response_json(response) == {"data": {"request": "testing"}}
 
 
-@pytest.mark.parametrize(
-    "app", [create_app(get_context_value=lambda: "CUSTOM CONTEXT")]
-)
+@pytest.mark.parametrize("app", [create_app(context="CUSTOM CONTEXT")])
 def test_passes_custom_context_into_context(app, client):
     response = client.get(url_string(app, query="{context}"))
 
     assert response.status_code == 200
-    assert response_json(response) == {"data": {"context": "CUSTOM CONTEXT"}}
+    assert "data" in response_json(response)
+    assert "Request" in response_json(response)["data"]["context"]
 
 
 def test_post_multipart_data(app, client):
