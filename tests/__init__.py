@@ -1,1 +1,1 @@
-"""GraphQL-Server-Core Tests"""
+"""GraphQL-Server Tests"""

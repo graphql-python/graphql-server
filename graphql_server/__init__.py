@@ -18,8 +18,16 @@ from graphql.graphql import graphql, graphql_sync
 from graphql.pyutils import AwaitableOrValue
 
 from .error import HttpQueryError
+from .version import version, version_info
+
+# The GraphQL-Server 3 version info.
+
+__version__ = version
+__version_info__ = version_info
 
 __all__ = [
+    "version",
+    "version_info",
     "run_http_query",
     "encode_execution_results",
     "load_json_body",
