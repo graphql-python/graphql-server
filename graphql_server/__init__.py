@@ -244,23 +244,23 @@ def get_response(
         if not params.query:
             raise HttpQueryError(400, "Must provide query string.")
 
-        # Parse document to trigger a new HttpQueryError if allow_only_query is True
-        try:
-            document = parse(params.query)
-        except GraphQLError as e:
-            return ExecutionResult(data=None, errors=[e])
-        except Exception as e:
-            e = GraphQLError(str(e), original_error=e)
-            return ExecutionResult(data=None, errors=[e])
-
         if allow_only_query:
+            # Parse document to check that only query operations are used
+            try:
+                document = parse(params.query)
+            except GraphQLError as e:
+                return ExecutionResult(data=None, errors=[e])
+            except Exception as e:
+                e = GraphQLError(str(e), original_error=e)
+                return ExecutionResult(data=None, errors=[e])
             operation_ast = get_operation_ast(document, params.operation_name)
             if operation_ast:
                 operation = operation_ast.operation.value
                 if operation != OperationType.QUERY.value:
                     raise HttpQueryError(
                         405,
-                        f"Can only perform a {operation} operation from a POST request.",  # noqa
+                        f"Can only perform a {operation} operation"
+                        " from a POST request.",
                         headers={"Allow": "POST"},
                     )
 
