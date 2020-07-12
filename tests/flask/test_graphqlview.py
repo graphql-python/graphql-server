@@ -491,35 +491,28 @@ def test_passes_request_into_request_context(app, client):
 
 @pytest.mark.parametrize("app", [create_app(context={"session": "CUSTOM CONTEXT"})])
 def test_passes_custom_context_into_context(app, client):
-    response = client.get(url_string(app, query="{context { session }}"))
+    response = client.get(url_string(app, query="{context { session request }}"))
 
-    print(response_json(response))
     assert response.status_code == 200
-    assert "data" in response_json(response)
-    assert "session" in response_json(response)["data"]["context"]
-    assert "CUSTOM CONTEXT" in response_json(response)["data"]["context"]["session"]
-
-
-@pytest.mark.parametrize("app", [create_app(context={"session": "CUSTOM CONTEXT"})])
-def test_context_remapped_if_mapping(app, client):
-    response = client.get(url_string(app, query="{context { request }}"))
-
-    print(response_json(response))
-    assert response.status_code == 200
-    assert "data" in response_json(response)
-    assert "request" in response_json(response)["data"]["context"]
-    assert "Request" in response_json(response)["data"]["context"]["request"]
+    res = response_json(response)
+    assert "data" in res
+    assert "session" in res["data"]["context"]
+    assert "request" in res["data"]["context"]
+    assert "CUSTOM CONTEXT" in res["data"]["context"]["session"]
+    assert "Request" in res["data"]["context"]["request"]
 
 
 @pytest.mark.parametrize("app", [create_app(context="CUSTOM CONTEXT")])
 def test_context_remapped_if_not_mapping(app, client):
-    response = client.get(url_string(app, query="{context { request }}"))
+    response = client.get(url_string(app, query="{context { session request }}"))
 
-    print(response_json(response))
     assert response.status_code == 200
-    assert "data" in response_json(response)
-    assert "request" in response_json(response)["data"]["context"]
-    assert "CUSTOM CONTEXT" not in response_json(response)["data"]["context"]["request"]
+    res = response_json(response)
+    assert "data" in res
+    assert "session" in res["data"]["context"]
+    assert "request" in res["data"]["context"]
+    assert "CUSTOM CONTEXT" not in res["data"]["context"]["request"]
+    assert "Request" in res["data"]["context"]["request"]
 
 
 def test_post_multipart_data(app, client):

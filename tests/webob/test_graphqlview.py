@@ -462,16 +462,30 @@ def test_passes_request_into_request_context(client):
     assert response_json(response) == {"data": {"request": "testing"}}
 
 
-@pytest.mark.parametrize("settings", [dict(context="CUSTOM CONTEXT")])
-def test_supports_custom_context(client, settings):
-    response = client.get(url_string(query="{context}"))
+@pytest.mark.parametrize("settings", [dict(context={"session": "CUSTOM CONTEXT"})])
+def test_passes_custom_context_into_context(client, settings):
+    response = client.get(url_string(query="{context { session request }}"))
 
     assert response.status_code == 200
-    assert "data" in response_json(response)
-    assert (
-        response_json(response)["data"]["context"]
-        == "GET /graphql?query=%7Bcontext%7D HTTP/1.0\r\nHost: localhost:80"
-    )
+    res = response_json(response)
+    assert "data" in res
+    assert "session" in res["data"]["context"]
+    assert "request" in res["data"]["context"]
+    assert "CUSTOM CONTEXT" in res["data"]["context"]["session"]
+    assert "request" in res["data"]["context"]["request"]
+
+
+@pytest.mark.parametrize("settings", [dict(context="CUSTOM CONTEXT")])
+def test_context_remapped_if_not_mapping(client, settings):
+    response = client.get(url_string(query="{context { session request }}"))
+
+    assert response.status_code == 200
+    res = response_json(response)
+    assert "data" in res
+    assert "session" in res["data"]["context"]
+    assert "request" in res["data"]["context"]
+    assert "CUSTOM CONTEXT" not in res["data"]["context"]["request"]
+    assert "request" in res["data"]["context"]["request"]
 
 
 def test_post_multipart_data(client):

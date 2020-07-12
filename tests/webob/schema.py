@@ -22,8 +22,17 @@ QueryRootType = GraphQLObjectType(
             resolve=lambda obj, info: info.context["request"].params.get("q"),
         ),
         "context": GraphQLField(
-            GraphQLNonNull(GraphQLString),
-            resolve=lambda obj, info: info.context["request"],
+            GraphQLObjectType(
+                name="context",
+                fields={
+                    "session": GraphQLField(GraphQLString),
+                    "request": GraphQLField(
+                        GraphQLNonNull(GraphQLString),
+                        resolve=lambda obj, info: info.context["request"],
+                    ),
+                },
+            ),
+            resolve=lambda obj, info: info.context,
         ),
         "test": GraphQLField(
             type_=GraphQLString,
