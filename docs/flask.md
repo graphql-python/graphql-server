@@ -37,55 +37,16 @@ if __name__ == '__main__':
     app.run()
 ```
 
-This will add `/graphql` and `/graphiql` endpoints to your app.
+This will add `/graphql` endpoint to your app and enable the GraphiQL IDE.
 
-### Special Note for GraphQL-Server V3
+### Special Note for Graphene v3
 
 If you are using the `Schema` type of [Graphene](https://github.com/graphql-python/graphene) library, be sure to use the `graphql_schema` attribute to pass as schema on the `GraphQLView` view. Otherwise, the `GraphQLSchema` from `graphql-core` is the way to go.
 
-**Graphene Schema**
-
-```python
-from graphene import ObjectType, String, Schema
+More info at [Graphene v3 release notes](https://github.com/graphql-python/graphene/wiki/v3-release-notes#graphene-schema-no-longer-subclasses-graphqlschema-type) and [GraphQL-core 3 usage](https://github.com/graphql-python/graphql-core#usage).
 
 
-class Query(ObjectType):
-    # this defines a Field `hello` in our Schema with a single Argument `name`
-    hello = String(name=String(default_value="stranger"))
-    goodbye = String()
-
-    # our Resolver method takes the GraphQL context (root, info) as well as
-    # Argument (name) for the Field and returns data for the query Response
-    @staticmethod
-    def resolve_hello(root, info, name):
-        return f'Hello {name}!'
-
-    @staticmethod
-    def resolve_goodbye(root, info):
-        return 'See ya!'
-
-# Use the `graphql_schema` if using `Schema` type
-schema = Schema(query=Query).graphql_schema
-```
-
-**Graphql-Core Schema**
-
-```python
-from graphql import GraphQLSchema, GraphQLObjectType, GraphQLField, GraphQLString
-
-
-schema = GraphQLSchema(
-    query=GraphQLObjectType(
-        name='RootQueryType',
-        fields={
-            'hello': GraphQLField(
-                GraphQLString,
-                resolve=lambda obj, info: 'world')
-        }))
-```
-
-
-### Supported options
+### Supported options for GraphQLView
 
  * `schema`: The `GraphQLSchema` object that you want the view to execute when it gets a valid request.
  * `context`: A value to pass as the `context_value` to graphql `execute` function.
@@ -115,4 +76,4 @@ class UserRootValue(GraphQLView):
 ```
 
 ## Contributing
-See [CONTRIBUTING.md](CONTRIBUTING.md)
+See [CONTRIBUTING.md](../CONTRIBUTING.md)
