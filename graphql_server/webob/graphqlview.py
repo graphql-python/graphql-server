@@ -40,6 +40,9 @@ class GraphQLView:
     headers = None
     charset = "UTF-8"
 
+    format_error = staticmethod(format_error_default)
+    encode = staticmethod(json_encode)
+
     def __init__(self, **kwargs):
         super(GraphQLView, self).__init__()
         for key, value in kwargs.items():
@@ -65,9 +68,6 @@ class GraphQLView:
 
     def get_middleware(self):
         return self.middleware
-
-    format_error = staticmethod(format_error_default)
-    encode = staticmethod(json_encode)
 
     def dispatch_request(self, request):
         try:
