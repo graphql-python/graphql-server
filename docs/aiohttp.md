@@ -23,7 +23,7 @@ app = web.Application()
 GraphQLView.attach(app, schema=schema, graphiql=True)
 
 # Optional, for adding batch query support (used in Apollo-Client)
-GraphQLView.attach(app, schema=schema, batch=True)
+GraphQLView.attach(app, schema=schema, batch=True, route_path="/graphql/batch")
 
 if __name__ == '__main__':
     web.run_app(app)
