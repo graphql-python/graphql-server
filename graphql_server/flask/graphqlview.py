@@ -44,6 +44,9 @@ class GraphQLView(View):
 
     methods = ["GET", "POST", "PUT", "DELETE"]
 
+    format_error = staticmethod(format_error_default)
+    encode = staticmethod(json_encode)
+
     def __init__(self, **kwargs):
         super(GraphQLView, self).__init__()
         for key, value in kwargs.items():
@@ -69,9 +72,6 @@ class GraphQLView(View):
 
     def get_middleware(self):
         return self.middleware
-
-    format_error = staticmethod(format_error_default)
-    encode = staticmethod(json_encode)
 
     def dispatch_request(self):
         try:
