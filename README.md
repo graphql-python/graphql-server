@@ -1,21 +1,25 @@
-# GraphQL-Server-Core
+# GraphQL-Server
 
 [![PyPI version](https://badge.fury.io/py/graphql-server-core.svg)](https://badge.fury.io/py/graphql-server-core)
 [![Build Status](https://travis-ci.org/graphql-python/graphql-server-core.svg?branch=master)](https://travis-ci.org/graphql-python/graphql-server-core)
 [![Coverage Status](https://codecov.io/gh/graphql-python/graphql-server-core/branch/master/graph/badge.svg)](https://codecov.io/gh/graphql-python/graphql-server-core)
 
-GraphQL-Server-Core is a base library that serves as a helper
+GraphQL-Server is a base library that serves as a helper
 for building GraphQL servers or integrations into existing web frameworks using
 [GraphQL-Core](https://github.com/graphql-python/graphql-core).
 
-## Existing integrations built with GraphQL-Server-Core
+## Integrations built with GraphQL-Server
+
+| Server integration | Docs |
+|---|---|
+| Flask | [flask](docs/flask.md) |
+| Sanic |[sanic](docs/sanic.md) |
+| AIOHTTP | [aiohttp](docs/aiohttp.md) |
+| WebOb (Pyramid, TurboGears) | [webob](docs/webob.md) |
+
+## Other integrations built with GraphQL-Server
 
 | Server integration | Package |
-|---|---|
-| Flask | [flask-graphql](https://github.com/graphql-python/flask-graphql/) |
-| Sanic |[sanic-graphql](https://github.com/graphql-python/sanic-graphql/) |
-| AIOHTTP | [aiohttp-graphql](https://github.com/graphql-python/aiohttp-graphql) |
-| WebOb (Pyramid, TurboGears) |  [webob-graphql](https://github.com/graphql-python/webob-graphql/) |
 | WSGI | [wsgi-graphql](https://github.com/moritzmhmk/wsgi-graphql) |
 | Responder | [responder.ext.graphql](https://github.com/kennethreitz/responder/blob/master/responder/ext/graphql.py) |
 
