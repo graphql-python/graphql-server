@@ -7,7 +7,7 @@ include CONTRIBUTING.md
 include codecov.yml
 include tox.ini
 
-recursive-include docs *.md
+recursive-include docs *.md *.svg
 
 graft tests
 prune bin
