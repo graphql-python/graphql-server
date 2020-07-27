@@ -1,8 +1,8 @@
 """
-GraphQL-Server-Core
+GraphQL-Server
 ===================
 
-GraphQL-Server-Core is a base library that serves as a helper
+GraphQL-Server is a base library that serves as a helper
 for building GraphQL servers or integrations into existing web frameworks using
 [GraphQL-Core](https://github.com/graphql-python/graphql-core).
 """

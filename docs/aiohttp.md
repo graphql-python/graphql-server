@@ -6,7 +6,7 @@ Adds GraphQL support to your aiohttp application.
 
 To install the integration with aiohttp, run the below command on your terminal.
 
-`pip install graphql-server-core[aiohttp]`
+`pip install graphql-server[aiohttp]`
 
 ## Usage
 

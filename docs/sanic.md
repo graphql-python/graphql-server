@@ -6,7 +6,7 @@ Adds GraphQL support to your Sanic application.
 
 To install the integration with Sanic, run the below command on your terminal.
 
-`pip install graphql-server-core[sanic]`
+`pip install graphql-server[sanic]`
 
 ## Usage
 
