@@ -201,7 +201,7 @@ class GraphiQLOptions(TypedDict):
 
     default_query
         An optional GraphQL string to use when no query is provided and no stored
-        query exists from a previous session.  If undefined is provided, GraphiQL
+        query exists from a previous session. If None is provided, GraphiQL
         will use its own default query.
     header_editor_enabled
         An optional boolean which enables the header editor when true.

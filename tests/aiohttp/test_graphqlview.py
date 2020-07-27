@@ -521,8 +521,8 @@ async def test_handles_unsupported_http_methods(client):
     }
 
 
-@pytest.mark.parametrize("app", [create_app()])
 @pytest.mark.asyncio
+@pytest.mark.parametrize("app", [create_app()])
 async def test_passes_request_into_request_context(app, client):
     response = await client.get(url_string(query="{request}", q="testing"))
 
@@ -532,27 +532,42 @@ async def test_passes_request_into_request_context(app, client):
     }
 
 
-class TestCustomContext:
-    @pytest.mark.parametrize(
-        "app", [create_app(context="CUSTOM CONTEXT")],
-    )
-    @pytest.mark.asyncio
-    async def test_context_remapped(self, app, client):
-        response = await client.get(url_string(query="{context}"))
+@pytest.mark.asyncio
+@pytest.mark.parametrize("app", [create_app(context={"session": "CUSTOM CONTEXT"})])
+async def test_passes_custom_context_into_context(app, client):
+    response = await client.get(url_string(query="{context { session request }}"))
 
-        _json = await response.json()
-        assert response.status == 200
-        assert "Request" in _json["data"]["context"]
-        assert "CUSTOM CONTEXT" not in _json["data"]["context"]
+    _json = await response.json()
+    assert response.status == 200
+    assert "data" in _json
+    assert "session" in _json["data"]["context"]
+    assert "request" in _json["data"]["context"]
+    assert "CUSTOM CONTEXT" in _json["data"]["context"]["session"]
+    assert "Request" in _json["data"]["context"]["request"]
 
-    @pytest.mark.parametrize("app", [create_app(context={"request": "test"})])
-    @pytest.mark.asyncio
-    async def test_request_not_replaced(self, app, client):
-        response = await client.get(url_string(query="{context}"))
 
-        _json = await response.json()
-        assert response.status == 200
-        assert _json["data"]["context"] == "test"
+@pytest.mark.asyncio
+@pytest.mark.parametrize("app", [create_app(context="CUSTOM CONTEXT")])
+async def test_context_remapped_if_not_mapping(app, client):
+    response = await client.get(url_string(query="{context { session request }}"))
+
+    _json = await response.json()
+    assert response.status == 200
+    assert "data" in _json
+    assert "session" in _json["data"]["context"]
+    assert "request" in _json["data"]["context"]
+    assert "CUSTOM CONTEXT" not in _json["data"]["context"]["request"]
+    assert "Request" in _json["data"]["context"]["request"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("app", [create_app(context={"request": "test"})])
+async def test_request_not_replaced(app, client):
+    response = await client.get(url_string(query="{context { request }}"))
+
+    _json = await response.json()
+    assert response.status == 200
+    assert _json["data"]["context"]["request"] == "test"
 
 
 @pytest.mark.asyncio
@@ -583,69 +598,68 @@ async def test_post_multipart_data(client):
     assert await response.json() == {"data": {u"writeTest": {u"test": u"Hello World"}}}
 
 
-class TestBatchExecutor:
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize("app", [create_app(batch=True)])
-    async def test_batch_allows_post_with_json_encoding(self, app, client):
-        response = await client.post(
-            "/graphql",
-            data=json.dumps([dict(id=1, query="{test}")]),
-            headers={"content-type": "application/json"},
-        )
+@pytest.mark.asyncio
+@pytest.mark.parametrize("app", [create_app(batch=True)])
+async def test_batch_allows_post_with_json_encoding(app, client):
+    response = await client.post(
+        "/graphql",
+        data=json.dumps([dict(id=1, query="{test}")]),
+        headers={"content-type": "application/json"},
+    )
 
-        assert response.status == 200
-        assert await response.json() == [{"data": {"test": "Hello World"}}]
+    assert response.status == 200
+    assert await response.json() == [{"data": {"test": "Hello World"}}]
 
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize("app", [create_app(batch=True)])
-    async def test_batch_supports_post_json_query_with_json_variables(
-        self, app, client
-    ):
-        response = await client.post(
-            "/graphql",
-            data=json.dumps(
-                [
-                    dict(
-                        id=1,
-                        query="query helloWho($who: String){ test(who: $who) }",
-                        variables={"who": "Dolly"},
-                    )
-                ]
-            ),
-            headers={"content-type": "application/json"},
-        )
 
-        assert response.status == 200
-        assert await response.json() == [{"data": {"test": "Hello Dolly"}}]
+@pytest.mark.asyncio
+@pytest.mark.parametrize("app", [create_app(batch=True)])
+async def test_batch_supports_post_json_query_with_json_variables(app, client):
+    response = await client.post(
+        "/graphql",
+        data=json.dumps(
+            [
+                dict(
+                    id=1,
+                    query="query helloWho($who: String){ test(who: $who) }",
+                    variables={"who": "Dolly"},
+                )
+            ]
+        ),
+        headers={"content-type": "application/json"},
+    )
 
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize("app", [create_app(batch=True)])
-    async def test_batch_allows_post_with_operation_name(self, app, client):
-        response = await client.post(
-            "/graphql",
-            data=json.dumps(
-                [
-                    dict(
-                        id=1,
-                        query="""
-                query helloYou { test(who: "You"), ...shared }
-                query helloWorld { test(who: "World"), ...shared }
-                query helloDolly { test(who: "Dolly"), ...shared }
-                fragment shared on QueryRoot {
-                  shared: test(who: "Everyone")
-                }
-                """,
-                        operationName="helloWorld",
-                    )
-                ]
-            ),
-            headers={"content-type": "application/json"},
-        )
+    assert response.status == 200
+    assert await response.json() == [{"data": {"test": "Hello Dolly"}}]
 
-        assert response.status == 200
-        assert await response.json() == [
-            {"data": {"test": "Hello World", "shared": "Hello Everyone"}}
-        ]
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("app", [create_app(batch=True)])
+async def test_batch_allows_post_with_operation_name(app, client):
+    response = await client.post(
+        "/graphql",
+        data=json.dumps(
+            [
+                dict(
+                    id=1,
+                    query="""
+            query helloYou { test(who: "You"), ...shared }
+            query helloWorld { test(who: "World"), ...shared }
+            query helloDolly { test(who: "Dolly"), ...shared }
+            fragment shared on QueryRoot {
+              shared: test(who: "Everyone")
+            }
+            """,
+                    operationName="helloWorld",
+                )
+            ]
+        ),
+        headers={"content-type": "application/json"},
+    )
+
+    assert response.status == 200
+    assert await response.json() == [
+        {"data": {"test": "Hello World", "shared": "Hello Everyone"}}
+    ]
 
 
 @pytest.mark.asyncio

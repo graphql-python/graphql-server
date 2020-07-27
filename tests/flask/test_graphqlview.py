@@ -489,14 +489,30 @@ def test_passes_request_into_request_context(app, client):
     assert response_json(response) == {"data": {"request": "testing"}}
 
 
-@pytest.mark.parametrize(
-    "app", [create_app(get_context_value=lambda: "CUSTOM CONTEXT")]
-)
+@pytest.mark.parametrize("app", [create_app(context={"session": "CUSTOM CONTEXT"})])
 def test_passes_custom_context_into_context(app, client):
-    response = client.get(url_string(app, query="{context}"))
+    response = client.get(url_string(app, query="{context { session request }}"))
 
     assert response.status_code == 200
-    assert response_json(response) == {"data": {"context": "CUSTOM CONTEXT"}}
+    res = response_json(response)
+    assert "data" in res
+    assert "session" in res["data"]["context"]
+    assert "request" in res["data"]["context"]
+    assert "CUSTOM CONTEXT" in res["data"]["context"]["session"]
+    assert "Request" in res["data"]["context"]["request"]
+
+
+@pytest.mark.parametrize("app", [create_app(context="CUSTOM CONTEXT")])
+def test_context_remapped_if_not_mapping(app, client):
+    response = client.get(url_string(app, query="{context { session request }}"))
+
+    assert response.status_code == 200
+    res = response_json(response)
+    assert "data" in res
+    assert "session" in res["data"]["context"]
+    assert "request" in res["data"]["context"]
+    assert "CUSTOM CONTEXT" not in res["data"]["context"]["request"]
+    assert "Request" in res["data"]["context"]["request"]
 
 
 def test_post_multipart_data(app, client):

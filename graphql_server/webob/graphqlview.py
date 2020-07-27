@@ -19,6 +19,7 @@ from graphql_server import (
 from graphql_server.render_graphiql import (
     GraphiQLConfig,
     GraphiQLData,
+    GraphiQLOptions,
     render_graphiql_sync,
 )
 
@@ -38,6 +39,9 @@ class GraphQLView:
     enable_async = False
     subscriptions = None
     headers = None
+    default_query = None
+    header_editor_enabled = None
+    should_persist_headers = None
     charset = "UTF-8"
 
     format_error = staticmethod(format_error_default)
@@ -117,8 +121,17 @@ class GraphQLView:
                     graphiql_html_title=self.graphiql_html_title,
                     jinja_env=None,
                 )
+                graphiql_options = GraphiQLOptions(
+                    default_query=self.default_query,
+                    header_editor_enabled=self.header_editor_enabled,
+                    should_persist_headers=self.should_persist_headers,
+                )
                 return Response(
-                    render_graphiql_sync(data=graphiql_data, config=graphiql_config),
+                    render_graphiql_sync(
+                        data=graphiql_data,
+                        config=graphiql_config,
+                        options=graphiql_options,
+                    ),
                     charset=self.charset,
                     content_type="text/html",
                 )
