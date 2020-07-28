@@ -52,13 +52,13 @@ with open("README.md", encoding="utf-8") as readme_file:
     readme = readme_file.read()
 
 setup(
-    name="graphql-server-core",
+    name="graphql-server",
     version=version,
     description="GraphQL Server tools for powering your server",
     long_description=readme,
     long_description_content_type="text/markdown",
-    url="https://github.com/graphql-python/graphql-server-core",
-    download_url="https://github.com/graphql-python/graphql-server-core/releases",
+    url="https://github.com/graphql-python/graphql-server",
+    download_url="https://github.com/graphql-python/graphql-server/releases",
     author="Syrus Akbary",
     author_email="me@syrusakbary.com",
     license="MIT",

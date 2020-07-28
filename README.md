@@ -1,8 +1,7 @@
 <img src="./docs/_static/graphql-server-logo.svg" height="128px">
 
-[![PyPI version](https://badge.fury.io/py/graphql-server-core.svg)](https://badge.fury.io/py/graphql-server-core)
-[![Build Status](https://travis-ci.org/graphql-python/graphql-server-core.svg?branch=master)](https://travis-ci.org/graphql-python/graphql-server-core)
-[![Coverage Status](https://codecov.io/gh/graphql-python/graphql-server-core/branch/master/graph/badge.svg)](https://codecov.io/gh/graphql-python/graphql-server-core)
+[![PyPI version](https://badge.fury.io/py/graphql-server.svg)](https://badge.fury.io/py/graphql-server)
+[![Coverage Status](https://codecov.io/gh/graphql-python/graphql-server/branch/master/graph/badge.svg)](https://codecov.io/gh/graphql-python/graphql-server)
 
 GraphQL-Server is a base library that serves as a helper
 for building GraphQL servers or integrations into existing web frameworks using

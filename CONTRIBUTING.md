@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping to make graphql-server-core awesome!
+Thanks for helping to make graphql-server awesome!
 
 We welcome all kinds of contributions:
 
@@ -12,7 +12,7 @@ We welcome all kinds of contributions:
 
 ## Getting started
 
-If you have a specific contribution in mind, be sure to check the [issues](https://github.com/graphql-python/graphql-server-core/issues) and [pull requests](https://github.com/graphql-python/graphql-server-core/pulls) in progress - someone could already be working on something similar and you can help out.
+If you have a specific contribution in mind, be sure to check the [issues](https://github.com/graphql-python/graphql-server/issues) and [pull requests](https://github.com/graphql-python/graphql-server/pulls) in progress - someone could already be working on something similar and you can help out.
 
 
 ## Project setup
@@ -22,7 +22,7 @@ If you have a specific contribution in mind, be sure to check the [issues](https
 After cloning this repo, create a virtualenv:
 
 ```console
-virtualenv graphql-server-core-dev
+virtualenv graphql-server-dev
 ```
 
 Activate the virtualenv and install dependencies by running:
@@ -57,7 +57,7 @@ And you ready to start development!
 After developing, the full test suite can be evaluated by running:
 
 ```sh
-pytest tests --cov=graphql-server-core -vv
+pytest tests --cov=graphql-server -vv
 ```
 
 If you are using Linux or MacOS, you can make use of Makefile command 
