@@ -1,4 +1,4 @@
-<img src="./docs/_static/graphql-server-logo.svg" height="128px">
+<img src="https://raw.githubusercontent.com/graphql-python/graphql-server/master/docs/_static/graphql-server-logo.svg" height="128px">
 
 [![PyPI version](https://badge.fury.io/py/graphql-server.svg)](https://badge.fury.io/py/graphql-server)
 [![Coverage Status](https://codecov.io/gh/graphql-python/graphql-server/branch/master/graph/badge.svg)](https://codecov.io/gh/graphql-python/graphql-server)
@@ -9,12 +9,12 @@ for building GraphQL servers or integrations into existing web frameworks using
 
 ## Integrations built with GraphQL-Server
 
-| Server integration          | Docs                       |
-| --------------------------- | -------------------------- |
-| Flask                       | [flask](docs/flask.md)     |
-| Sanic                       | [sanic](docs/sanic.md)     |
-| AIOHTTP                     | [aiohttp](docs/aiohttp.md) |
-| WebOb (Pyramid, TurboGears) | [webob](docs/webob.md)     |
+| Server integration          | Docs                                                                                    |
+| --------------------------- | --------------------------------------------------------------------------------------- |
+| Flask                       | [flask](https://github.com/graphql-python/graphql-server/blob/master/docs/flask.md)     |
+| Sanic                       | [sanic](https://github.com/graphql-python/graphql-server/blob/master/docs/sanic.md)     |
+| AIOHTTP                     | [aiohttp](https://github.com/graphql-python/graphql-server/blob/master/docs/aiohttp.md) |
+| WebOb (Pyramid, TurboGears) | [webob](https://github.com/graphql-python/graphql-server/blob/master/docs/webob.md)     |
 
 ## Other integrations built with GraphQL-Server
 
@@ -51,4 +51,4 @@ Please let us know when you have built something new, so we can list it here.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md)
+See [CONTRIBUTING.md](https://github.com/graphql-python/graphql-server/blob/master/CONTRIBUTING.md)
