@@ -14,16 +14,28 @@ The package also provides some built-in server integrations:
 Any other existing server frameworks can be implemented by using the public
 helper functions provided on this package.
 
+
 Getting started
 ---------------
 
 You can install GraphQL-Server using pip_::
 
-    pip install graphql-server
+    pip install --pre graphql-server
 
 You can also install GraphQL-Server with pipenv_, if you prefer that::
 
-    pipenv install graphql-server
+    pipenv install --pre graphql-server
+
+.. warning::
+
+    Please note that the following documentation describes the current version
+    which is currently only available as a pre-release and needs to be installed
+    with "`--pre`".
+    
+    Also note that the conda-forge package is not available as the current setup
+    for pre / rc releases is not well documented, check this `conda-forge`_
+    issue to know more. However you can still use pip inside conda to install
+    the prerelease version.
 
 Now you can start using GraphQL-Server by importing from the top-level
 :mod:`graphql-server` package. Nearly everything defined in the sub-packages
@@ -47,3 +59,4 @@ in the current development or want to report issues or send pull requests.
 .. _GitHub repository of GraphQL-Server: https://github.com/graphql-python/graphql-server
 .. _pip: https://pip.pypa.io/
 .. _pipenv: https://github.com/pypa/pipenv
+.. _conda-forge: https://github.com/conda-forge/python-feedstock/issues/270
