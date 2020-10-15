@@ -4,7 +4,7 @@ from collections.abc import MutableMapping
 from functools import partial
 from typing import List
 
-from graphql import GraphQLError
+from graphql import ExecutionResult, GraphQLError
 from graphql.type.schema import GraphQLSchema
 from sanic.response import HTTPResponse, html
 from sanic.views import HTTPMethodView
@@ -105,7 +105,12 @@ class GraphQLView(HTTPMethodView):
                     middleware=self.get_middleware(),
                 )
                 exec_res = (
-                    [await ex for ex in execution_results]
+                    [
+                        ex
+                        if ex is None or isinstance(ex, ExecutionResult)
+                        else await ex
+                        for ex in execution_results
+                    ]
                     if self.enable_async
                     else execution_results
                 )
