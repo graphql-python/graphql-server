@@ -2,7 +2,7 @@ import pytest
 from jinja2 import Environment
 
 from .app import create_app, url_string
-from .schema import AsyncSchema
+from .schema import AsyncSchema, SyncSchema
 
 
 @pytest.fixture
@@ -62,9 +62,9 @@ def test_graphiql_html_is_not_accepted(app):
 
 
 @pytest.mark.parametrize(
-    "app", [create_app(graphiql=True, schema=AsyncSchema, enable_async=True)]
+    "app", [create_app(schema=AsyncSchema, enable_async=True, graphiql=True)]
 )
-def test_graphiql_asyncio_schema(app):
+def test_graphiql_enabled_async_schema(app):
     query = "{a,b,c}"
     _, response = app.client.get(
         uri=url_string(query=query), headers={"Accept": "text/html"}
@@ -84,5 +84,30 @@ def test_graphiql_asyncio_schema(app):
         .replace("\n", "\\n")
     )
 
+    assert response.status == 200
+    assert expected_response in response.body.decode("utf-8")
+
+
+@pytest.mark.parametrize(
+    "app", [create_app(schema=SyncSchema, enable_async=True, graphiql=True)]
+)
+def test_graphiql_enabled_sync_schema(app):
+    query = "{a,b}"
+    _, response = app.client.get(
+        uri=url_string(query=query), headers={"Accept": "text/html"}
+    )
+
+    expected_response = (
+        (
+            "{\n"
+            '  "data": {\n'
+            '    "a": "synced_one",\n'
+            '    "b": "synced_two"\n'
+            "  }\n"
+            "}"
+        )
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+    )
     assert response.status == 200
     assert expected_response in response.body.decode("utf-8")

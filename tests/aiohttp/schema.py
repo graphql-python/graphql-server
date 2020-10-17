@@ -91,4 +91,22 @@ AsyncQueryType = GraphQLObjectType(
 )
 
 
+def resolver_field_sync_1(_obj, info):
+    return "synced_one"
+
+
+def resolver_field_sync_2(_obj, info):
+    return "synced_two"
+
+
+SyncQueryType = GraphQLObjectType(
+    "SyncQueryType",
+    {
+        "a": GraphQLField(GraphQLString, resolve=resolver_field_sync_1),
+        "b": GraphQLField(GraphQLString, resolve=resolver_field_sync_2),
+    },
+)
+
+
 AsyncSchema = GraphQLSchema(AsyncQueryType)
+SyncSchema = GraphQLSchema(SyncQueryType)
