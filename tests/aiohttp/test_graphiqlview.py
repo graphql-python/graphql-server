@@ -3,7 +3,7 @@ from aiohttp.test_utils import TestClient, TestServer
 from jinja2 import Environment
 
 from tests.aiohttp.app import create_app, url_string
-from tests.aiohttp.schema import AsyncSchema, Schema
+from tests.aiohttp.schema import AsyncSchema, Schema, SyncSchema
 
 
 @pytest.fixture
@@ -102,11 +102,51 @@ async def test_graphiql_get_subscriptions(app, client):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("app", [create_app(schema=AsyncSchema, enable_async=True)])
-async def test_graphiql_async_schema(app, client):
+@pytest.mark.parametrize(
+    "app", [create_app(schema=AsyncSchema, enable_async=True, graphiql=True)]
+)
+async def test_graphiql_enabled_async_schema(app, client):
     response = await client.get(
         url_string(query="{a,b,c}"), headers={"Accept": "text/html"},
     )
 
+    expected_response = (
+        (
+            "{\n"
+            '  "data": {\n'
+            '    "a": "hey",\n'
+            '    "b": "hey2",\n'
+            '    "c": "hey3"\n'
+            "  }\n"
+            "}"
+        )
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+    )
     assert response.status == 200
-    assert await response.json() == {"data": {"a": "hey", "b": "hey2", "c": "hey3"}}
+    assert expected_response in await response.text()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "app", [create_app(schema=SyncSchema, enable_async=True, graphiql=True)]
+)
+async def test_graphiql_enabled_sync_schema(app, client):
+    response = await client.get(
+        url_string(query="{a,b}"), headers={"Accept": "text/html"},
+    )
+
+    expected_response = (
+        (
+            "{\n"
+            '  "data": {\n'
+            '    "a": "synced_one",\n'
+            '    "b": "synced_two"\n'
+            "  }\n"
+            "}"
+        )
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+    )
+    assert response.status == 200
+    assert expected_response in await response.text()

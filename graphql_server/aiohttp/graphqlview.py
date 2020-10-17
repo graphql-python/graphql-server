@@ -4,7 +4,7 @@ from functools import partial
 from typing import List
 
 from aiohttp import web
-from graphql import GraphQLError
+from graphql import ExecutionResult, GraphQLError
 from graphql.type.schema import GraphQLSchema
 
 from graphql_server import (
@@ -152,7 +152,10 @@ class GraphQLView:
             )
 
             exec_res = (
-                [await ex for ex in execution_results]
+                [
+                    ex if ex is None or isinstance(ex, ExecutionResult) else await ex
+                    for ex in execution_results
+                ]
                 if self.enable_async
                 else execution_results
             )
