@@ -39,7 +39,7 @@ install_aiohttp_requires = [
 ]
 
 install_quart_requires = [
-    "quart==0.13.1"
+    "quart>=0.6.15"
 ]
 
 install_all_requires = \
