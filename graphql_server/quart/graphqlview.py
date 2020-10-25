@@ -3,10 +3,11 @@ from collections.abc import MutableMapping
 from functools import partial
 from typing import List
 
-from flask import Response, render_template_string, request
-from flask.views import View
+from graphql import ExecutionResult
 from graphql.error import GraphQLError
 from graphql.type.schema import GraphQLSchema
+from quart import Response, render_template_string, request
+from quart.views import View
 
 from graphql_server import (
     GraphQLParams,
@@ -36,6 +37,7 @@ class GraphQLView(View):
     graphiql_html_title = None
     middleware = None
     batch = False
+    enable_async = False
     subscriptions = None
     headers = None
     default_query = None
@@ -73,16 +75,16 @@ class GraphQLView(View):
     def get_middleware(self):
         return self.middleware
 
-    def dispatch_request(self):
+    async def dispatch_request(self):
         try:
             request_method = request.method.lower()
-            data = self.parse_body()
+            data = await self.parse_body()
+            print(data)
 
             show_graphiql = request_method == "get" and self.should_display_graphiql()
             catch = show_graphiql
 
             pretty = self.pretty or show_graphiql or request.args.get("pretty")
-
             all_params: List[GraphQLParams]
             execution_results, all_params = run_http_query(
                 self.schema,
@@ -92,12 +94,22 @@ class GraphQLView(View):
                 batch_enabled=self.batch,
                 catch=catch,
                 # Execute options
+                run_sync=not self.enable_async,
                 root_value=self.get_root_value(),
                 context_value=self.get_context(),
                 middleware=self.get_middleware(),
             )
+            print(execution_results)
+            exec_res = (
+                [
+                    ex if ex is None or isinstance(ex, ExecutionResult) else await ex
+                    for ex in execution_results
+                ]
+                if self.enable_async
+                else execution_results
+            )
             result, status_code = encode_execution_results(
-                execution_results,
+                exec_res,
                 is_batch=isinstance(data, list),
                 format_error=self.format_error,
                 encode=partial(self.encode, pretty=pretty),  # noqa
@@ -126,12 +138,13 @@ class GraphQLView(View):
                 source = render_graphiql_sync(
                     data=graphiql_data, config=graphiql_config, options=graphiql_options
                 )
-                return render_template_string(source)
+                return await render_template_string(source)
 
             return Response(result, status=status_code, content_type="application/json")
 
         except HttpQueryError as e:
             parsed_error = GraphQLError(e.message)
+            print(parsed_error)
             return Response(
                 self.encode(dict(errors=[self.format_error(parsed_error)])),
                 status=e.status_code,
@@ -140,21 +153,24 @@ class GraphQLView(View):
             )
 
     @staticmethod
-    def parse_body():
+    async def parse_body():
         # We use mimetype here since we don't need the other
         # information provided by content_type
         content_type = request.mimetype
         if content_type == "application/graphql":
-            return {"query": request.data.decode("utf8")}
+            refined_data = await request.get_data(raw=False)
+            return {"query": refined_data}
 
         elif content_type == "application/json":
-            return load_json_body(request.data.decode("utf8"))
+            refined_data = await request.get_data(raw=False)
+            return load_json_body(refined_data)
 
-        elif content_type in (
-            "application/x-www-form-urlencoded",
-            "multipart/form-data",
-        ):
-            return request.form
+        elif content_type == "application/x-www-form-urlencoded":
+            return await request.form
+
+        # TODO: Fix this check
+        elif content_type == "multipart/form-data":
+            return await request.files
 
         return {}
 

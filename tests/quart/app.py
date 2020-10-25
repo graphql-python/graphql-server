@@ -1,11 +1,11 @@
-from flask import Flask
+from quart import Quart
 
-from graphql_server.flask import GraphQLView
-from tests.flask.schema import Schema
+from graphql_server.quart import GraphQLView
+from tests.quart.schema import Schema
 
 
 def create_app(path="/graphql", **kwargs):
-    server = Flask(__name__)
+    server = Quart(__name__)
     server.debug = True
     server.add_url_rule(
         path, view_func=GraphQLView.as_view("graphql", schema=Schema, **kwargs)
