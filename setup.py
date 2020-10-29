@@ -27,7 +27,7 @@ install_flask_requires = [
 ]
 
 install_sanic_requires = [
-    "sanic>=19.9.0,<20",
+    "sanic>=20.3.0",
 ]
 
 install_webob_requires = [
