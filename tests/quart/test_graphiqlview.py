@@ -43,13 +43,17 @@ async def execute_client(
 
 @pytest.mark.asyncio
 async def test_graphiql_is_enabled(app: Quart, client: QuartClient):
-    response = await execute_client(app, client, headers=Headers({"Accept": "text/html"}), externals=False)
+    response = await execute_client(
+        app, client, headers=Headers({"Accept": "text/html"}), externals=False
+    )
     assert response.status_code == 200
 
 
 @pytest.mark.asyncio
 async def test_graphiql_renders_pretty(app: Quart, client: QuartClient):
-    response = await execute_client(app, client, headers=Headers({"Accept": "text/html"}), query="{test}")
+    response = await execute_client(
+        app, client, headers=Headers({"Accept": "text/html"}), query="{test}"
+    )
     assert response.status_code == 200
     pretty_response = (
         "{\n"
@@ -64,7 +68,9 @@ async def test_graphiql_renders_pretty(app: Quart, client: QuartClient):
 
 @pytest.mark.asyncio
 async def test_graphiql_default_title(app: Quart, client: QuartClient):
-    response = await execute_client(app, client, headers=Headers({"Accept": "text/html"}))
+    response = await execute_client(
+        app, client, headers=Headers({"Accept": "text/html"})
+    )
     result = await response.get_data(raw=False)
     assert "<title>GraphiQL</title>" in result
 
@@ -74,6 +80,8 @@ async def test_graphiql_default_title(app: Quart, client: QuartClient):
     "app", [create_app(graphiql=True, graphiql_html_title="Awesome")]
 )
 async def test_graphiql_custom_title(app: Quart, client: QuartClient):
-    response = await execute_client(app, client, headers=Headers({"Accept": "text/html"}))
+    response = await execute_client(
+        app, client, headers=Headers({"Accept": "text/html"})
+    )
     result = await response.get_data(raw=False)
     assert "<title>Awesome</title>" in result

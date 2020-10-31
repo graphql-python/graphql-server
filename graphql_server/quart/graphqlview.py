@@ -79,7 +79,6 @@ class GraphQLView(View):
         try:
             request_method = request.method.lower()
             data = await self.parse_body()
-            print(data)
 
             show_graphiql = request_method == "get" and self.should_display_graphiql()
             catch = show_graphiql
@@ -99,7 +98,6 @@ class GraphQLView(View):
                 context_value=self.get_context(),
                 middleware=self.get_middleware(),
             )
-            print(execution_results)
             exec_res = (
                 [
                     ex if ex is None or isinstance(ex, ExecutionResult) else await ex
@@ -144,7 +142,6 @@ class GraphQLView(View):
 
         except HttpQueryError as e:
             parsed_error = GraphQLError(e.message)
-            print(parsed_error)
             return Response(
                 self.encode(dict(errors=[self.format_error(parsed_error)])),
                 status=e.status_code,
@@ -183,8 +180,14 @@ class GraphQLView(View):
     @staticmethod
     def request_wants_html():
         best = request.accept_mimetypes.best_match(["application/json", "text/html"])
-        return (
-            best == "text/html"
-            and request.accept_mimetypes[best]
-            > request.accept_mimetypes["application/json"]
-        )
+
+        # Needed as this was introduced at Quart 0.8.0: https://gitlab.com/pgjones/quart/-/issues/189
+        def _quality(accept, key: str) -> float:
+            for option in accept.options:
+                if accept._values_match(key, option.value):
+                    return option.quality
+            return 0.0
+
+        return best == "text/html" and _quality(
+            request.accept_mimetypes, best
+        ) > _quality(request.accept_mimetypes, "application/json")
