@@ -75,8 +75,8 @@ class GraphQLView:
     def get_middleware(self):
         return self.middleware
 
-    # This method can be static
-    async def parse_body(self, request):
+    @staticmethod
+    async def parse_body(request):
         content_type = request.content_type
         # request.text() is the aiohttp equivalent to
         # request.body.decode("utf8")

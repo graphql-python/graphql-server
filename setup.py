@@ -38,12 +38,17 @@ install_aiohttp_requires = [
     "aiohttp>=3.5.0,<4",
 ]
 
+install_quart_requires = [
+    "quart>=0.6.15"
+]
+
 install_all_requires = \
     install_requires + \
     install_flask_requires + \
     install_sanic_requires + \
     install_webob_requires + \
-    install_aiohttp_requires
+    install_aiohttp_requires + \
+    install_quart_requires
 
 with open("graphql_server/version.py") as version_file:
     version = search('version = "(.*)"', version_file.read()).group(1)
@@ -84,6 +89,7 @@ setup(
         "sanic": install_sanic_requires,
         "webob": install_webob_requires,
         "aiohttp": install_aiohttp_requires,
+        "quart": install_quart_requires,
     },
     include_package_data=True,
     zip_safe=False,

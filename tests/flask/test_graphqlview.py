@@ -9,7 +9,7 @@ from .app import create_app
 
 
 @pytest.fixture
-def app(request):
+def app():
     # import app factory pattern
     app = create_app()
 
@@ -269,7 +269,7 @@ def test_supports_post_url_encoded_query_with_string_variables(app, client):
     assert response_json(response) == {"data": {"test": "Hello Dolly"}}
 
 
-def test_supports_post_json_quey_with_get_variable_values(app, client):
+def test_supports_post_json_query_with_get_variable_values(app, client):
     response = client.post(
         url_string(app, variables=json.dumps({"who": "Dolly"})),
         data=json_dump_kwarg(query="query helloWho($who: String){ test(who: $who) }",),
@@ -533,20 +533,12 @@ def test_post_multipart_data(app, client):
 def test_batch_allows_post_with_json_encoding(app, client):
     response = client.post(
         url_string(app),
-        data=json_dump_kwarg_list(
-            # id=1,
-            query="{test}"
-        ),
+        data=json_dump_kwarg_list(query="{test}"),
         content_type="application/json",
     )
 
     assert response.status_code == 200
-    assert response_json(response) == [
-        {
-            # 'id': 1,
-            "data": {"test": "Hello World"}
-        }
-    ]
+    assert response_json(response) == [{"data": {"test": "Hello World"}}]
 
 
 @pytest.mark.parametrize("app", [create_app(batch=True)])
@@ -554,7 +546,6 @@ def test_batch_supports_post_json_query_with_json_variables(app, client):
     response = client.post(
         url_string(app),
         data=json_dump_kwarg_list(
-            # id=1,
             query="query helloWho($who: String){ test(who: $who) }",
             variables={"who": "Dolly"},
         ),
@@ -562,12 +553,7 @@ def test_batch_supports_post_json_query_with_json_variables(app, client):
     )
 
     assert response.status_code == 200
-    assert response_json(response) == [
-        {
-            # 'id': 1,
-            "data": {"test": "Hello Dolly"}
-        }
-    ]
+    assert response_json(response) == [{"data": {"test": "Hello Dolly"}}]
 
 
 @pytest.mark.parametrize("app", [create_app(batch=True)])
@@ -575,7 +561,6 @@ def test_batch_allows_post_with_operation_name(app, client):
     response = client.post(
         url_string(app),
         data=json_dump_kwarg_list(
-            # id=1,
             query="""
             query helloYou { test(who: "You"), ...shared }
             query helloWorld { test(who: "World"), ...shared }
@@ -591,8 +576,5 @@ def test_batch_allows_post_with_operation_name(app, client):
 
     assert response.status_code == 200
     assert response_json(response) == [
-        {
-            # 'id': 1,
-            "data": {"test": "Hello World", "shared": "Hello Everyone"}
-        }
+        {"data": {"test": "Hello World", "shared": "Hello Everyone"}}
     ]
