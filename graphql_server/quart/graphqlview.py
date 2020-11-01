@@ -1,4 +1,5 @@
 import copy
+import sys
 from collections.abc import MutableMapping
 from functools import partial
 from typing import List
@@ -188,6 +189,13 @@ class GraphQLView(View):
                     return option.quality
             return 0.0
 
-        return best == "text/html" and _quality(
-            request.accept_mimetypes, best
-        ) > _quality(request.accept_mimetypes, "application/json")
+        if sys.version_info >= (3, 7):
+            return (
+                best == "text/html"
+                and request.accept_mimetypes[best]
+                > request.accept_mimetypes["application/json"]
+            )
+        else:
+            return best == "text/html" and _quality(
+                request.accept_mimetypes, best
+            ) > _quality(request.accept_mimetypes, "application/json")
