@@ -78,7 +78,7 @@ setup(
         "License :: OSI Approved :: MIT License",
     ],
     keywords="api graphql protocol rest",
-    packages=find_packages(exclude=["tests"]),
+    packages=find_packages(include=["graphql_server*"]),
     install_requires=install_requires,
     tests_require=install_all_requires + tests_requires,
     extras_require={
