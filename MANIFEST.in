@@ -7,9 +7,10 @@ include CONTRIBUTING.md
 include codecov.yml
 include tox.ini
 
-recursive-include docs *.md *.svg
+recursive-include docs *.md *.txt *.rst conf.py Makefile make.bat *.svg
 
 graft tests
+prune docs/_build
 prune bin
 
 global-exclude *.py[co] __pycache__

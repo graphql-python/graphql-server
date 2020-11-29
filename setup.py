@@ -20,6 +20,8 @@ dev_requires = [
     "black==19.10b0",
     "mypy>=0.761,<0.770",
     "check-manifest>=0.40,<1",
+    "sphinx>=3.0.0,<4",
+    "sphinx_rtd_theme>=0.4,<1"
 ] + tests_requires
 
 install_flask_requires = [
