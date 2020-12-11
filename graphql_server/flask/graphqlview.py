@@ -37,6 +37,7 @@ class GraphQLView(View):
     graphiql_html_title = None
     middleware = None
     validation_rules = None
+    execution_context_class = None
     batch = False
     subscriptions = None
     headers = None
@@ -82,6 +83,9 @@ class GraphQLView(View):
             return specified_rules
         return self.validation_rules
 
+    def get_execution_context_class(self):
+        return self.execution_context_class
+
     def dispatch_request(self):
         try:
             request_method = request.method.lower()
@@ -105,6 +109,7 @@ class GraphQLView(View):
                 context_value=self.get_context(),
                 middleware=self.get_middleware(),
                 validation_rules=self.get_validation_rules(),
+                execution_context_class=self.get_execution_context_class(),
             )
             result, status_code = encode_execution_results(
                 execution_results,
