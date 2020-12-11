@@ -29,6 +29,7 @@ class GraphQLView(View):
     schema = None
     root_value = None
     context = None
+    execution_context_class = None
     pretty = False
     graphiql = False
     graphiql_version = None
@@ -73,6 +74,9 @@ class GraphQLView(View):
     def get_middleware(self):
         return self.middleware
 
+    def get_execution_context_class(self):
+        return self.execution_context_class
+
     def dispatch_request(self):
         try:
             request_method = request.method.lower()
@@ -95,6 +99,7 @@ class GraphQLView(View):
                 root_value=self.get_root_value(),
                 context_value=self.get_context(),
                 middleware=self.get_middleware(),
+                execution_context_class=self.get_execution_context_class(),
             )
             result, status_code = encode_execution_results(
                 execution_results,
