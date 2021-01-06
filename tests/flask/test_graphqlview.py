@@ -83,9 +83,7 @@ def test_allows_get_with_operation_name(app, client):
     )
 
     assert response.status_code == 200
-    assert response_json(response) == {
-        "data": {"test": "Hello World", "shared": "Hello Everyone"}
-    }
+    assert response_json(response) == {"data": {"test": "Hello World", "shared": "Hello Everyone"}}
 
 
 def test_reports_validation_errors(app, client):
@@ -272,7 +270,9 @@ def test_supports_post_url_encoded_query_with_string_variables(app, client):
 def test_supports_post_json_query_with_get_variable_values(app, client):
     response = client.post(
         url_string(app, variables=json.dumps({"who": "Dolly"})),
-        data=json_dump_kwarg(query="query helloWho($who: String){ test(who: $who) }",),
+        data=json_dump_kwarg(
+            query="query helloWho($who: String){ test(who: $who) }",
+        ),
         content_type="application/json",
     )
 
@@ -283,7 +283,11 @@ def test_supports_post_json_query_with_get_variable_values(app, client):
 def test_post_url_encoded_query_with_get_variable_values(app, client):
     response = client.post(
         url_string(app, variables=json.dumps({"who": "Dolly"})),
-        data=urlencode(dict(query="query helloWho($who: String){ test(who: $who) }",)),
+        data=urlencode(
+            dict(
+                query="query helloWho($who: String){ test(who: $who) }",
+            )
+        ),
         content_type="application/x-www-form-urlencoded",
     )
 
@@ -320,9 +324,7 @@ def test_allows_post_with_operation_name(app, client):
     )
 
     assert response.status_code == 200
-    assert response_json(response) == {
-        "data": {"test": "Hello World", "shared": "Hello Everyone"}
-    }
+    assert response_json(response) == {"data": {"test": "Hello World", "shared": "Hello Everyone"}}
 
 
 def test_allows_post_with_get_operation_name(app, client):
@@ -340,18 +342,14 @@ def test_allows_post_with_get_operation_name(app, client):
     )
 
     assert response.status_code == 200
-    assert response_json(response) == {
-        "data": {"test": "Hello World", "shared": "Hello Everyone"}
-    }
+    assert response_json(response) == {"data": {"test": "Hello World", "shared": "Hello Everyone"}}
 
 
 @pytest.mark.parametrize("app", [create_app(pretty=True)])
 def test_supports_pretty_printing(app, client):
     response = client.get(url_string(app, query="{test}"))
 
-    assert response.data.decode() == (
-        "{\n" '  "data": {\n' '    "test": "Hello World"\n' "  }\n" "}"
-    )
+    assert response.data.decode() == ("{\n" '  "data": {\n' '    "test": "Hello World"\n' "  }\n" "}")
 
 
 @pytest.mark.parametrize("app", [create_app(pretty=False)])
@@ -364,9 +362,7 @@ def test_not_pretty_by_default(app, client):
 def test_supports_pretty_printing_by_request(app, client):
     response = client.get(url_string(app, query="{test}", pretty="1"))
 
-    assert response.data.decode() == (
-        "{\n" '  "data": {\n' '    "test": "Hello World"\n' "  }\n" "}"
-    )
+    assert response.data.decode() == ("{\n" '  "data": {\n' '    "test": "Hello World"\n' "  }\n" "}")
 
 
 def test_handles_field_errors_caught_by_graphql(app, client):
@@ -403,9 +399,7 @@ def test_handles_errors_caused_by_a_lack_of_query(app, client):
 
     assert response.status_code == 400
     assert response_json(response) == {
-        "errors": [
-            {"message": "Must provide query string.", "locations": None, "path": None}
-        ]
+        "errors": [{"message": "Must provide query string.", "locations": None, "path": None}]
     }
 
 
@@ -425,15 +419,11 @@ def test_handles_batch_correctly_if_is_disabled(app, client):
 
 
 def test_handles_incomplete_json_bodies(app, client):
-    response = client.post(
-        url_string(app), data='{"query":', content_type="application/json"
-    )
+    response = client.post(url_string(app), data='{"query":', content_type="application/json")
 
     assert response.status_code == 400
     assert response_json(response) == {
-        "errors": [
-            {"message": "POST body sent invalid JSON.", "locations": None, "path": None}
-        ]
+        "errors": [{"message": "POST body sent invalid JSON.", "locations": None, "path": None}]
     }
 
 
@@ -445,9 +435,7 @@ def test_handles_plain_post_text(app, client):
     )
     assert response.status_code == 400
     assert response_json(response) == {
-        "errors": [
-            {"message": "Must provide query string.", "locations": None, "path": None}
-        ]
+        "errors": [{"message": "Must provide query string.", "locations": None, "path": None}]
     }
 
 
@@ -461,9 +449,7 @@ def test_handles_poorly_formed_variables(app, client):
     )
     assert response.status_code == 400
     assert response_json(response) == {
-        "errors": [
-            {"message": "Variables are invalid JSON.", "locations": None, "path": None}
-        ]
+        "errors": [{"message": "Variables are invalid JSON.", "locations": None, "path": None}]
     }
 
 
@@ -524,9 +510,7 @@ def test_post_multipart_data(app, client):
     )
 
     assert response.status_code == 200
-    assert response_json(response) == {
-        "data": {u"writeTest": {u"test": u"Hello World"}}
-    }
+    assert response_json(response) == {"data": {"writeTest": {"test": "Hello World"}}}
 
 
 @pytest.mark.parametrize("app", [create_app(batch=True)])
@@ -575,6 +559,25 @@ def test_batch_allows_post_with_operation_name(app, client):
     )
 
     assert response.status_code == 200
-    assert response_json(response) == [
-        {"data": {"test": "Hello World", "shared": "Hello Everyone"}}
-    ]
+    assert response_json(response) == [{"data": {"test": "Hello World", "shared": "Hello Everyone"}}]
+
+
+@pytest.mark.parametrize(
+    ("query", "result"),
+    (
+        ("query sync {sync}", {"sync": "sync"}),
+        ("query nsync {nsync}", {"nsync": "async"}),
+        ("mutation sync {sync}", {"sync": "sync"}),
+        ("mutation nsync {nsync}", {"nsync": "async"}),
+    ),
+)
+@pytest.mark.parametrize("app", [create_app(enable_async=True)])
+def test_async_client_handles_sync_calls(app, client, query, result):
+    response = client.post(
+        url_string(app),
+        data=json_dump_kwarg(query=query),
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200, response.data
+    assert response_json(response) == {"data": result}

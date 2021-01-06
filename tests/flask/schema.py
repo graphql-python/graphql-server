@@ -43,9 +43,28 @@ QueryRootType = GraphQLObjectType(
 
 MutationRootType = GraphQLObjectType(
     name="MutationRoot",
-    fields={
-        "writeTest": GraphQLField(type_=QueryRootType, resolve=lambda *_: QueryRootType)
-    },
+    fields={"writeTest": GraphQLField(type_=QueryRootType, resolve=lambda *_: QueryRootType)},
 )
 
 Schema = GraphQLSchema(QueryRootType, MutationRootType)
+
+
+async def async_resolver(obj, info):
+    return "async"
+
+
+AsyncQueryRootType = GraphQLObjectType(
+    name="QueryRoot",
+    fields={
+        "sync": GraphQLField(GraphQLNonNull(GraphQLString), resolve=lambda obj, info: "sync"),
+        "nsync": GraphQLField(GraphQLNonNull(GraphQLString), resolve=async_resolver),
+    },
+)
+AsyncMutationRootType = GraphQLObjectType(
+    name="MutationRoot",
+    fields={
+        "sync": GraphQLField(type_=GraphQLString, resolve=lambda obj, info: "sync"),
+        "nsync": GraphQLField(type_=GraphQLString, resolve=async_resolver),
+    },
+)
+AsyncSchema = GraphQLSchema(AsyncQueryRootType, AsyncMutationRootType)
