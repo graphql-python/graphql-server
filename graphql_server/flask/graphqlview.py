@@ -71,12 +71,31 @@ class GraphQLView(View):
     def get_middleware(self):
         return self.middleware
 
-    @staticmethod
-    def get_async_execution_results(execution_results):
-        async def await_execution_results(execution_results):
-            return [ex if ex is None or not is_awaitable(ex) else await ex for ex in execution_results]
+    def get_async_execution_results(self, request_method, data, catch):
+        async def await_execution_results():
+            execution_results, all_params = self.run_http_query(request_method, data, catch)
+            return [
+                ex if ex is None or not is_awaitable(ex) else await ex
+                for ex in execution_results
+            ], all_params
 
-        return asyncio.run(await_execution_results(execution_results))
+        q = asyncio.run(await_execution_results())
+        return q
+
+    def run_http_query(self, request_method, data, catch):
+        return run_http_query(
+            self.schema,
+            request_method,
+            data,
+            query_data=request.args,
+            batch_enabled=self.batch,
+            catch=catch,
+            # Execute options
+            root_value=self.get_root_value(),
+            context_value=self.get_context(),
+            middleware=self.get_middleware(),
+            run_sync=not self.enable_async,
+        )
 
     def dispatch_request(self):
         try:
@@ -89,23 +108,11 @@ class GraphQLView(View):
             pretty = self.pretty or show_graphiql or request.args.get("pretty")
 
             all_params: List[GraphQLParams]
-            execution_results, all_params = run_http_query(
-                self.schema,
-                request_method,
-                data,
-                query_data=request.args,
-                batch_enabled=self.batch,
-                catch=catch,
-                # Execute options
-                root_value=self.get_root_value(),
-                context_value=self.get_context(),
-                middleware=self.get_middleware(),
-                run_sync=not self.enable_async,
-            )
 
             if self.enable_async:
-                if any(is_awaitable(ex) for ex in execution_results):
-                    execution_results = self.get_async_execution_results(execution_results)
+                execution_results, all_params = self.get_async_execution_results(request_method, data, catch)
+            else:
+                execution_results, all_params = self.run_http_query(request_method, data, catch)
 
             result, status_code = encode_execution_results(
                 execution_results,
