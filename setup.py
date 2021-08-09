@@ -23,11 +23,11 @@ dev_requires = [
 ] + tests_requires
 
 install_flask_requires = [
-    "flask>=0.7.0",
+    "flask>=0.7.0<1",
 ]
 
 install_sanic_requires = [
-    "sanic>=20.3.0",
+    "sanic>=20.3.0,<21",
 ]
 
 install_webob_requires = [
@@ -39,7 +39,7 @@ install_aiohttp_requires = [
 ]
 
 install_quart_requires = [
-    "quart>=0.6.15"
+    "quart>=0.6.15,<1"
 ]
 
 install_all_requires = \
