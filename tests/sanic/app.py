@@ -8,6 +8,9 @@ from graphql_server.sanic import GraphQLView
 from .schema import Schema
 
 
+Sanic.test_mode = True
+
+
 def create_app(path="/graphql", **kwargs):
     app = Sanic(__name__)
     app.debug = True
