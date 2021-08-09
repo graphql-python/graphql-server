@@ -498,9 +498,7 @@ def test_handles_errors_caused_by_invalid_query_type():
     with raises(HttpQueryError) as exc_info:
         results, params = run_http_query(schema, "get", dict(query=42))
 
-    assert exc_info.value == HttpQueryError(
-        400, "Unexpected query type."
-    )
+    assert exc_info.value == HttpQueryError(400, "Unexpected query type.")
 
 
 def test_handles_batch_correctly_if_is_disabled():
