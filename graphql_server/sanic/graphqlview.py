@@ -36,6 +36,7 @@ class GraphQLView(HTTPMethodView):
     graphiql_template = None
     graphiql_html_title = None
     middleware = None
+    validation_rules = None
     batch = False
     jinja_env = None
     max_age = 86400
@@ -77,6 +78,9 @@ class GraphQLView(HTTPMethodView):
     def get_middleware(self):
         return self.middleware
 
+    def get_validation_rules(self):
+        return self.validation_rules
+
     async def dispatch_request(self, request, *args, **kwargs):
         try:
             request_method = request.method.lower()
@@ -103,6 +107,7 @@ class GraphQLView(HTTPMethodView):
                     root_value=self.get_root_value(),
                     context_value=self.get_context(request),
                     middleware=self.get_middleware(),
+                    validation_rules=self.get_validation_rules()
                 )
                 exec_res = (
                     [

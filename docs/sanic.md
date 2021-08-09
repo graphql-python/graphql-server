@@ -51,6 +51,7 @@ This will add `/graphql` endpoint to your app and enable the GraphiQL IDE.
 `Template.render_async` instead of `Template.render`. If environment is not set, fallbacks to simple regex-based renderer.
  * `batch`: Set the GraphQL view as batch (for using in [Apollo-Client](http://dev.apollodata.com/core/network.html#query-batching) or [ReactRelayNetworkLayer](https://github.com/nodkz/react-relay-network-layer))
  * `middleware`: A list of graphql [middlewares](http://docs.graphene-python.org/en/latest/execution/middleware/).
+ * `validation_rules`: A list of graphql validation rules.   
  * `max_age`: Sets the response header Access-Control-Max-Age for preflight requests.
  * `encode`: the encoder to use for responses (sensibly defaults to `graphql_server.json_encode`).
  * `format_error`: the error formatter to use for responses (sensibly defaults to `graphql_server.default_format_error`.
