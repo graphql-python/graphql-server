@@ -255,6 +255,10 @@ def get_response(
         if not params.query:
             raise HttpQueryError(400, "Must provide query string.")
 
+        # Sanity check query
+        if not isinstance(params.query, str):
+            raise HttpQueryError(400, "Unexpected query type.")
+
         schema_validation_errors = validate_schema(schema)
         if schema_validation_errors:
             return ExecutionResult(data=None, errors=schema_validation_errors)

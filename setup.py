@@ -1,10 +1,7 @@
 from re import search
 from setuptools import setup, find_packages
 
-install_requires = [
-    "graphql-core>=3.1.0,<4",
-    "typing-extensions>=3.7.4,<4"
-]
+install_requires = ["graphql-core>=3.1.0,<4", "typing-extensions>=3.7.4,<4"]
 
 tests_requires = [
     "pytest>=5.4,<5.5",
@@ -23,11 +20,11 @@ dev_requires = [
 ] + tests_requires
 
 install_flask_requires = [
-    "flask>=0.7.0",
+    "flask>=0.7.0<1",
 ]
 
 install_sanic_requires = [
-    "sanic>=20.3.0",
+    "sanic>=20.3.0,<21",
 ]
 
 install_webob_requires = [
@@ -38,17 +35,16 @@ install_aiohttp_requires = [
     "aiohttp>=3.5.0,<4",
 ]
 
-install_quart_requires = [
-    "quart>=0.6.15"
-]
+install_quart_requires = ["quart>=0.6.15,<1"]
 
-install_all_requires = \
-    install_requires + \
-    install_flask_requires + \
-    install_sanic_requires + \
-    install_webob_requires + \
-    install_aiohttp_requires + \
-    install_quart_requires
+install_all_requires = (
+    install_requires
+    + install_flask_requires
+    + install_sanic_requires
+    + install_webob_requires
+    + install_aiohttp_requires
+    + install_quart_requires
+)
 
 with open("graphql_server/version.py") as version_file:
     version = search('version = "(.*)"', version_file.read()).group(1)
