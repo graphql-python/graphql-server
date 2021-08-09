@@ -4,7 +4,11 @@ from functools import partial
 from typing import List
 
 from aiohttp import web
-from graphql import ExecutionResult, GraphQLError
+from graphql import (
+    ExecutionResult,
+    GraphQLError,
+    specified_rules
+)
 from graphql.type.schema import GraphQLSchema
 
 from graphql_server import (
@@ -77,6 +81,8 @@ class GraphQLView:
         return self.middleware
 
     def get_validation_rules(self):
+        if self.validation_rules is None:
+            return specified_rules
         return self.validation_rules
 
     @staticmethod

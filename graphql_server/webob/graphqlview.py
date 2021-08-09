@@ -5,6 +5,7 @@ from typing import List
 
 from graphql.error import GraphQLError
 from graphql.type.schema import GraphQLSchema
+from graphql import specified_rules
 from webob import Response
 
 from graphql_server import (
@@ -75,6 +76,8 @@ class GraphQLView:
         return self.middleware
 
     def get_validation_rules(self):
+        if self.validation_rules is None:
+            return specified_rules
         return self.validation_rules
 
     def dispatch_request(self, request):

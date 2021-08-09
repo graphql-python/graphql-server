@@ -4,7 +4,11 @@ from collections.abc import MutableMapping
 from functools import partial
 from typing import List
 
-from graphql import ExecutionResult, GraphQLError
+from graphql import (
+    ExecutionResult,
+    GraphQLError,
+    specified_rules
+)
 from graphql.type.schema import GraphQLSchema
 from sanic.response import HTTPResponse, html
 from sanic.views import HTTPMethodView
@@ -79,6 +83,8 @@ class GraphQLView(HTTPMethodView):
         return self.middleware
 
     def get_validation_rules(self):
+        if self.validation_rules is None:
+            return specified_rules
         return self.validation_rules
 
     async def dispatch_request(self, request, *args, **kwargs):

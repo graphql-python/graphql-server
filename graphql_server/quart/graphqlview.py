@@ -4,7 +4,7 @@ from collections.abc import MutableMapping
 from functools import partial
 from typing import List
 
-from graphql import ExecutionResult
+from graphql import ExecutionResult, specified_rules
 from graphql.error import GraphQLError
 from graphql.type.schema import GraphQLSchema
 from quart import Response, render_template_string, request
@@ -78,6 +78,8 @@ class GraphQLView(View):
         return self.middleware
 
     def get_validation_rules(self):
+        if self.validation_rules is None:
+            return specified_rules
         return self.validation_rules
 
     async def dispatch_request(self):
