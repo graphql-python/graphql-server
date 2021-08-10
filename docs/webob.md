@@ -48,6 +48,7 @@ This will add `/graphql` endpoint to your app and enable the GraphiQL IDE.
  * `graphiql_html_title`: The graphiql title to display. Defaults to **"GraphiQL"**.
  * `batch`: Set the GraphQL view as batch (for using in [Apollo-Client](http://dev.apollodata.com/core/network.html#query-batching) or [ReactRelayNetworkLayer](https://github.com/nodkz/react-relay-network-layer))
  * `middleware`: A list of graphql [middlewares](http://docs.graphene-python.org/en/latest/execution/middleware/).
+ * `validation_rules`: A list of graphql validation rules.   
  * `encode`: the encoder to use for responses (sensibly defaults to `graphql_server.json_encode`).
  * `format_error`: the error formatter to use for responses (sensibly defaults to `graphql_server.default_format_error`.
  * `enable_async`: whether `async` mode will be enabled.

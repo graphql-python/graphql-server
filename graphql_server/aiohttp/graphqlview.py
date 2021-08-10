@@ -4,7 +4,7 @@ from functools import partial
 from typing import List
 
 from aiohttp import web
-from graphql import ExecutionResult, GraphQLError
+from graphql import ExecutionResult, GraphQLError, specified_rules
 from graphql.type.schema import GraphQLSchema
 
 from graphql_server import (
@@ -34,6 +34,7 @@ class GraphQLView:
     graphiql_template = None
     graphiql_html_title = None
     middleware = None
+    validation_rules = None
     batch = False
     jinja_env = None
     max_age = 86400
@@ -74,6 +75,11 @@ class GraphQLView:
 
     def get_middleware(self):
         return self.middleware
+
+    def get_validation_rules(self):
+        if self.validation_rules is None:
+            return specified_rules
+        return self.validation_rules
 
     @staticmethod
     async def parse_body(request):
@@ -149,6 +155,7 @@ class GraphQLView:
                 root_value=self.get_root_value(),
                 context_value=self.get_context(request),
                 middleware=self.get_middleware(),
+                validation_rules=self.get_validation_rules(),
             )
 
             exec_res = (

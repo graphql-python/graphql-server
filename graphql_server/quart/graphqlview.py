@@ -4,7 +4,7 @@ from collections.abc import MutableMapping
 from functools import partial
 from typing import List
 
-from graphql import ExecutionResult
+from graphql import ExecutionResult, specified_rules
 from graphql.error import GraphQLError
 from graphql.type.schema import GraphQLSchema
 from quart import Response, render_template_string, request
@@ -37,6 +37,7 @@ class GraphQLView(View):
     graphiql_template = None
     graphiql_html_title = None
     middleware = None
+    validation_rules = None
     batch = False
     enable_async = False
     subscriptions = None
@@ -76,6 +77,11 @@ class GraphQLView(View):
     def get_middleware(self):
         return self.middleware
 
+    def get_validation_rules(self):
+        if self.validation_rules is None:
+            return specified_rules
+        return self.validation_rules
+
     async def dispatch_request(self):
         try:
             request_method = request.method.lower()
@@ -98,6 +104,7 @@ class GraphQLView(View):
                 root_value=self.get_root_value(),
                 context_value=self.get_context(),
                 middleware=self.get_middleware(),
+                validation_rules=self.get_validation_rules(),
             )
             exec_res = (
                 [

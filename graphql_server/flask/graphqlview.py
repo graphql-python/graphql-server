@@ -7,6 +7,7 @@ from flask import Response, render_template_string, request
 from flask.views import View
 from graphql.error import GraphQLError
 from graphql.type.schema import GraphQLSchema
+from graphql import specified_rules
 
 from graphql_server import (
     GraphQLParams,
@@ -35,6 +36,7 @@ class GraphQLView(View):
     graphiql_template = None
     graphiql_html_title = None
     middleware = None
+    validation_rules = None
     batch = False
     subscriptions = None
     headers = None
@@ -73,6 +75,11 @@ class GraphQLView(View):
     def get_middleware(self):
         return self.middleware
 
+    def get_validation_rules(self):
+        if self.validation_rules is None:
+            return specified_rules
+        return self.validation_rules
+
     def dispatch_request(self):
         try:
             request_method = request.method.lower()
@@ -95,6 +102,7 @@ class GraphQLView(View):
                 root_value=self.get_root_value(),
                 context_value=self.get_context(),
                 middleware=self.get_middleware(),
+                validation_rules=self.get_validation_rules(),
             )
             result, status_code = encode_execution_results(
                 execution_results,
