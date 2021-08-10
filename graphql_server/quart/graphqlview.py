@@ -104,7 +104,7 @@ class GraphQLView(View):
                 root_value=self.get_root_value(),
                 context_value=self.get_context(),
                 middleware=self.get_middleware(),
-                validation_rules=self.get_validation_rules()
+                validation_rules=self.get_validation_rules(),
             )
             exec_res = (
                 [

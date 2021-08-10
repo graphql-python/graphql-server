@@ -4,11 +4,7 @@ from functools import partial
 from typing import List
 
 from aiohttp import web
-from graphql import (
-    ExecutionResult,
-    GraphQLError,
-    specified_rules
-)
+from graphql import ExecutionResult, GraphQLError, specified_rules
 from graphql.type.schema import GraphQLSchema
 
 from graphql_server import (
@@ -159,7 +155,7 @@ class GraphQLView:
                 root_value=self.get_root_value(),
                 context_value=self.get_context(request),
                 middleware=self.get_middleware(),
-                validation_rules=self.get_validation_rules()
+                validation_rules=self.get_validation_rules(),
             )
 
             exec_res = (
