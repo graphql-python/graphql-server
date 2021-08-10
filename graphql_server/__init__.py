@@ -15,7 +15,7 @@ from graphql.error import GraphQLError
 from graphql.error import format_error as format_error_default
 from graphql.execution import ExecutionResult, execute
 from graphql.language import OperationType, parse
-from graphql.pyutils import AwaitableOrValue
+from graphql.pyutils import AwaitableOrValue, is_awaitable
 from graphql.type import GraphQLSchema, validate_schema
 from graphql.utilities import get_operation_ast
 from graphql.validation import ASTValidationRule, validate
@@ -99,9 +99,7 @@ def run_http_query(
 
     if not is_batch:
         if not isinstance(data, (dict, MutableMapping)):
-            raise HttpQueryError(
-                400, f"GraphQL params should be a dict. Received {data!r}."
-            )
+            raise HttpQueryError(400, f"GraphQL params should be a dict. Received {data!r}.")
         data = [data]
     elif not batch_enabled:
         raise HttpQueryError(400, "Batch GraphQL requests are not enabled.")
@@ -114,15 +112,10 @@ def run_http_query(
     if not is_batch:
         extra_data = query_data or {}
 
-    all_params: List[GraphQLParams] = [
-        get_graphql_params(entry, extra_data) for entry in data
-    ]
+    all_params: List[GraphQLParams] = [get_graphql_params(entry, extra_data) for entry in data]
 
     results: List[Optional[AwaitableOrValue[ExecutionResult]]] = [
-        get_response(
-            schema, params, catch_exc, allow_only_query, run_sync, **execute_options
-        )
-        for params in all_params
+        get_response(schema, params, catch_exc, allow_only_query, run_sync, **execute_options) for params in all_params
     ]
     return GraphQLResponse(results, all_params)
 
@@ -160,10 +153,7 @@ def encode_execution_results(
     Returns a ServerResponse tuple with the serialized response as the first item and
     a status code of 200 or 400 in case any result was invalid as the second item.
     """
-    results = [
-        format_execution_result(execution_result, format_error)
-        for execution_result in execution_results
-    ]
+    results = [format_execution_result(execution_result, format_error) for execution_result in execution_results]
     result, status_codes = zip(*results)
     status_code = max(status_codes)
 
@@ -278,14 +268,11 @@ def get_response(
                 if operation != OperationType.QUERY.value:
                     raise HttpQueryError(
                         405,
-                        f"Can only perform a {operation} operation"
-                        " from a POST request.",
+                        f"Can only perform a {operation} operation" " from a POST request.",
                         headers={"Allow": "POST"},
                     )
 
-        validation_errors = validate(
-            schema, document, rules=validation_rules, max_errors=max_errors
-        )
+        validation_errors = validate(schema, document, rules=validation_rules, max_errors=max_errors)
         if validation_errors:
             return ExecutionResult(data=None, errors=validation_errors)
 
@@ -294,7 +281,7 @@ def get_response(
             document,
             variable_values=params.variables,
             operation_name=params.operation_name,
-            is_awaitable=assume_not_awaitable if run_sync else None,
+            is_awaitable=assume_not_awaitable if run_sync else is_awaitable,
             **kwargs,
         )
 
@@ -321,9 +308,7 @@ def format_execution_result(
             fe = [format_error(e) for e in execution_result.errors]  # type: ignore
             response = {"errors": fe}
 
-            if execution_result.errors and any(
-                not getattr(e, "path", None) for e in execution_result.errors
-            ):
+            if execution_result.errors and any(not getattr(e, "path", None) for e in execution_result.errors):
                 status_code = 400
             else:
                 response["data"] = execution_result.data

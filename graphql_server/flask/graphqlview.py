@@ -1,3 +1,4 @@
+import asyncio
 import copy
 from collections.abc import MutableMapping
 from functools import partial
@@ -5,7 +6,9 @@ from typing import List
 
 from flask import Response, render_template_string, request
 from flask.views import View
+from graphql import ExecutionResult
 from graphql.error import GraphQLError
+from graphql.pyutils import is_awaitable
 from graphql.type.schema import GraphQLSchema
 
 from graphql_server import (
@@ -41,6 +44,7 @@ class GraphQLView(View):
     default_query = None
     header_editor_enabled = None
     should_persist_headers = None
+    enable_async = False
 
     methods = ["GET", "POST", "PUT", "DELETE"]
 
@@ -53,25 +57,45 @@ class GraphQLView(View):
             if hasattr(self, key):
                 setattr(self, key, value)
 
-        assert isinstance(
-            self.schema, GraphQLSchema
-        ), "A Schema is required to be provided to GraphQLView."
+        assert isinstance(self.schema, GraphQLSchema), "A Schema is required to be provided to GraphQLView."
 
     def get_root_value(self):
         return self.root_value
 
     def get_context(self):
-        context = (
-            copy.copy(self.context)
-            if self.context and isinstance(self.context, MutableMapping)
-            else {}
-        )
+        context = copy.copy(self.context) if self.context and isinstance(self.context, MutableMapping) else {}
         if isinstance(context, MutableMapping) and "request" not in context:
             context.update({"request": request})
         return context
 
     def get_middleware(self):
         return self.middleware
+
+    def get_async_execution_results(self, request_method, data, catch):
+        async def await_execution_results():
+            execution_results, all_params = self.run_http_query(request_method, data, catch)
+            return [
+                ex if ex is None or not is_awaitable(ex) else await ex
+                for ex in execution_results
+            ], all_params
+
+        q = asyncio.run(await_execution_results())
+        return q
+
+    def run_http_query(self, request_method, data, catch):
+        return run_http_query(
+            self.schema,
+            request_method,
+            data,
+            query_data=request.args,
+            batch_enabled=self.batch,
+            catch=catch,
+            # Execute options
+            root_value=self.get_root_value(),
+            context_value=self.get_context(),
+            middleware=self.get_middleware(),
+            run_sync=not self.enable_async,
+        )
 
     def dispatch_request(self):
         try:
@@ -84,18 +108,12 @@ class GraphQLView(View):
             pretty = self.pretty or show_graphiql or request.args.get("pretty")
 
             all_params: List[GraphQLParams]
-            execution_results, all_params = run_http_query(
-                self.schema,
-                request_method,
-                data,
-                query_data=request.args,
-                batch_enabled=self.batch,
-                catch=catch,
-                # Execute options
-                root_value=self.get_root_value(),
-                context_value=self.get_context(),
-                middleware=self.get_middleware(),
-            )
+
+            if self.enable_async:
+                execution_results, all_params = self.get_async_execution_results(request_method, data, catch)
+            else:
+                execution_results, all_params = self.run_http_query(request_method, data, catch)
+
             result, status_code = encode_execution_results(
                 execution_results,
                 is_batch=isinstance(data, list),
@@ -123,9 +141,7 @@ class GraphQLView(View):
                     header_editor_enabled=self.header_editor_enabled,
                     should_persist_headers=self.should_persist_headers,
                 )
-                source = render_graphiql_sync(
-                    data=graphiql_data, config=graphiql_config, options=graphiql_options
-                )
+                source = render_graphiql_sync(data=graphiql_data, config=graphiql_config, options=graphiql_options)
                 return render_template_string(source)
 
             return Response(result, status=status_code, content_type="application/json")
@@ -167,8 +183,4 @@ class GraphQLView(View):
     @staticmethod
     def request_wants_html():
         best = request.accept_mimetypes.best_match(["application/json", "text/html"])
-        return (
-            best == "text/html"
-            and request.accept_mimetypes[best]
-            > request.accept_mimetypes["application/json"]
-        )
+        return best == "text/html" and request.accept_mimetypes[best] > request.accept_mimetypes["application/json"]
