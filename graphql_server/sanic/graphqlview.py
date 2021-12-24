@@ -58,9 +58,11 @@ class GraphQLView(HTTPMethodView):
             if hasattr(self, key):
                 setattr(self, key, value)
 
-        assert isinstance(
-            self.schema, GraphQLSchema
-        ), "A Schema is required to be provided to GraphQLView."
+        if not isinstance(self.schema, GraphQLSchema):
+            # maybe the GraphQL schema is wrapped in a Graphene schema
+            self.schema = getattr(self.schema, "graphql_schema", None)
+            if not isinstance(self.schema, GraphQLSchema):
+                raise TypeError("A Schema is required to be provided to GraphQLView.")
 
     def get_root_value(self):
         return self.root_value
