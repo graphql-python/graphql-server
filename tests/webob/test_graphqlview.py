@@ -76,12 +76,10 @@ def test_reports_validation_errors(client):
             {
                 "message": "Cannot query field 'unknownOne' on type 'QueryRoot'.",
                 "locations": [{"line": 1, "column": 9}],
-                "path": None,
             },
             {
                 "message": "Cannot query field 'unknownTwo' on type 'QueryRoot'.",
                 "locations": [{"line": 1, "column": 21}],
-                "path": None,
             },
         ]
     }
@@ -101,9 +99,8 @@ def test_errors_when_missing_operation_name(client):
     assert response_json(response) == {
         "errors": [
             {
-                "message": "Must provide operation name if query contains multiple operations.",
-                "locations": None,
-                "path": None,
+                "message": "Must provide operation name"
+                " if query contains multiple operations.",
             }
         ]
     }
@@ -122,8 +119,6 @@ def test_errors_when_sending_a_mutation_via_get(client):
         "errors": [
             {
                 "message": "Can only perform a mutation operation from a POST request.",
-                "locations": None,
-                "path": None,
             }
         ]
     }
@@ -145,8 +140,6 @@ def test_errors_when_selecting_a_mutation_within_a_get(client):
         "errors": [
             {
                 "message": "Can only perform a mutation operation from a POST request.",
-                "locations": None,
-                "path": None,
             }
         ]
     }
@@ -247,7 +240,9 @@ def test_supports_post_url_encoded_query_with_string_variables(client):
 def test_supports_post_json_quey_with_get_variable_values(client):
     response = client.post(
         url_string(variables=json.dumps({"who": "Dolly"})),
-        data=json_dump_kwarg(query="query helloWho($who: String){ test(who: $who) }",),
+        data=json_dump_kwarg(
+            query="query helloWho($who: String){ test(who: $who) }",
+        ),
         content_type="application/json",
     )
 
@@ -258,7 +253,11 @@ def test_supports_post_json_quey_with_get_variable_values(client):
 def test_post_url_encoded_query_with_get_variable_values(client):
     response = client.post(
         url_string(variables=json.dumps({"who": "Dolly"})),
-        data=urlencode(dict(query="query helloWho($who: String){ test(who: $who) }",)),
+        data=urlencode(
+            dict(
+                query="query helloWho($who: String){ test(who: $who) }",
+            )
+        ),
         content_type="application/x-www-form-urlencoded",
     )
 
@@ -367,7 +366,6 @@ def test_handles_syntax_errors_caught_by_graphql(client):
             {
                 "message": "Syntax Error: Unexpected Name 'syntaxerror'.",
                 "locations": [{"column": 1, "line": 1}],
-                "path": None,
             }
         ]
     }
@@ -378,9 +376,7 @@ def test_handles_errors_caused_by_a_lack_of_query(client):
 
     assert response.status_code == 400
     assert response_json(response) == {
-        "errors": [
-            {"message": "Must provide query string.", "locations": None, "path": None}
-        ]
+        "errors": [{"message": "Must provide query string."}]
     }
 
 
@@ -392,8 +388,6 @@ def test_handles_batch_correctly_if_is_disabled(client):
         "errors": [
             {
                 "message": "Batch GraphQL requests are not enabled.",
-                "locations": None,
-                "path": None,
             }
         ]
     }
@@ -406,9 +400,7 @@ def test_handles_incomplete_json_bodies(client):
 
     assert response.status_code == 400
     assert response_json(response) == {
-        "errors": [
-            {"message": "POST body sent invalid JSON.", "locations": None, "path": None}
-        ]
+        "errors": [{"message": "POST body sent invalid JSON."}]
     }
 
 
@@ -420,9 +412,7 @@ def test_handles_plain_post_text(client):
     )
     assert response.status_code == 400
     assert response_json(response) == {
-        "errors": [
-            {"message": "Must provide query string.", "locations": None, "path": None}
-        ]
+        "errors": [{"message": "Must provide query string."}]
     }
 
 
@@ -434,9 +424,7 @@ def test_handles_poorly_formed_variables(client):
     )
     assert response.status_code == 400
     assert response_json(response) == {
-        "errors": [
-            {"message": "Variables are invalid JSON.", "locations": None, "path": None}
-        ]
+        "errors": [{"message": "Variables are invalid JSON."}]
     }
 
 
@@ -445,13 +433,7 @@ def test_handles_unsupported_http_methods(client):
     assert response.status_code == 405
     assert response.headers["Allow"] in ["GET, POST", "HEAD, GET, POST, OPTIONS"]
     assert response_json(response) == {
-        "errors": [
-            {
-                "message": "GraphQL only supports GET and POST requests.",
-                "locations": None,
-                "path": None,
-            }
-        ]
+        "errors": [{"message": "GraphQL only supports GET and POST requests."}]
     }
 
 
@@ -511,9 +493,7 @@ def test_post_multipart_data(client):
     )
 
     assert response.status_code == 200
-    assert response_json(response) == {
-        "data": {u"writeTest": {u"test": u"Hello World"}}
-    }
+    assert response_json(response) == {"data": {"writeTest": {"test": "Hello World"}}}
 
 
 @pytest.mark.parametrize("settings", [dict(batch=True)])

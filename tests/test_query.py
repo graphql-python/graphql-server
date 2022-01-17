@@ -40,9 +40,7 @@ def test_validate_schema():
             "data": None,
             "errors": [
                 {
-                    "locations": None,
                     "message": "Query root type must be provided.",
-                    "path": None,
                 }
             ],
         }
@@ -109,12 +107,10 @@ def test_reports_validation_errors():
                 {
                     "message": "Cannot query field 'unknownOne' on type 'QueryRoot'.",
                     "locations": [{"line": 1, "column": 9}],
-                    "path": None,
                 },
                 {
                     "message": "Cannot query field 'unknownTwo' on type 'QueryRoot'.",
                     "locations": [{"line": 1, "column": 21}],
-                    "path": None,
                 },
             ],
         }
@@ -144,7 +140,6 @@ def test_reports_custom_validation_errors():
                 {
                     "message": "Custom validation error.",
                     "locations": [{"line": 1, "column": 3}],
-                    "path": None,
                 }
             ],
         }
@@ -170,13 +165,10 @@ def test_reports_max_num_of_validation_errors():
                 {
                     "message": "Cannot query field 'unknownOne' on type 'QueryRoot'.",
                     "locations": [{"line": 1, "column": 9}],
-                    "path": None,
                 },
                 {
                     "message": "Too many validation errors, error limit reached."
                     " Validation aborted.",
-                    "locations": None,
-                    "path": None,
                 },
             ],
         }
@@ -223,12 +215,10 @@ def test_errors_when_missing_operation_name():
             "data": None,
             "errors": [
                 {
-                    "locations": None,
                     "message": (
                         "Must provide operation name"
                         " if query contains multiple operations."
                     ),
-                    "path": None,
                 }
             ],
         }
@@ -585,8 +575,7 @@ def test_encode_execution_results_batch():
     results = [ExecutionResult(data, None), ExecutionResult(None, errors)]
     result = encode_execution_results(results, is_batch=True)
     assert result == (
-        '[{"data":{"answer":42}},'
-        '{"errors":[{"message":"bad","locations":null,"path":null}]}]',
+        '[{"data":{"answer":42}},{"errors":[{"message":"bad"}]}]',
         400,
     )
 

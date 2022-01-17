@@ -35,7 +35,7 @@ async def execute_client(
     method: str = "GET",
     data: str = None,
     headers: Headers = None,
-    **url_params
+    **url_params,
 ) -> Response:
     if sys.version_info >= (3, 7):
         test_request_context = app.test_request_context("/", method=method)
@@ -126,12 +126,10 @@ async def test_reports_validation_errors(app: Quart, client: QuartClient):
             {
                 "message": "Cannot query field 'unknownOne' on type 'QueryRoot'.",
                 "locations": [{"line": 1, "column": 9}],
-                "path": None,
             },
             {
                 "message": "Cannot query field 'unknownTwo' on type 'QueryRoot'.",
                 "locations": [{"line": 1, "column": 21}],
-                "path": None,
             },
         ]
     }
@@ -153,9 +151,8 @@ async def test_errors_when_missing_operation_name(app: Quart, client: QuartClien
     assert response_json(result) == {
         "errors": [
             {
-                "message": "Must provide operation name if query contains multiple operations.",  # noqa: E501
-                "locations": None,
-                "path": None,
+                "message": "Must provide operation name"
+                " if query contains multiple operations.",
             }
         ]
     }
@@ -176,8 +173,6 @@ async def test_errors_when_sending_a_mutation_via_get(app: Quart, client: QuartC
         "errors": [
             {
                 "message": "Can only perform a mutation operation from a POST request.",
-                "locations": None,
-                "path": None,
             }
         ]
     }
@@ -203,8 +198,6 @@ async def test_errors_when_selecting_a_mutation_within_a_get(
         "errors": [
             {
                 "message": "Can only perform a mutation operation from a POST request.",
-                "locations": None,
-                "path": None,
             }
         ]
     }
@@ -342,7 +335,9 @@ async def test_supports_post_json_query_with_get_variable_values(
         app,
         client,
         method="POST",
-        data=json_dump_kwarg(query="query helloWho($who: String){ test(who: $who) }",),
+        data=json_dump_kwarg(
+            query="query helloWho($who: String){ test(who: $who) }",
+        ),
         headers=Headers({"Content-Type": "application/json"}),
         variables=json.dumps({"who": "Dolly"}),
     )
@@ -360,7 +355,11 @@ async def test_post_url_encoded_query_with_get_variable_values(
         app,
         client,
         method="POST",
-        data=urlencode(dict(query="query helloWho($who: String){ test(who: $who) }",)),
+        data=urlencode(
+            dict(
+                query="query helloWho($who: String){ test(who: $who) }",
+            )
+        ),
         headers=Headers({"Content-Type": "application/x-www-form-urlencoded"}),
         variables=json.dumps({"who": "Dolly"}),
     )
@@ -463,7 +462,7 @@ async def test_supports_pretty_printing_by_request(app: Quart, client: QuartClie
     response = await execute_client(app, client, query="{test}", pretty="1")
 
     result = await response.get_data(raw=False)
-    assert result == ("{\n" '  "data": {\n' '    "test": "Hello World"\n' "  }\n" "}")
+    assert result == "{\n" '  "data": {\n' '    "test": "Hello World"\n' "  }\n" "}"
 
 
 @pytest.mark.asyncio
@@ -493,7 +492,6 @@ async def test_handles_syntax_errors_caught_by_graphql(app: Quart, client: Quart
             {
                 "locations": [{"column": 1, "line": 1}],
                 "message": "Syntax Error: Unexpected Name 'syntaxerror'.",
-                "path": None,
             }
         ]
     }
@@ -508,9 +506,7 @@ async def test_handles_errors_caused_by_a_lack_of_query(
     assert response.status_code == 400
     result = await response.get_data(raw=False)
     assert response_json(result) == {
-        "errors": [
-            {"message": "Must provide query string.", "locations": None, "path": None}
-        ]
+        "errors": [{"message": "Must provide query string."}]
     }
 
 
@@ -530,8 +526,6 @@ async def test_handles_batch_correctly_if_is_disabled(app: Quart, client: QuartC
         "errors": [
             {
                 "message": "Batch GraphQL requests are not enabled.",
-                "locations": None,
-                "path": None,
             }
         ]
     }
@@ -550,9 +544,7 @@ async def test_handles_incomplete_json_bodies(app: Quart, client: QuartClient):
     assert response.status_code == 400
     result = await response.get_data(raw=False)
     assert response_json(result) == {
-        "errors": [
-            {"message": "POST body sent invalid JSON.", "locations": None, "path": None}
-        ]
+        "errors": [{"message": "POST body sent invalid JSON."}]
     }
 
 
@@ -569,9 +561,7 @@ async def test_handles_plain_post_text(app: Quart, client: QuartClient):
     assert response.status_code == 400
     result = await response.get_data(raw=False)
     assert response_json(result) == {
-        "errors": [
-            {"message": "Must provide query string.", "locations": None, "path": None}
-        ]
+        "errors": [{"message": "Must provide query string."}]
     }
 
 
@@ -586,9 +576,7 @@ async def test_handles_poorly_formed_variables(app: Quart, client: QuartClient):
     assert response.status_code == 400
     result = await response.get_data(raw=False)
     assert response_json(result) == {
-        "errors": [
-            {"message": "Variables are invalid JSON.", "locations": None, "path": None}
-        ]
+        "errors": [{"message": "Variables are invalid JSON."}]
     }
 
 
@@ -599,13 +587,7 @@ async def test_handles_unsupported_http_methods(app: Quart, client: QuartClient)
     result = await response.get_data(raw=False)
     assert response.headers["Allow"] in ["GET, POST", "HEAD, GET, POST, OPTIONS"]
     assert response_json(result) == {
-        "errors": [
-            {
-                "message": "GraphQL only supports GET and POST requests.",
-                "locations": None,
-                "path": None,
-            }
-        ]
+        "errors": [{"message": "GraphQL only supports GET and POST requests."}]
     }
 
 

@@ -76,12 +76,10 @@ async def test_reports_validation_errors(client):
             {
                 "message": "Cannot query field 'unknownOne' on type 'QueryRoot'.",
                 "locations": [{"line": 1, "column": 9}],
-                "path": None,
             },
             {
                 "message": "Cannot query field 'unknownTwo' on type 'QueryRoot'.",
                 "locations": [{"line": 1, "column": 21}],
-                "path": None,
             },
         ],
     }
@@ -107,8 +105,6 @@ async def test_errors_when_missing_operation_name(client):
                     "Must provide operation name if query contains multiple "
                     "operations."
                 ),
-                "locations": None,
-                "path": None,
             },
         ]
     }
@@ -128,8 +124,6 @@ async def test_errors_when_sending_a_mutation_via_get(client):
         "errors": [
             {
                 "message": "Can only perform a mutation operation from a POST request.",
-                "locations": None,
-                "path": None,
             },
         ],
     }
@@ -152,8 +146,6 @@ async def test_errors_when_selecting_a_mutation_within_a_get(client):
         "errors": [
             {
                 "message": "Can only perform a mutation operation from a POST request.",
-                "locations": None,
-                "path": None,
             },
         ],
     }
@@ -174,10 +166,8 @@ async def test_errors_when_selecting_a_subscription_within_a_get(client):
     assert await response.json() == {
         "errors": [
             {
-                "message": "Can only perform a subscription operation from a POST "
-                "request.",
-                "locations": None,
-                "path": None,
+                "message": "Can only perform a subscription operation"
+                " from a POST request.",
             },
         ],
     }
@@ -215,7 +205,11 @@ async def test_allows_post_with_json_encoding(client):
 async def test_allows_sending_a_mutation_via_post(client):
     response = await client.post(
         "/graphql",
-        data=json.dumps(dict(query="mutation TestMutation { writeTest { test } }",)),
+        data=json.dumps(
+            dict(
+                query="mutation TestMutation { writeTest { test } }",
+            )
+        ),
         headers={"content-type": "application/json"},
     )
 
@@ -292,7 +286,11 @@ async def test_supports_post_url_encoded_query_with_string_variables(client):
 async def test_supports_post_json_quey_with_get_variable_values(client):
     response = await client.post(
         url_string(variables=json.dumps({"who": "Dolly"})),
-        data=json.dumps(dict(query="query helloWho($who: String){ test(who: $who) }",)),
+        data=json.dumps(
+            dict(
+                query="query helloWho($who: String){ test(who: $who) }",
+            )
+        ),
         headers={"content-type": "application/json"},
     )
 
@@ -304,7 +302,11 @@ async def test_supports_post_json_quey_with_get_variable_values(client):
 async def test_post_url_encoded_query_with_get_variable_values(client):
     response = await client.post(
         url_string(variables=json.dumps({"who": "Dolly"})),
-        data=urlencode(dict(query="query helloWho($who: String){ test(who: $who) }",)),
+        data=urlencode(
+            dict(
+                query="query helloWho($who: String){ test(who: $who) }",
+            )
+        ),
         headers={"content-type": "application/x-www-form-urlencoded"},
     )
 
@@ -421,7 +423,6 @@ async def test_handles_syntax_errors_caught_by_graphql(client):
             {
                 "locations": [{"column": 1, "line": 1}],
                 "message": "Syntax Error: Unexpected Name 'syntaxerror'.",
-                "path": None,
             },
         ],
     }
@@ -433,16 +434,16 @@ async def test_handles_errors_caused_by_a_lack_of_query(client):
 
     assert response.status == 400
     assert await response.json() == {
-        "errors": [
-            {"message": "Must provide query string.", "locations": None, "path": None}
-        ]
+        "errors": [{"message": "Must provide query string."}]
     }
 
 
 @pytest.mark.asyncio
 async def test_handles_batch_correctly_if_is_disabled(client):
     response = await client.post(
-        "/graphql", data="[]", headers={"content-type": "application/json"},
+        "/graphql",
+        data="[]",
+        headers={"content-type": "application/json"},
     )
 
     assert response.status == 400
@@ -450,8 +451,6 @@ async def test_handles_batch_correctly_if_is_disabled(client):
         "errors": [
             {
                 "message": "Batch GraphQL requests are not enabled.",
-                "locations": None,
-                "path": None,
             }
         ]
     }
@@ -460,7 +459,9 @@ async def test_handles_batch_correctly_if_is_disabled(client):
 @pytest.mark.asyncio
 async def test_handles_incomplete_json_bodies(client):
     response = await client.post(
-        "/graphql", data='{"query":', headers={"content-type": "application/json"},
+        "/graphql",
+        data='{"query":',
+        headers={"content-type": "application/json"},
     )
 
     assert response.status == 400
@@ -468,8 +469,6 @@ async def test_handles_incomplete_json_bodies(client):
         "errors": [
             {
                 "message": "POST body sent invalid JSON.",
-                "locations": None,
-                "path": None,
             }
         ]
     }
@@ -484,9 +483,7 @@ async def test_handles_plain_post_text(client):
     )
     assert response.status == 400
     assert await response.json() == {
-        "errors": [
-            {"message": "Must provide query string.", "locations": None, "path": None}
-        ]
+        "errors": [{"message": "Must provide query string."}]
     }
 
 
@@ -499,9 +496,7 @@ async def test_handles_poorly_formed_variables(client):
     )
     assert response.status == 400
     assert await response.json() == {
-        "errors": [
-            {"message": "Variables are invalid JSON.", "locations": None, "path": None}
-        ]
+        "errors": [{"message": "Variables are invalid JSON."}]
     }
 
 
@@ -514,8 +509,6 @@ async def test_handles_unsupported_http_methods(client):
         "errors": [
             {
                 "message": "GraphQL only supports GET and POST requests.",
-                "locations": None,
-                "path": None,
             }
         ]
     }
@@ -576,16 +569,15 @@ async def test_post_multipart_data(client):
 
     data = (
         "------aiohttpgraphql\r\n"
-        + 'Content-Disposition: form-data; name="query"\r\n'
-        + "\r\n"
-        + query
-        + "\r\n"
-        + "------aiohttpgraphql--\r\n"
-        + "Content-Type: text/plain; charset=utf-8\r\n"
-        + 'Content-Disposition: form-data; name="file"; filename="text1.txt"; filename*=utf-8\'\'text1.txt\r\n'  # noqa: ignore
-        + "\r\n"
-        + "\r\n"
-        + "------aiohttpgraphql--\r\n"
+        'Content-Disposition: form-data; name="query"\r\n'
+        "\r\n" + query + "\r\n"
+        "------aiohttpgraphql--\r\n"
+        "Content-Type: text/plain; charset=utf-8\r\n"
+        'Content-Disposition: form-data; name="file"; filename="text1.txt";'
+        " filename*=utf-8''text1.txt\r\n"
+        "\r\n"
+        "\r\n"
+        "------aiohttpgraphql--\r\n"
     )
 
     response = await client.post(
@@ -595,7 +587,7 @@ async def test_post_multipart_data(client):
     )
 
     assert response.status == 200
-    assert await response.json() == {"data": {u"writeTest": {u"test": u"Hello World"}}}
+    assert await response.json() == {"data": {"writeTest": {"test": "Hello World"}}}
 
 
 @pytest.mark.asyncio
@@ -674,7 +666,8 @@ async def test_async_schema(app, client):
 @pytest.mark.asyncio
 async def test_preflight_request(client):
     response = await client.options(
-        "/graphql", headers={"Access-Control-Request-Method": "POST"},
+        "/graphql",
+        headers={"Access-Control-Request-Method": "POST"},
     )
 
     assert response.status == 200
@@ -683,7 +676,8 @@ async def test_preflight_request(client):
 @pytest.mark.asyncio
 async def test_preflight_incorrect_request(client):
     response = await client.options(
-        "/graphql", headers={"Access-Control-Request-Method": "OPTIONS"},
+        "/graphql",
+        headers={"Access-Control-Request-Method": "OPTIONS"},
     )
 
     assert response.status == 400
