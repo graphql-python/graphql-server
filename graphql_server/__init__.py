@@ -12,7 +12,6 @@ from collections.abc import MutableMapping
 from typing import Any, Callable, Collection, Dict, List, Optional, Type, Union
 
 from graphql.error import GraphQLError
-from graphql.error import format_error as format_error_default
 from graphql.execution import ExecutionResult, execute
 from graphql.language import OperationType, parse
 from graphql.pyutils import AwaitableOrValue
@@ -53,6 +52,11 @@ ServerResponse = namedtuple("ServerResponse", "body status_code")
 
 
 # The public helper functions
+
+
+def format_error_default(error: GraphQLError) -> Dict:
+    """The default function for converting GraphQLError to a dictionary."""
+    return error.formatted
 
 
 def run_http_query(
