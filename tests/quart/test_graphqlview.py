@@ -1,7 +1,4 @@
 import json
-import sys
-
-# from io import StringIO
 from urllib.parse import urlencode
 
 import pytest
@@ -37,10 +34,7 @@ async def execute_client(
     headers: Headers = None,
     **url_params,
 ) -> Response:
-    if sys.version_info >= (3, 7):
-        test_request_context = app.test_request_context("/", method=method)
-    else:
-        test_request_context = app.test_request_context(method, "/")
+    test_request_context = app.test_request_context(path="/", method=method)
     async with test_request_context:
         string = url_for("graphql")
 

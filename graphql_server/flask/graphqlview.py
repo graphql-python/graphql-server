@@ -5,9 +5,9 @@ from typing import List
 
 from flask import Response, render_template_string, request
 from flask.views import View
+from graphql import specified_rules
 from graphql.error import GraphQLError
 from graphql.type.schema import GraphQLSchema
-from graphql import specified_rules
 
 from graphql_server import (
     GraphQLParams,

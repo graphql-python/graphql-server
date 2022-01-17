@@ -212,8 +212,8 @@ class GraphQLView(HTTPMethodView):
         return "text/html" in accept or "*/*" in accept
 
     def process_preflight(self, request):
-        """ Preflight request support for apollo-client
-        https://www.w3.org/TR/cors/#resource-preflight-requests """
+        """Preflight request support for apollo-client
+        https://www.w3.org/TR/cors/#resource-preflight-requests"""
         origin = request.headers.get("Origin", "")
         method = request.headers.get("Access-Control-Request-Method", "").upper()
 

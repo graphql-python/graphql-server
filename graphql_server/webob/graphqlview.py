@@ -3,9 +3,9 @@ from collections.abc import MutableMapping
 from functools import partial
 from typing import List
 
+from graphql import specified_rules
 from graphql.error import GraphQLError
 from graphql.type.schema import GraphQLSchema
-from graphql import specified_rules
 from webob import Response
 
 from graphql_server import (

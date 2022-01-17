@@ -24,7 +24,7 @@ install_flask_requires = [
 ]
 
 install_sanic_requires = [
-    "sanic>=21,<22",
+    "sanic>=20.3,<21",
 ]
 
 install_webob_requires = [
@@ -35,7 +35,7 @@ install_aiohttp_requires = [
     "aiohttp>=3.8,<4",
 ]
 
-install_quart_requires = ["quart>=0.6.15,<1"]
+install_quart_requires = ["quart>=0.6.15,<0.15"]
 
 install_all_requires = (
     install_requires
@@ -71,6 +71,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "License :: OSI Approved :: MIT License",
     ],
     keywords="api graphql protocol rest",

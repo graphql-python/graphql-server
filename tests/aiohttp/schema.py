@@ -18,7 +18,10 @@ def resolve_raises(*_):
 QueryRootType = GraphQLObjectType(
     name="QueryRoot",
     fields={
-        "thrower": GraphQLField(GraphQLNonNull(GraphQLString), resolve=resolve_raises,),
+        "thrower": GraphQLField(
+            GraphQLNonNull(GraphQLString),
+            resolve=resolve_raises,
+        ),
         "request": GraphQLField(
             GraphQLNonNull(GraphQLString),
             resolve=lambda obj, info, *args: info.context["request"].query.get("q"),

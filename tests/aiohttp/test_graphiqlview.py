@@ -52,7 +52,8 @@ async def test_graphiql_is_enabled(app, client):
 @pytest.mark.parametrize("app", [create_app(graphiql=True)])
 async def test_graphiql_simple_renderer(app, client, pretty_response):
     response = await client.get(
-        url_string(query="{test}"), headers={"Accept": "text/html"},
+        url_string(query="{test}"),
+        headers={"Accept": "text/html"},
     )
     assert response.status == 200
     assert pretty_response in await response.text()
@@ -65,7 +66,8 @@ class TestJinjaEnv:
     )
     async def test_graphiql_jinja_renderer_async(self, app, client, pretty_response):
         response = await client.get(
-            url_string(query="{test}"), headers={"Accept": "text/html"},
+            url_string(query="{test}"),
+            headers={"Accept": "text/html"},
         )
         assert response.status == 200
         assert pretty_response in await response.text()
@@ -73,7 +75,10 @@ class TestJinjaEnv:
 
 @pytest.mark.asyncio
 async def test_graphiql_html_is_not_accepted(client):
-    response = await client.get("/graphql", headers={"Accept": "application/json"},)
+    response = await client.get(
+        "/graphql",
+        headers={"Accept": "application/json"},
+    )
     assert response.status == 400
 
 
@@ -107,7 +112,8 @@ async def test_graphiql_get_subscriptions(app, client):
 )
 async def test_graphiql_enabled_async_schema(app, client):
     response = await client.get(
-        url_string(query="{a,b,c}"), headers={"Accept": "text/html"},
+        url_string(query="{a,b,c}"),
+        headers={"Accept": "text/html"},
     )
 
     expected_response = (
@@ -133,7 +139,8 @@ async def test_graphiql_enabled_async_schema(app, client):
 )
 async def test_graphiql_enabled_sync_schema(app, client):
     response = await client.get(
-        url_string(query="{a,b}"), headers={"Accept": "text/html"},
+        url_string(query="{a,b}"),
+        headers={"Accept": "text/html"},
     )
 
     expected_response = (

@@ -1,5 +1,3 @@
-import sys
-
 import pytest
 from quart import Quart, Response, url_for
 from quart.testing import QuartClient
@@ -32,10 +30,7 @@ async def execute_client(
     headers: Headers = None,
     **extra_params
 ) -> Response:
-    if sys.version_info >= (3, 7):
-        test_request_context = app.test_request_context("/", method=method)
-    else:
-        test_request_context = app.test_request_context(method, "/")
+    test_request_context = app.test_request_context(path="/", method=method)
     async with test_request_context:
         string = url_for("graphql", **extra_params)
     return await client.get(string, headers=headers)

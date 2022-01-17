@@ -7,7 +7,6 @@ from graphql_server.sanic import GraphQLView
 
 from .schema import Schema
 
-
 Sanic.test_mode = True
 
 

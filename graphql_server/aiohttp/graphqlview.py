@@ -201,7 +201,9 @@ class GraphQLView:
                 return web.Response(text=source, content_type="text/html")
 
             return web.Response(
-                text=result, status=status_code, content_type="application/json",
+                text=result,
+                status=status_code,
+                content_type="application/json",
             )
 
         except HttpQueryError as err:

@@ -9,7 +9,17 @@ for building GraphQL servers or integrations into existing web frameworks using
 import json
 from collections import namedtuple
 from collections.abc import MutableMapping
-from typing import Any, Callable, Collection, Dict, List, Optional, Type, Union
+from typing import (
+    Any,
+    Callable,
+    Collection,
+    Dict,
+    List,
+    Optional,
+    Type,
+    Union,
+    cast,
+)
 
 from graphql.error import GraphQLError
 from graphql.execution import ExecutionResult, execute
@@ -56,7 +66,7 @@ ServerResponse = namedtuple("ServerResponse", "body status_code")
 
 def format_error_default(error: GraphQLError) -> Dict:
     """The default function for converting GraphQLError to a dictionary."""
-    return error.formatted
+    return cast(Dict, error.formatted)
 
 
 def run_http_query(
