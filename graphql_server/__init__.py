@@ -9,6 +9,8 @@ for building GraphQL servers or integrations into existing web frameworks using
 import json
 from collections import namedtuple
 from collections.abc import MutableMapping
+from dataclasses import dataclass
+
 from typing import (
     Any,
     Callable,
@@ -56,12 +58,33 @@ __all__ = [
 
 # The public data structures
 
-GraphQLParams = namedtuple("GraphQLParams", "query variables operation_name")
-GraphQLResponse = namedtuple("GraphQLResponse", "results params")
-ServerResponse = namedtuple("ServerResponse", "body status_code")
+@dataclass
+class GraphQLParams:
+    query: str
+    variables: Optional[Dict[str, Any]] = None
+    operation_name: Optional[str] = None
 
+@dataclass
+class GraphQLResponse:
+    params: List[GraphQLParams]
+    results: List[AwaitableOrValue[ExecutionResult]]
+
+
+@dataclass
+class ServerResponse:
+    body: Optional[str]
+    status_code: int
+    headers: Optional[Dict[str, str]] = None
 
 # The public helper functions
+
+def get_schema(schema: GraphQLSchema):
+    if not isinstance(schema, GraphQLSchema):
+        # maybe the GraphQL schema is wrapped in a Graphene schema
+        schema = getattr(schema, "graphql_schema", None)
+        if not isinstance(schema, GraphQLSchema):
+            raise TypeError("A Schema is required to be provided to GraphQLView.")
+    return schema
 
 
 def format_error_default(error: GraphQLError) -> Dict:
@@ -138,7 +161,24 @@ def run_http_query(
         )
         for params in all_params
     ]
-    return GraphQLResponse(results, all_params)
+    return GraphQLResponse(results=results, params=all_params)
+
+
+def process_preflight(origin_header: Optional[str], request_method: Optional[str], accepted_methods: List[str], max_age: int) -> ServerResponse:
+    """
+    Preflight request support for apollo-client
+    https://www.w3.org/TR/cors/#resource-preflight-requests
+    """
+    if origin_header and request_method and request_method in accepted_methods:
+        return ServerResponse(
+            status_code=200,
+            headers={
+                "Access-Control-Allow-Origin": origin_header,
+                "Access-Control-Allow-Methods": ", ".join(accepted_methods),
+                "Access-Control-Max-Age": str(max_age),
+            },
+        )
+    return ServerResponse(status_code=400)
 
 
 def json_encode(data: Union[Dict, List], pretty: bool = False) -> str:
@@ -184,18 +224,31 @@ def encode_execution_results(
     if not is_batch:
         result = result[0]
 
-    return ServerResponse(encode(result), status_code)
+    return ServerResponse(body=encode(result), status_code=status_code)
 
 
-def load_json_body(data):
-    # type: (str) -> Union[Dict, List]
+def load_json_body(data: str, batch: bool = False) -> Union[Dict, List]:
     """Load the request body as a dictionary or a list.
 
     The body must be passed in a string and will be deserialized from JSON,
     raising an HttpQueryError in case of invalid JSON.
     """
     try:
-        return json.loads(data)
+        request_json = json.loads(data)
+        if batch:
+            assert isinstance(request_json, list), (
+                "Batch requests should receive a list, but received {}."
+            ).format(repr(request_json))
+            assert (
+                len(request_json) > 0
+            ), "Received an empty list in the batch request."
+        else:
+            assert isinstance(
+                request_json, dict
+            ), "The received data is not a valid JSON query."
+        return request_json
+    except AssertionError as e:
+        raise HttpQueryError(400, str(e))
     except Exception:
         raise HttpQueryError(400, "POST body sent invalid JSON.")
 
@@ -222,7 +275,7 @@ def get_graphql_params(data: Dict, query_data: Dict) -> GraphQLParams:
     # document_id = data.get('documentId')
     operation_name = data.get("operationName") or query_data.get("operationName")
 
-    return GraphQLParams(query, load_json_variables(variables), operation_name)
+    return GraphQLParams(query=query, variables=load_json_variables(variables), operation_name=operation_name)
 
 
 def load_json_variables(variables: Optional[Union[str, Dict]]) -> Optional[Dict]:

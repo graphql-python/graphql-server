@@ -1,0 +1,8 @@
+GQL_CONNECTION_INIT = "connection_init"
+GQL_CONNECTION_ACK = "connection_ack"
+GQL_PING = "ping"
+GQL_PONG = "pong"
+GQL_SUBSCRIBE = "subscribe"
+GQL_NEXT = "next"
+GQL_ERROR = "error"
+GQL_COMPLETE = "complete"

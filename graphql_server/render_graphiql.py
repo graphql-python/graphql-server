@@ -3,8 +3,8 @@
 import json
 import re
 from typing import Any, Dict, Optional, Tuple
+from graphql_server import GraphQLParams
 
-from jinja2 import Environment
 from typing_extensions import TypedDict
 
 GRAPHIQL_VERSION = "1.0.3"
@@ -20,7 +20,7 @@ add "&raw" to the end of the URL within a browser.
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>{{graphiql_html_title}}</title>
+  <title>{{html_title}}</title>
   <meta name="robots" content="noindex" />
   <meta name="referrer" content="origin" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -77,9 +77,10 @@ add "&raw" to the end of the URL within a browser.
     }
     // Configure the subscription client
     let subscriptionsFetcher = null;
-    if ('{{subscription_url}}') {
+    let subscriptionUrl = {{subscription_url}};
+    if (subscriptionUrl) {
       let subscriptionsClient = new SubscriptionsTransportWs.SubscriptionClient(
-        '{{ subscription_url }}',
+        subscriptionUrl,
         { reconnect: true }
       );
       subscriptionsFetcher = GraphiQLSubscriptionsFetcher.graphQLFetcher(
@@ -134,14 +135,14 @@ add "&raw" to the end of the URL within a browser.
         onEditVariables: onEditVariables,
         onEditHeaders: onEditHeaders,
         onEditOperationName: onEditOperationName,
-        query: {{query|tojson}},
-        response: {{result|tojson}},
-        variables: {{variables|tojson}},
-        headers: {{headers|tojson}},
-        operationName: {{operation_name|tojson}},
-        defaultQuery: {{default_query|tojson}},
-        headerEditorEnabled: {{header_editor_enabled|tojson}},
-        shouldPersistHeaders: {{should_persist_headers|tojson}}
+        query: {{query}},
+        response: {{result}},
+        variables: {{variables}},
+        headers: {{headers}},
+        operationName: {{operation_name}},
+        defaultQuery: {{default_query}},
+        headerEditorEnabled: {{header_editor_enabled}},
+        shouldPersistHeaders: {{should_persist_headers}}
       }),
       document.getElementById('graphiql')
     );
@@ -150,55 +151,15 @@ add "&raw" to the end of the URL within a browser.
 </html>"""
 
 
-class GraphiQLData(TypedDict):
-    """GraphiQL ReactDom Data
-
-    Has the following attributes:
-
-    subscription_url
-        The GraphiQL socket endpoint for using subscriptions in graphql-ws.
-    headers
-        An optional GraphQL string to use as the initial displayed request headers,
-        if None is provided, the stored headers will be used.
-    """
-
-    query: Optional[str]
-    variables: Optional[str]
-    operation_name: Optional[str]
-    result: Optional[str]
-    subscription_url: Optional[str]
-    headers: Optional[str]
-
-
-class GraphiQLConfig(TypedDict):
-    """GraphiQL Extra Config
-
-    Has the following attributes:
-
-    graphiql_version
-        The version of the provided GraphiQL package.
-    graphiql_template
-        Inject a Jinja template string to customize GraphiQL.
-    graphiql_html_title
-        Replace the default html title on the GraphiQL.
-    jinja_env
-        Sets jinja environment to be used to process GraphiQL template.
-        If Jinja’s async mode is enabled (by enable_async=True),
-        uses Template.render_async instead of Template.render.
-        If environment is not set, fallbacks to simple regex-based renderer.
-    """
-
-    graphiql_version: Optional[str]
-    graphiql_template: Optional[str]
-    graphiql_html_title: Optional[str]
-    jinja_env: Optional[Environment]
-
-
 class GraphiQLOptions(TypedDict):
     """GraphiQL options to display on the UI.
 
     Has the following attributes:
 
+    graphiql_version
+        The version of the provided GraphiQL package.
+    graphiql_html_title
+        Replace the default html title on the GraphiQL.
     default_query
         An optional GraphQL string to use when no query is provided and no stored
         query exists from a previous session. If None is provided, GraphiQL
@@ -209,11 +170,30 @@ class GraphiQLOptions(TypedDict):
     should_persist_headers
         An optional boolean which enables to persist headers to storage when true.
         Defaults to false.
+    subscription_url
+        The GraphiQL socket endpoint for using subscriptions in graphql-ws.
+    headers
+        An optional GraphQL string to use as the initial displayed request headers,
+        if None is provided, the stored headers will be used.
     """
 
+    html_title: Optional[str]
+    graphiql_version: Optional[str]
     default_query: Optional[str]
     header_editor_enabled: Optional[bool]
     should_persist_headers: Optional[bool]
+    subscription_url: Optional[str]
+    headers: Optional[str]
+
+GRAPHIQL_DEFAULT_OPTIONS: GraphiQLOptions = {
+    "html_title": "GraphiQL",
+    "graphiql_version": GRAPHIQL_VERSION,
+    "default_query": "",
+    "header_editor_enabled": True,
+    "should_persist_headers": False,
+    "subscription_url": None,
+    "headers": ""
+}
 
 
 def escape_js_value(value: Any) -> Any:
@@ -229,44 +209,28 @@ def escape_js_value(value: Any) -> Any:
     return value
 
 
-def process_var(template: str, name: str, value: Any, jsonify=False) -> str:
-    pattern = r"{{\s*" + name + r"(\s*|[^}]+)*\s*}}"
-    if jsonify and value not in ["null", "undefined"]:
+def tojson(value):
+    if value not in ["true", "false", "null", "undefined"]:
         value = json.dumps(value)
-        value = escape_js_value(value)
-
-    return re.sub(pattern, value, template)
+        # value = escape_js_value(value)
+    return value
 
 
 def simple_renderer(template: str, **values: Dict[str, Any]) -> str:
-    replace = [
-        "graphiql_version",
-        "graphiql_html_title",
-        "subscription_url",
-        "header_editor_enabled",
-        "should_persist_headers",
-    ]
-    replace_jsonify = [
-        "query",
-        "result",
-        "variables",
-        "operation_name",
-        "default_query",
-        "headers",
-    ]
+    def get_var(match_obj):
+        var_name = match_obj.group(1)
+        if var_name is not None:
+            return values[var_name]
+        return ""
 
-    for r in replace:
-        template = process_var(template, r, values.get(r, ""))
+    pattern = r"{{\s*([^}]+)\s*}}"
 
-    for r in replace_jsonify:
-        template = process_var(template, r, values.get(r, ""), True)
-
-    return template
+    return re.sub(pattern, get_var, template)
 
 
-def _render_graphiql(
-    data: GraphiQLData,
-    config: GraphiQLConfig,
+def get_template_vars(
+    data: str,
+    params: GraphQLParams,
     options: Optional[GraphiQLOptions] = None,
 ) -> Tuple[str, Dict[str, Any]]:
     """When render_graphiql receives a request which does not Accept JSON, but does
@@ -274,57 +238,31 @@ def _render_graphiql(
     When shown, it will be pre-populated with the result of having executed
     the requested query.
     """
-    graphiql_version = config.get("graphiql_version") or GRAPHIQL_VERSION
-    graphiql_template = config.get("graphiql_template") or GRAPHIQL_TEMPLATE
-    graphiql_html_title = config.get("graphiql_html_title") or "GraphiQL"
+    options_with_defaults = dict(GRAPHIQL_DEFAULT_OPTIONS, **(options or {}))
 
     template_vars: Dict[str, Any] = {
-        "graphiql_version": graphiql_version,
-        "graphiql_html_title": graphiql_html_title,
-        "query": data.get("query"),
-        "variables": data.get("variables"),
-        "operation_name": data.get("operation_name"),
-        "result": data.get("result"),
-        "subscription_url": data.get("subscription_url") or "",
-        "headers": data.get("headers") or "",
-        "default_query": options and options.get("default_query") or "",
-        "header_editor_enabled": options
-        and options.get("header_editor_enabled")
-        or "true",
-        "should_persist_headers": options
-        and options.get("should_persist_headers")
-        or "false",
+        "result": tojson(data),
+        "query": tojson(params.query),
+        "variables": tojson(params.variables),
+        "operation_name": tojson(params.operation_name),
+
+        "html_title": options_with_defaults["html_title"],
+        "graphiql_version": options_with_defaults["graphiql_version"],
+        "subscription_url": tojson(options_with_defaults["subscription_url"]),
+        "headers": tojson(options_with_defaults["headers"]),
+        "default_query": tojson(options_with_defaults["default_query"]),
+        "header_editor_enabled": tojson(options_with_defaults["header_editor_enabled"]),
+        "should_persist_headers": tojson(options_with_defaults["should_persist_headers"])
     }
 
-    return graphiql_template, template_vars
-
-
-async def render_graphiql_async(
-    data: GraphiQLData,
-    config: GraphiQLConfig,
-    options: Optional[GraphiQLOptions] = None,
-) -> str:
-    graphiql_template, template_vars = _render_graphiql(data, config, options)
-    jinja_env: Optional[Environment] = config.get("jinja_env")
-
-    if jinja_env:
-        # This method returns a Template. See https://jinja.palletsprojects.com/en/2.11.x/api/#jinja2.Template
-        template = jinja_env.from_string(graphiql_template)
-        if jinja_env.is_async:  # type: ignore
-            source = await template.render_async(**template_vars)
-        else:
-            source = template.render(**template_vars)
-    else:
-        source = simple_renderer(graphiql_template, **template_vars)
-    return source
+    return template_vars
 
 
 def render_graphiql_sync(
-    data: GraphiQLData,
-    config: GraphiQLConfig,
+    result: str,
+    params: GraphQLParams,
     options: Optional[GraphiQLOptions] = None,
 ) -> str:
-    graphiql_template, template_vars = _render_graphiql(data, config, options)
-
-    source = simple_renderer(graphiql_template, **template_vars)
+    template_vars = get_template_vars(result, params, options)
+    source = simple_renderer(GRAPHIQL_TEMPLATE, **template_vars)
     return source
