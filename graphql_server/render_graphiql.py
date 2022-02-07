@@ -185,6 +185,7 @@ class GraphiQLOptions(TypedDict):
     subscription_url: Optional[str]
     headers: Optional[str]
 
+
 GRAPHIQL_DEFAULT_OPTIONS: GraphiQLOptions = {
     "html_title": "GraphiQL",
     "graphiql_version": GRAPHIQL_VERSION,
@@ -192,7 +193,7 @@ GRAPHIQL_DEFAULT_OPTIONS: GraphiQLOptions = {
     "header_editor_enabled": True,
     "should_persist_headers": False,
     "subscription_url": None,
-    "headers": ""
+    "headers": "",
 }
 
 
@@ -245,14 +246,15 @@ def get_template_vars(
         "query": tojson(params.query),
         "variables": tojson(params.variables),
         "operation_name": tojson(params.operation_name),
-
         "html_title": options_with_defaults["html_title"],
         "graphiql_version": options_with_defaults["graphiql_version"],
         "subscription_url": tojson(options_with_defaults["subscription_url"]),
         "headers": tojson(options_with_defaults["headers"]),
         "default_query": tojson(options_with_defaults["default_query"]),
         "header_editor_enabled": tojson(options_with_defaults["header_editor_enabled"]),
-        "should_persist_headers": tojson(options_with_defaults["should_persist_headers"])
+        "should_persist_headers": tojson(
+            options_with_defaults["should_persist_headers"]
+        ),
     }
 
     return template_vars

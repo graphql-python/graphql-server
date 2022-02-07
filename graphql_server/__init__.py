@@ -58,11 +58,13 @@ __all__ = [
 
 # The public data structures
 
+
 @dataclass
 class GraphQLParams:
     query: str
     variables: Optional[Dict[str, Any]] = None
     operation_name: Optional[str] = None
+
 
 @dataclass
 class GraphQLResponse:
@@ -76,7 +78,9 @@ class ServerResponse:
     status_code: int
     headers: Optional[Dict[str, str]] = None
 
+
 # The public helper functions
+
 
 def get_schema(schema: GraphQLSchema):
     if not isinstance(schema, GraphQLSchema):
@@ -164,7 +168,12 @@ def run_http_query(
     return GraphQLResponse(results=results, params=all_params)
 
 
-def process_preflight(origin_header: Optional[str], request_method: Optional[str], accepted_methods: List[str], max_age: int) -> ServerResponse:
+def process_preflight(
+    origin_header: Optional[str],
+    request_method: Optional[str],
+    accepted_methods: List[str],
+    max_age: int,
+) -> ServerResponse:
     """
     Preflight request support for apollo-client
     https://www.w3.org/TR/cors/#resource-preflight-requests
@@ -239,9 +248,7 @@ def load_json_body(data: str, batch: bool = False) -> Union[Dict, List]:
             assert isinstance(request_json, list), (
                 "Batch requests should receive a list, but received {}."
             ).format(repr(request_json))
-            assert (
-                len(request_json) > 0
-            ), "Received an empty list in the batch request."
+            assert len(request_json) > 0, "Received an empty list in the batch request."
         else:
             assert isinstance(
                 request_json, dict
@@ -275,7 +282,11 @@ def get_graphql_params(data: Dict, query_data: Dict) -> GraphQLParams:
     # document_id = data.get('documentId')
     operation_name = data.get("operationName") or query_data.get("operationName")
 
-    return GraphQLParams(query=query, variables=load_json_variables(variables), operation_name=operation_name)
+    return GraphQLParams(
+        query=query,
+        variables=load_json_variables(variables),
+        operation_name=operation_name,
+    )
 
 
 def load_json_variables(variables: Optional[Union[str, Dict]]) -> Optional[Dict]:

@@ -1,4 +1,3 @@
-
 async def render_graphiql_async(
     data: GraphiQLData,
     config: GraphiQLConfig,

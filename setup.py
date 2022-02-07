@@ -1,7 +1,7 @@
 from re import search
 from setuptools import setup, find_packages
 
-install_requires = ["graphql-core>=3.2,<3.3", "typing-extensions>=4,<5"]
+install_requires = ["graphql-core>=3.1,<3.3", "typing-extensions>=4,<5"]
 
 tests_requires = [
     "pytest>=6.2,<6.3",

@@ -63,7 +63,9 @@ class GraphQLView(View):
     max_age: int = 86400
     graphiql_options: Optional[GraphiQLOptions] = None
 
-    def __init__(self, schema: GraphQLSchema,
+    def __init__(
+        self,
+        schema: GraphQLSchema,
         root_value: Any = None,
         pretty: bool = False,
         graphiql: bool = True,
@@ -144,9 +146,7 @@ class GraphQLView(View):
         return html_priority > json_priority
 
     def is_graphiql(self, request_method: str, is_raw: bool, prefers_html: bool):
-        return (self.graphiql and request_method == "get"
-                and not is_raw and prefers_html
-        )
+        return self.graphiql and request_method == "get" and not is_raw and prefers_html
 
     def should_prettify(self, is_graphiql: bool, pretty_in_query: bool):
         return self.pretty or is_graphiql or pretty_in_query
@@ -157,17 +157,20 @@ class GraphQLView(View):
             data = self.parse_body(request)
             request_method = request.method.lower()
             prefers_html = self.request_prefers_html(request)
-            is_graphiql = self.is_graphiql(request_method, "raw" in request.GET, prefers_html)
+            is_graphiql = self.is_graphiql(
+                request_method, "raw" in request.GET, prefers_html
+            )
             is_pretty = self.should_prettify(is_graphiql, request.GET.get("pretty"))
 
             if request_method == "options":
                 headers = request.headers
                 origin = headers.get("Origin", "")
                 method = headers.get("Access-Control-Request-Method", "").upper()
-                response = process_preflight(origin, method, self.accepted_methods, self.max_age)
+                response = process_preflight(
+                    origin, method, self.accepted_methods, self.max_age
+                )
                 return HTTPResponse(
-                    status=response.status_code,
-                    headers=response.headers
+                    status=response.status_code, headers=response.headers
                 )
 
             graphql_response = run_http_query(
@@ -196,12 +199,9 @@ class GraphQLView(View):
                 source = self.render_graphiql(
                     result=response.body,
                     params=graphql_response.params[0],
-                    options=self.graphiql_options
+                    options=self.graphiql_options,
                 )
-                return HttpResponse(
-                    content=source,
-                    content_type="text/html"
-                )
+                return HttpResponse(content=source, content_type="text/html")
 
             return HttpResponse(
                 content=response.body,
@@ -235,17 +235,20 @@ class AsyncGraphQLView(GraphQLView):
             data = self.parse_body(request)
             request_method = request.method.lower()
             prefers_html = self.request_prefers_html(request)
-            is_graphiql = self.is_graphiql(request_method, "raw" in request.GET, prefers_html)
+            is_graphiql = self.is_graphiql(
+                request_method, "raw" in request.GET, prefers_html
+            )
             is_pretty = self.should_prettify(is_graphiql, request.GET.get("pretty"))
 
             if request_method == "options":
                 headers = request.headers
                 origin = headers.get("Origin", "")
                 method = headers.get("Access-Control-Request-Method", "").upper()
-                response = process_preflight(origin, method, self.accepted_methods, self.max_age)
+                response = process_preflight(
+                    origin, method, self.accepted_methods, self.max_age
+                )
                 return HTTPResponse(
-                    status=response.status_code,
-                    headers=response.headers
+                    status=response.status_code, headers=response.headers
                 )
 
             graphql_response = run_http_query(
@@ -263,12 +266,10 @@ class AsyncGraphQLView(GraphQLView):
                 validation_rules=self.get_validation_rules(),
             )
 
-            exec_res = (
-                [
-                    ex if ex is None or isinstance(ex, ExecutionResult) else await ex
-                    for ex in graphql_response.results
-                ]
-            )
+            exec_res = [
+                ex if ex is None or isinstance(ex, ExecutionResult) else await ex
+                for ex in graphql_response.results
+            ]
 
             response = encode_execution_results(
                 exec_res,
@@ -281,12 +282,9 @@ class AsyncGraphQLView(GraphQLView):
                 source = self.render_graphiql(
                     result=response.body,
                     params=graphql_response.params[0],
-                    options=self.graphiql_options
+                    options=self.graphiql_options,
                 )
-                return HttpResponse(
-                    content=source,
-                    content_type="text/html"
-                )
+                return HttpResponse(content=source, content_type="text/html")
 
             return HttpResponse(
                 content=response.body,

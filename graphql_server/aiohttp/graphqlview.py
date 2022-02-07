@@ -24,6 +24,7 @@ from graphql_server.render_graphiql import (
 
 from typing import Dict, Any
 
+
 class GraphQLView:
 
     accepted_methods = ["GET", "POST", "PUT", "DELETE"]
@@ -31,7 +32,10 @@ class GraphQLView:
     format_error = staticmethod(format_error_default)
     encode = staticmethod(json_encode)
 
-    def __init__(self, schema: GraphQLSchema, *,
+    def __init__(
+        self,
+        schema: GraphQLSchema,
+        *,
         root_value: Any = None,
         pretty: bool = False,
         graphiql: bool = True,
@@ -94,8 +98,11 @@ class GraphQLView:
         return {}
 
     def is_graphiql(self, request_method, is_raw, accept_headers):
-        return (self.graphiql and request_method == "get"
-                and not is_raw and ("text/html" in accept_headers or "*/*" in accept_headers),
+        return (
+            self.graphiql
+            and request_method == "get"
+            and not is_raw
+            and ("text/html" in accept_headers or "*/*" in accept_headers),
         )
 
     def should_prettify(self, is_graphiql, pretty_query):
@@ -106,17 +113,20 @@ class GraphQLView:
             data = await self.parse_body(request)
             request_method = request.method.lower()
             accept_headers = request.headers.get("accept", {})
-            is_graphiql = self.is_graphiql(request_method, request.query.get("raw"), accept_headers)
+            is_graphiql = self.is_graphiql(
+                request_method, request.query.get("raw"), accept_headers
+            )
             is_pretty = self.should_prettify(is_graphiql, request.query.get("pretty"))
 
             if request_method == "options":
                 headers = request.headers
                 origin = headers.get("Origin", "")
                 method = headers.get("Access-Control-Request-Method", "").upper()
-                response = process_preflight(origin, method, self.accepted_methods, self.max_age)
+                response = process_preflight(
+                    origin, method, self.accepted_methods, self.max_age
+                )
                 return web.Response(
-                    status=response.status_code,
-                    headers = response.headers
+                    status=response.status_code, headers=response.headers
                 )
 
             graphql_response = run_http_query(
@@ -153,7 +163,7 @@ class GraphQLView:
                 source = self.render_graphiql(
                     result=response.body,
                     params=graphql_response.all_params[0],
-                    options=self.graphiql_options
+                    options=self.graphiql_options,
                 )
                 return web.Response(text=source, content_type="text/html")
 
