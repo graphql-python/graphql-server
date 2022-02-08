@@ -74,8 +74,8 @@ class GraphQLResponse:
 
 @dataclass
 class ServerResponse:
-    body: Optional[str]
     status_code: int
+    body: Optional[str] = None
     headers: Optional[Dict[str, str]] = None
 
 
@@ -158,6 +158,8 @@ def run_http_query(
     all_params: List[GraphQLParams] = [
         get_graphql_params(entry, extra_data) for entry in data
     ]
+    # print("GET ROOT VALUE 0", type(request_method), all_params)
+    # print(dict(schema=schema, all_params=all_params, catch_exc=catch_exc, allow_only=allow_only_query, run_sync=run_sync))
 
     results: List[Optional[AwaitableOrValue[ExecutionResult]]] = [
         get_response(
@@ -165,6 +167,8 @@ def run_http_query(
         )
         for params in all_params
     ]
+    # print("GET ROOT VALUE 1")
+
     return GraphQLResponse(results=results, params=all_params)
 
 
@@ -179,13 +183,14 @@ def process_preflight(
     https://www.w3.org/TR/cors/#resource-preflight-requests
     """
     if origin_header and request_method and request_method in accepted_methods:
+        headers = {
+            "Access-Control-Allow-Origin": origin_header,
+            "Access-Control-Allow-Methods": ", ".join(accepted_methods),
+            "Access-Control-Max-Age": str(max_age),
+        }
         return ServerResponse(
             status_code=200,
-            headers={
-                "Access-Control-Allow-Origin": origin_header,
-                "Access-Control-Allow-Methods": ", ".join(accepted_methods),
-                "Access-Control-Max-Age": str(max_age),
-            },
+            headers=headers,
         )
     return ServerResponse(status_code=400)
 

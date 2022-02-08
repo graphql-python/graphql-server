@@ -41,7 +41,9 @@ def _get_payload(request: HttpRequest, response: HttpResponse):
 
     content = force_str(response.content, encoding=response.charset)
     payload = json.loads(content, object_pairs_hook=collections.OrderedDict)
-    payload["debugToolbar"] = collections.OrderedDict([("panels", collections.OrderedDict())])
+    payload["debugToolbar"] = collections.OrderedDict(
+        [("panels", collections.OrderedDict())]
+    )
     payload["debugToolbar"]["storeId"] = toolbar.store_id
 
     for p in reversed(toolbar.enabled_panels):
@@ -134,7 +136,8 @@ class DebugToolbarMiddleware(_DebugToolbarMiddleware):
         is_graphiql = getattr(request, "_is_graphiql", False)
 
         if is_html and is_graphiql and response.status_code == 200:
-            response.write("""
+            response.write(
+                """
 <script>
 (function (JSON) {
   const parse = JSON.parse;
@@ -175,7 +178,8 @@ class DebugToolbarMiddleware(_DebugToolbarMiddleware):
   };
 })(JSON);
 </script>
-""")
+"""
+            )
             if "Content-Length" in response:
                 response["Content-Length"] = len(response.content)
 
@@ -194,4 +198,6 @@ class DebugToolbarMiddleware(_DebugToolbarMiddleware):
 
     def process_view(self, request: HttpRequest, view_func, *args, **kwargs):
         view = getattr(view_func, "view_class", None)
-        request._is_graphiql = bool(view and issubclass(view, GraphQLView))  # type:ignore
+        request._is_graphiql = bool(
+            view and issubclass(view, GraphQLView)
+        )  # type:ignore
