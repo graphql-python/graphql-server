@@ -122,7 +122,7 @@ class GraphQLHttpConsumer(AsyncHttpConsumer):
             return specified_rules
         return self.validation_rules
 
-    def parse_body(self, content_type, body):
+    def parse_body(self, content_type: str, body: bytes):
         if content_type == "application/graphql":
             return {"query": body.decode()}
 
@@ -139,7 +139,8 @@ class GraphQLHttpConsumer(AsyncHttpConsumer):
             # "multipart/form-data",
         ]:
             return dict(parse_qsl(body.decode("utf-8")))
-
+        elif content_type.startswith("multipart/form-data"):
+            raise HttpQueryError(400, "multipart/form-data is not supported in this GraphQL endpoint")
         return {}
 
     def request_prefers_html(self, accept):
@@ -181,7 +182,9 @@ class GraphQLHttpConsumer(AsyncHttpConsumer):
             data = self.parse_body(content_type, body)
             request_method = self.scope["method"].lower()
             prefers_html = self.request_prefers_html(accept_header) or True
-            query_data = dict(parse_qsl(self.scope.get("query_string", b"").decode("utf-8")))
+            query_data = dict(
+                parse_qsl(self.scope.get("query_string", b"").decode("utf-8"))
+            )
             is_raw = "raw" in query_data
             is_pretty = "pretty" in query_data
             is_pretty = False
