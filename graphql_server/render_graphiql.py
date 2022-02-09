@@ -244,7 +244,7 @@ def get_template_vars(
     template_vars: Dict[str, Any] = {
         "result": tojson(data),
         "query": tojson(params.query),
-        "variables": tojson(params.variables),
+        "variables": tojson(json.dumps(params.variables)),
         "operation_name": tojson(params.operation_name),
         "html_title": options_with_defaults["html_title"],
         "graphiql_version": options_with_defaults["graphiql_version"],
