@@ -1,15 +1,14 @@
 import asyncio
 import re
 from functools import partial
-from http.client import HTTPResponse
-from typing import Type, Any, Optional, Collection
+from typing import Type, Any, Optional, Collection, Dict
 
 from graphql import ExecutionResult, GraphQLError, specified_rules
 from graphql.execution import Middleware
 from graphql.type.schema import GraphQLSchema
 from graphql.validation import ASTValidationRule
 from django.views.generic import View
-from django.http import HttpResponse, HttpRequest, HttpResponseBadRequest
+from django.http import HttpResponse, HttpRequest
 from django.utils.decorators import classonlymethod, method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
@@ -62,6 +61,7 @@ class GraphQLView(View):
     fetch_query_on_load: bool = True
     max_age: int = 86400
     graphiql_options: Optional[GraphiQLOptions] = None
+    cors_allow_origin: Optional[str] = None
 
     def __init__(
         self,
@@ -75,6 +75,7 @@ class GraphQLView(View):
         fetch_query_on_load: bool = True,
         max_age: int = 86400,
         graphiql_options: Optional[GraphiQLOptions] = None,
+        cors_allow_origin: Optional[str] = None,
     ):
         self.schema = get_schema(schema)
         self.root_value = root_value
@@ -86,6 +87,10 @@ class GraphQLView(View):
         self.batch = batch
         self.fetch_query_on_load = fetch_query_on_load
         self.max_age = max_age
+        self.cors_allow_origin = cors_allow_origin
+
+    def get_graphiql_options(self, request: HttpRequest):
+        return self.graphiql_options
 
     def render_graphiql(self, *args, **kwargs):
         return render_graphiql_sync(*args, **kwargs)
@@ -103,6 +108,17 @@ class GraphQLView(View):
         if self.validation_rules is None:
             return specified_rules
         return self.validation_rules
+
+    def construct_headers(self, headers: Optional[Dict] = None):
+        if self.cors_allow_origin:
+            return dict(
+                headers or {},
+                **{
+                    "Access-Control-Allow-Origin": self.cors_allow_origin,
+                }
+            )
+        else:
+            return headers
 
     def parse_body(self, request: HttpRequest):
         content_type = request.content_type
@@ -169,8 +185,16 @@ class GraphQLView(View):
                 response = process_preflight(
                     origin, method, self.accepted_methods, self.max_age
                 )
-                return HTTPResponse(
-                    status=response.status_code, headers=response.headers
+                return_headers = {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Headers": "*",
+                }
+
+                return HttpResponse(
+                    status=response.status_code,
+                    headers=self.construct_headers(
+                        dict(response.headers or {}, **return_headers)
+                    ),
                 )
 
             graphql_response = run_http_query(
@@ -199,12 +223,13 @@ class GraphQLView(View):
                 source = self.render_graphiql(
                     result=response.body,
                     params=graphql_response.params[0],
-                    options=self.graphiql_options,
+                    options=self.get_graphiql_options(request),
                 )
                 return HttpResponse(content=source, content_type="text/html")
 
             return HttpResponse(
                 content=response.body,
+                headers=self.construct_headers(),
                 content_type="application/json",
                 status=response.status_code,
             )
@@ -215,7 +240,7 @@ class GraphQLView(View):
                 content=self.encode(dict(errors=[self.format_error(parsed_error)])),
                 content_type="application/json",
                 status=err.status_code,
-                headers=err.headers,
+                headers=self.construct_headers(err.headers),
             )
 
 
@@ -247,8 +272,15 @@ class AsyncGraphQLView(GraphQLView):
                 response = process_preflight(
                     origin, method, self.accepted_methods, self.max_age
                 )
-                return HTTPResponse(
-                    status=response.status_code, headers=response.headers
+                return_headers = {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Headers": "*",
+                }
+                return HttpResponse(
+                    status=response.status_code,
+                    headers=self.construct_headers(
+                        dict(response.headers or {}, **return_headers)
+                    ),
                 )
 
             graphql_response = run_http_query(
@@ -282,12 +314,13 @@ class AsyncGraphQLView(GraphQLView):
                 source = self.render_graphiql(
                     result=response.body,
                     params=graphql_response.params[0],
-                    options=self.graphiql_options,
+                    options=await self.get_graphiql_options(request),
                 )
                 return HttpResponse(content=source, content_type="text/html")
 
             return HttpResponse(
                 content=response.body,
+                headers=self.construct_headers(),
                 content_type="application/json",
                 status=response.status_code,
             )
@@ -298,10 +331,13 @@ class AsyncGraphQLView(GraphQLView):
                 content=self.encode(dict(errors=[self.format_error(parsed_error)])),
                 content_type="application/json",
                 status=err.status_code,
-                headers=err.headers,
+                headers=self.construct_headers(err.headers),
             )
 
-    async def get_root_value(self, request: HttpRequest) -> Any:
+    async def get_graphiql_options(self, _request: HttpRequest) -> Any:
+        return self.graphiql_options
+
+    async def get_root_value(self, _request: HttpRequest) -> Any:
         return None
 
     async def get_context(self, request: HttpRequest) -> Any:

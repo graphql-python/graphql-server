@@ -12,18 +12,16 @@ import email.parser
 from urllib.parse import unquote
 from .error import HttpQueryError
 
+
 def _split_on_find(content, bound):
     point = content.find(bound)
-    return content[:point], content[point + len(bound):]
+    return content[:point], content[point + len(bound) :]
 
 
 def _header_parser(string):
 
-    headers = email.parser.HeaderParser().parsestr(string.decode('ascii')).items()
-    return {
-        k: v.encode('ascii')
-        for k, v in headers
-    }
+    headers = email.parser.HeaderParser().parsestr(string.decode("ascii")).items()
+    return {k: v.encode("ascii") for k, v in headers}
 
 
 class BodyPart(object):
@@ -39,15 +37,12 @@ class BodyPart(object):
     def __init__(self, content):
         headers = {}
         # Split into header section (if any) and the content
-        if b'\r\n\r\n' in content:
-            first, self.content = _split_on_find(content, b'\r\n\r\n')
-            if first != b'':
+        if b"\r\n\r\n" in content:
+            first, self.content = _split_on_find(content, b"\r\n\r\n")
+            if first != b"":
                 headers = _header_parser(first.lstrip())
         else:
-            raise HttpQueryError(
-                400,
-                'Multipart content does not contain CR-LF-CR-LF'
-            )
+            raise HttpQueryError(400, "Multipart content does not contain CR-LF-CR-LF")
         self.headers = headers
 
 
@@ -71,7 +66,8 @@ class MultipartDecoder(object):
     a string, which is the name of the unicode codec to use (default is
     ``'utf-8'``).
     """
-    def __init__(self, content, content_type, encoding='utf-8'):
+
+    def __init__(self, content, content_type, encoding="utf-8"):
         #: Original Content-Type header
         self.content_type = content_type
         #: Response body encoding
@@ -82,20 +78,16 @@ class MultipartDecoder(object):
         self._parse_body(content)
 
     def _find_boundary(self):
-        ct_info = tuple(x.strip() for x in self.content_type.split(';'))
+        ct_info = tuple(x.strip() for x in self.content_type.split(";"))
         mimetype = ct_info[0]
-        if mimetype.split('/')[0].lower() != 'multipart':
+        if mimetype.split("/")[0].lower() != "multipart":
             raise HttpQueryError(
-                400,
-                "Unexpected mimetype in content-type: '{}'".format(mimetype)
+                400, "Unexpected mimetype in content-type: '{}'".format(mimetype)
             )
         for item in ct_info[1:]:
-            attr, value = _split_on_find(
-                item,
-                '='
-            )
-            if attr.lower() == 'boundary':
-                self.boundary = value.strip('"').encode('utf-8')
+            attr, value = _split_on_find(item, "=")
+            if attr.lower() == "boundary":
+                self.boundary = value.strip('"').encode("utf-8")
 
     @staticmethod
     def _fix_first_part(part, boundary_marker):
@@ -106,19 +98,21 @@ class MultipartDecoder(object):
             return part
 
     def _parse_body(self, content):
-        boundary = b''.join((b'--', self.boundary))
+        boundary = b"".join((b"--", self.boundary))
 
         def body_part(part):
             fixed = MultipartDecoder._fix_first_part(part, boundary)
             return BodyPart(fixed)
 
         def test_part(part):
-            return (part != b'' and
-                    part != b'\r\n' and
-                    part[:4] != b'--\r\n' and
-                    part != b'--')
+            return (
+                part != b""
+                and part != b"\r\n"
+                and part[:4] != b"--\r\n"
+                and part != b"--"
+            )
 
-        parts = content.split(b''.join((b'\r\n', boundary)))
+        parts = content.split(b"".join((b"\r\n", boundary)))
         self.parts = tuple(body_part(x) for x in parts if test_part(x))
 
 
@@ -126,6 +120,7 @@ class MultipartDecoder(object):
 class File:
     content: bytes
     filename: str
+
 
 def get_post_and_files(body, content_type):
     post = {}
@@ -137,10 +132,12 @@ def get_post_and_files(body, content_type):
             if name.lower() == "content-disposition":
                 filename = params.get("filename")
                 if filename:
-                    files[name.decode('utf-8')] = File(content=part.content, filename=filename)
+                    files[name.decode("utf-8")] = File(
+                        content=part.content, filename=filename
+                    )
                 else:
                     name = params.get("name")
-                    post[name.decode('utf-8')] = part.content.decode('utf-8')
+                    post[name.decode("utf-8")] = part.content.decode("utf-8")
     return post, files
 
 

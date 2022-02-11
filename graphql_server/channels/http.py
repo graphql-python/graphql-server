@@ -28,6 +28,7 @@ from graphql_server.render_graphiql import (
 )
 from graphql_server.multipart import get_post_and_files
 
+
 def get_accepted_content_types(accept_header: str):
     def qualify(x):
         parts = x.split(";", 1)

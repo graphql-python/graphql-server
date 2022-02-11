@@ -6,7 +6,7 @@ on preferences and client support. Then it hands off to the appropriate consumer
 from datetime import timedelta
 from typing import Any, Optional, Sequence, Union
 
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest
 from django.urls import re_path
 
 from channels.generic.websocket import (
@@ -127,8 +127,5 @@ class GraphQLWSConsumer(AsyncJsonWebsocketConsumer):
     async def get_context(
         self,
         request: Union[HttpRequest, AsyncJsonWebsocketConsumer] = None,
-        response: Optional[HttpResponse] = None,
     ) -> Optional[Any]:
-        return GraphQLChannelsContext(
-            request=request or self, response=response, scope=self.scope
-        )
+        return GraphQLChannelsContext(request=request or self, scope=self.scope)

@@ -123,7 +123,7 @@ tpanel.recording = _recording
 
 class DebugToolbarMiddleware(_DebugToolbarMiddleware):
     sync_capable = True
-    async_capable = True
+    async_capable = False
 
     def __call__(self, request: HttpRequest):
         response = super().__call__(request)
