@@ -26,7 +26,7 @@ from graphql_server.render_graphiql import (
     GraphiQLOptions,
     render_graphiql_sync,
 )
-
+from graphql_server.multipart import get_post_and_files
 
 def get_accepted_content_types(accept_header: str):
     def qualify(x):
@@ -124,7 +124,7 @@ class GraphQLHttpConsumer(AsyncHttpConsumer):
 
     def parse_body(self, content_type: str, body: bytes):
         if content_type == "application/graphql":
-            return {"query": body.decode()}
+            return {"query": body.decode()}, None
 
         elif content_type == "application/json":
             try:
@@ -132,16 +132,16 @@ class GraphQLHttpConsumer(AsyncHttpConsumer):
             except Exception as e:
                 raise HttpQueryError(400, str(e))
 
-            return load_json_body(body, self.batch)
+            return load_json_body(body, self.batch), None
 
         elif content_type in [
             "application/x-www-form-urlencoded",
-            # "multipart/form-data",
         ]:
             return dict(parse_qsl(body.decode("utf-8")))
         elif content_type.startswith("multipart/form-data"):
-            raise HttpQueryError(400, "multipart/form-data is not supported in this GraphQL endpoint")
-        return {}
+            return get_post_and_files(body, content_type)
+            # raise HttpQueryError(400, "multipart/form-data is not supported in this GraphQL endpoint")
+        return {}, None
 
     def request_prefers_html(self, accept):
 
@@ -179,7 +179,7 @@ class GraphQLHttpConsumer(AsyncHttpConsumer):
             req_headers = self.headers
             content_type = req_headers.get("content-type", "")
             accept_header = req_headers.get("accept", "*/*")
-            data = self.parse_body(content_type, body)
+            data, files = self.parse_body(content_type, body)
             request_method = self.scope["method"].lower()
             prefers_html = self.request_prefers_html(accept_header) or True
             query_data = dict(
