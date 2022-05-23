@@ -41,7 +41,19 @@ This will add `/graphql` endpoint to your app and enable the GraphiQL IDE.
 
 ### Special Note for Graphene v3
 
-If you are using the `Schema` type of [Graphene](https://github.com/graphql-python/graphene) library, be sure to use the `graphql_schema` attribute to pass as schema on the `GraphQLView` view. Otherwise, the `GraphQLSchema` from `graphql-core` is the way to go.
+If you are using the `Schema` type of [Graphene](https://github.com/graphql-python/graphene) library, be sure to use the `graphql_schema` attribute to pass as schema on the `GraphQLView` view. For example:
+```diff
+app.add_url_rule(
+    '/graphql',
+    view_func=GraphQLView.as_view(
+        'graphql',
+-       schema=graphene_schema,
++       schema=graphene_schema.graphql_schema,
+    )
+)
+```
+
+If you aren't using Graphene's `Schema`, `GraphQLSchema` from `graphql-core` is the way to go.
 
 More info at [Graphene v3 release notes](https://github.com/graphql-python/graphene/wiki/v3-release-notes#graphene-schema-no-longer-subclasses-graphqlschema-type) and [GraphQL-core 3 usage](https://github.com/graphql-python/graphql-core#usage).
 
