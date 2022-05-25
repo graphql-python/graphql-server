@@ -9,6 +9,7 @@ tests_requires = [
     "pytest-cov>=3,<4",
     "aiohttp>=3.8,<4",
     "Jinja2>=2.11,<3",
+    "MarkupSafe>=2.0.1,<2.1.0",
 ]
 
 dev_requires = [
@@ -35,7 +36,7 @@ install_aiohttp_requires = [
     "aiohttp>=3.8,<4",
 ]
 
-install_quart_requires = ["quart>=0.6.15,<0.15"]
+install_quart_requires = ["quart>=0.6.15,<0.15", "wsproto<=1.0.0"]
 
 install_all_requires = (
     install_requires
