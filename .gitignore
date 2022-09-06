@@ -204,4 +204,7 @@ dmypy.json
 # Ignore all local history of files
 .history
 
+# Virtualenv generated per CONTRIBUTING.md
+graphql-server-dev
+
 # End of https://www.gitignore.io/api/python,intellij+all,visualstudiocode
