@@ -165,11 +165,11 @@ class GraphQLView(View):
         # information provided by content_type
         content_type = request.mimetype
         if content_type == "application/graphql":
-            refined_data = await request.get_data(raw=False)
+            refined_data = await request.get_data(as_text=True)
             return {"query": refined_data}
 
         elif content_type == "application/json":
-            refined_data = await request.get_data(raw=False)
+            refined_data = await request.get_data(as_text=True)
             return load_json_body(refined_data)
 
         elif content_type == "application/x-www-form-urlencoded":
