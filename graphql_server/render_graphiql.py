@@ -230,12 +230,12 @@ def escape_js_value(value: Any) -> Any:
 
 
 def process_var(template: str, name: str, value: Any, jsonify=False) -> str:
-    pattern = r"{{\s*" + name + r"(\s*|[^}]+)*\s*}}"
+    pattern = r"{{\s*" + re.escape(name) + r"(\s*|[^}]+)*\s*}}"
     if jsonify and value not in ["null", "undefined"]:
         value = json.dumps(value)
         value = escape_js_value(value)
 
-    return re.sub(pattern, value, template)
+    return re.sub(pattern, re.escape(value), template)
 
 
 def simple_renderer(template: str, **values: Dict[str, Any]) -> str:

@@ -44,6 +44,18 @@ def test_graphiql_renders_pretty(app, client):
 
     assert pretty_response in response.data.decode("utf-8")
 
+def test_graphiql_renders_umlauts_pretty(app, client):
+    with app.test_request_context():
+        response = client.get(
+            url_for(
+                "graphql",
+                query="query helloWho($who: String){ test(who: $who) }",
+                variables='{"who": "Björn"}',
+            ), headers={"Accept": "text/html"}
+        )
+    assert response.status_code == 200
+    assert "Hello\\ Bj\\\\u00f6rn" in response.data.decode("utf-8")
+
 
 def test_graphiql_default_title(app, client):
     with app.test_request_context():
