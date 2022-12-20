@@ -9,17 +9,7 @@ for building GraphQL servers or integrations into existing web frameworks using
 import json
 from collections import namedtuple
 from collections.abc import MutableMapping
-from typing import (
-    Any,
-    Callable,
-    Collection,
-    Dict,
-    List,
-    Optional,
-    Type,
-    Union,
-    cast,
-)
+from typing import Any, Callable, Collection, Dict, List, Optional, Type, Union, cast
 
 from graphql.error import GraphQLError
 from graphql.execution import ExecutionResult, execute
