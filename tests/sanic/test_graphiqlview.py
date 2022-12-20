@@ -18,7 +18,7 @@ def pretty_response():
 
 @pytest.mark.parametrize("app", [create_app(graphiql=True)])
 def test_graphiql_is_enabled(app):
-    _, response = app.client.get(
+    _, response = app.test_client.get(
         uri=url_string(query="{test}"), headers={"Accept": "text/html"}
     )
     assert response.status == 200
@@ -26,7 +26,7 @@ def test_graphiql_is_enabled(app):
 
 @pytest.mark.parametrize("app", [create_app(graphiql=True)])
 def test_graphiql_simple_renderer(app, pretty_response):
-    _, response = app.client.get(
+    _, response = app.test_client.get(
         uri=url_string(query="{test}"), headers={"Accept": "text/html"}
     )
     assert response.status == 200
@@ -35,7 +35,7 @@ def test_graphiql_simple_renderer(app, pretty_response):
 
 @pytest.mark.parametrize("app", [create_app(graphiql=True, jinja_env=Environment())])
 def test_graphiql_jinja_renderer(app, pretty_response):
-    _, response = app.client.get(
+    _, response = app.test_client.get(
         uri=url_string(query="{test}"), headers={"Accept": "text/html"}
     )
     assert response.status == 200
@@ -46,7 +46,7 @@ def test_graphiql_jinja_renderer(app, pretty_response):
     "app", [create_app(graphiql=True, jinja_env=Environment(enable_async=True))]
 )
 def test_graphiql_jinja_async_renderer(app, pretty_response):
-    _, response = app.client.get(
+    _, response = app.test_client.get(
         uri=url_string(query="{test}"), headers={"Accept": "text/html"}
     )
     assert response.status == 200
@@ -55,7 +55,7 @@ def test_graphiql_jinja_async_renderer(app, pretty_response):
 
 @pytest.mark.parametrize("app", [create_app(graphiql=True)])
 def test_graphiql_html_is_not_accepted(app):
-    _, response = app.client.get(
+    _, response = app.test_client.get(
         uri=url_string(), headers={"Accept": "application/json"}
     )
     assert response.status == 400
@@ -66,7 +66,7 @@ def test_graphiql_html_is_not_accepted(app):
 )
 def test_graphiql_enabled_async_schema(app):
     query = "{a,b,c}"
-    _, response = app.client.get(
+    _, response = app.test_client.get(
         uri=url_string(query=query), headers={"Accept": "text/html"}
     )
 
@@ -93,7 +93,7 @@ def test_graphiql_enabled_async_schema(app):
 )
 def test_graphiql_enabled_sync_schema(app):
     query = "{a,b}"
-    _, response = app.client.get(
+    _, response = app.test_client.get(
         uri=url_string(query=query), headers={"Accept": "text/html"}
     )
 

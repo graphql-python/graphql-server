@@ -1,7 +1,6 @@
 from urllib.parse import urlencode
 
 from sanic import Sanic
-from sanic.testing import SanicTestClient
 
 from graphql_server.sanic import GraphQLView
 
@@ -11,13 +10,11 @@ Sanic.test_mode = True
 
 
 def create_app(path="/graphql", **kwargs):
-    app = Sanic(__name__)
-    app.debug = True
+    app = Sanic("TestApp")
 
     schema = kwargs.pop("schema", None) or Schema
     app.add_route(GraphQLView.as_view(schema=schema, **kwargs), path)
 
-    app.client = SanicTestClient(app)
     return app
 
 

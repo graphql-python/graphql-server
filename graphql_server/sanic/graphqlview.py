@@ -85,7 +85,7 @@ class GraphQLView(HTTPMethodView):
             return specified_rules
         return self.validation_rules
 
-    async def dispatch_request(self, request, *args, **kwargs):
+    async def __handle_request(self, request, *args, **kwargs):
         try:
             request_method = request.method.lower()
             data = self.parse_body(request)
@@ -172,6 +172,8 @@ class GraphQLView(HTTPMethodView):
                 headers=e.headers,
                 content_type="application/json",
             )
+
+    get = post = put = head = options = patch = delete = __handle_request
 
     # noinspection PyBroadException
     def parse_body(self, request):
