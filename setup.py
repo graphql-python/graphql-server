@@ -11,7 +11,7 @@ tests_requires = [
     "pytest>=7.2,<8",
     "pytest-asyncio>=0.20,<1",
     "pytest-cov>=4,<5",
-    "sanic-testing>=22.3,<22.7",
+    "sanic-testing>=22.3,<23",
 ]
 
 dev_requires = [
@@ -27,7 +27,7 @@ install_flask_requires = [
 ]
 
 install_sanic_requires = [
-    "sanic>=21.12,<22.7",
+    "sanic>=21.12,<23",
 ]
 
 install_webob_requires = [
