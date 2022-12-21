@@ -1,5 +1,4 @@
 import copy
-import sys
 from collections.abc import MutableMapping
 from functools import partial
 from typing import List
@@ -191,20 +190,8 @@ class GraphQLView(View):
     def request_wants_html():
         best = request.accept_mimetypes.best_match(["application/json", "text/html"])
 
-        # Needed as this was introduced at Quart 0.8.0: https://gitlab.com/pgjones/quart/-/issues/189
-        def _quality(accept, key: str) -> float:
-            for option in accept.options:
-                if accept._values_match(key, option.value):
-                    return option.quality
-            return 0.0
-
-        if sys.version_info >= (3, 7):
-            return (
-                best == "text/html"
-                and request.accept_mimetypes[best]
-                > request.accept_mimetypes["application/json"]
-            )
-        else:
-            return best == "text/html" and _quality(
-                request.accept_mimetypes, best
-            ) > _quality(request.accept_mimetypes, "application/json")
+        return (
+            best == "text/html"
+            and request.accept_mimetypes[best]
+            > request.accept_mimetypes["application/json"]
+        )
