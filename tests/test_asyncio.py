@@ -45,8 +45,6 @@ schema = GraphQLSchema(QueryRootType)
 def test_get_responses_using_asyncio_executor():
     query = "{fieldSync fieldAsync}"
 
-    loop = asyncio.get_event_loop()
-
     async def get_results():
         result_promises, params = run_http_query(
             schema, "get", {}, dict(query=query), run_sync=False
@@ -54,10 +52,7 @@ def test_get_responses_using_asyncio_executor():
         res = [await result for result in result_promises]
         return res, params
 
-    try:
-        results, params = loop.run_until_complete(get_results())
-    finally:
-        loop.close()
+    results, params = asyncio.run(get_results())
 
     expected_results = [
         {"data": {"fieldSync": "sync", "fieldAsync": "async"}, "errors": None}
