@@ -3,7 +3,6 @@ from setuptools import setup, find_packages
 
 install_requires = [
     "graphql-core>=3.2,<3.3",
-    "Jinja2>=3.1,<4",
     "typing-extensions>=4,<5",
 ]
 
@@ -11,6 +10,7 @@ tests_requires = [
     "pytest>=7.2,<8",
     "pytest-asyncio>=0.20,<1",
     "pytest-cov>=4,<5",
+    "Jinja2>=3.1,<4",
     "sanic-testing>=22.3,<23",
 ]
 
