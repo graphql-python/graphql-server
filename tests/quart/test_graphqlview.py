@@ -1,9 +1,10 @@
 import json
+from typing import Optional
 from urllib.parse import urlencode
 
 import pytest
 from quart import Quart, Response, url_for
-from quart.testing import QuartClient
+from quart.typing import TestClientProtocol
 from werkzeug.datastructures import Headers
 
 from .app import create_app
@@ -21,17 +22,17 @@ def app() -> Quart:
 
 
 @pytest.fixture
-def client(app: Quart) -> QuartClient:
+def client(app: Quart) -> TestClientProtocol:
     return app.test_client()
 
 
 @pytest.mark.asyncio
 async def execute_client(
     app: Quart,
-    client: QuartClient,
+    client: TestClientProtocol,
     method: str = "GET",
-    data: str = None,
-    headers: Headers = None,
+    data: Optional[str] = None,
+    headers: Optional[Headers] = None,
     **url_params,
 ) -> Response:
     test_request_context = app.test_request_context(path="/", method=method)
@@ -62,16 +63,16 @@ def json_dump_kwarg_list(**kwargs):
 
 
 @pytest.mark.asyncio
-async def test_allows_get_with_query_param(app: Quart, client: QuartClient):
+async def test_allows_get_with_query_param(app: Quart, client: TestClientProtocol):
     response = await execute_client(app, client, query="{test}")
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {"data": {"test": "Hello World"}}
 
 
 @pytest.mark.asyncio
-async def test_allows_get_with_variable_values(app: Quart, client: QuartClient):
+async def test_allows_get_with_variable_values(app: Quart, client: TestClientProtocol):
     response = await execute_client(
         app,
         client,
@@ -80,12 +81,12 @@ async def test_allows_get_with_variable_values(app: Quart, client: QuartClient):
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {"data": {"test": "Hello Dolly"}}
 
 
 @pytest.mark.asyncio
-async def test_allows_get_with_operation_name(app: Quart, client: QuartClient):
+async def test_allows_get_with_operation_name(app: Quart, client: TestClientProtocol):
     response = await execute_client(
         app,
         client,
@@ -101,20 +102,20 @@ async def test_allows_get_with_operation_name(app: Quart, client: QuartClient):
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {
         "data": {"test": "Hello World", "shared": "Hello Everyone"}
     }
 
 
 @pytest.mark.asyncio
-async def test_reports_validation_errors(app: Quart, client: QuartClient):
+async def test_reports_validation_errors(app: Quart, client: TestClientProtocol):
     response = await execute_client(
         app, client, query="{ test, unknownOne, unknownTwo }"
     )
 
     assert response.status_code == 400
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {
         "errors": [
             {
@@ -130,7 +131,9 @@ async def test_reports_validation_errors(app: Quart, client: QuartClient):
 
 
 @pytest.mark.asyncio
-async def test_errors_when_missing_operation_name(app: Quart, client: QuartClient):
+async def test_errors_when_missing_operation_name(
+    app: Quart, client: TestClientProtocol
+):
     response = await execute_client(
         app,
         client,
@@ -141,7 +144,7 @@ async def test_errors_when_missing_operation_name(app: Quart, client: QuartClien
     )
 
     assert response.status_code == 400
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {
         "errors": [
             {
@@ -153,7 +156,9 @@ async def test_errors_when_missing_operation_name(app: Quart, client: QuartClien
 
 
 @pytest.mark.asyncio
-async def test_errors_when_sending_a_mutation_via_get(app: Quart, client: QuartClient):
+async def test_errors_when_sending_a_mutation_via_get(
+    app: Quart, client: TestClientProtocol
+):
     response = await execute_client(
         app,
         client,
@@ -162,7 +167,7 @@ async def test_errors_when_sending_a_mutation_via_get(app: Quart, client: QuartC
         """,
     )
     assert response.status_code == 405
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {
         "errors": [
             {
@@ -174,7 +179,7 @@ async def test_errors_when_sending_a_mutation_via_get(app: Quart, client: QuartC
 
 @pytest.mark.asyncio
 async def test_errors_when_selecting_a_mutation_within_a_get(
-    app: Quart, client: QuartClient
+    app: Quart, client: TestClientProtocol
 ):
     response = await execute_client(
         app,
@@ -187,7 +192,7 @@ async def test_errors_when_selecting_a_mutation_within_a_get(
     )
 
     assert response.status_code == 405
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {
         "errors": [
             {
@@ -198,7 +203,9 @@ async def test_errors_when_selecting_a_mutation_within_a_get(
 
 
 @pytest.mark.asyncio
-async def test_allows_mutation_to_exist_within_a_get(app: Quart, client: QuartClient):
+async def test_allows_mutation_to_exist_within_a_get(
+    app: Quart, client: TestClientProtocol
+):
     response = await execute_client(
         app,
         client,
@@ -210,12 +217,12 @@ async def test_allows_mutation_to_exist_within_a_get(app: Quart, client: QuartCl
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {"data": {"test": "Hello World"}}
 
 
 @pytest.mark.asyncio
-async def test_allows_post_with_json_encoding(app: Quart, client: QuartClient):
+async def test_allows_post_with_json_encoding(app: Quart, client: TestClientProtocol):
     response = await execute_client(
         app,
         client,
@@ -225,12 +232,14 @@ async def test_allows_post_with_json_encoding(app: Quart, client: QuartClient):
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {"data": {"test": "Hello World"}}
 
 
 @pytest.mark.asyncio
-async def test_allows_sending_a_mutation_via_post(app: Quart, client: QuartClient):
+async def test_allows_sending_a_mutation_via_post(
+    app: Quart, client: TestClientProtocol
+):
     response = await execute_client(
         app,
         client,
@@ -240,12 +249,12 @@ async def test_allows_sending_a_mutation_via_post(app: Quart, client: QuartClien
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {"data": {"writeTest": {"test": "Hello World"}}}
 
 
 @pytest.mark.asyncio
-async def test_allows_post_with_url_encoding(app: Quart, client: QuartClient):
+async def test_allows_post_with_url_encoding(app: Quart, client: TestClientProtocol):
     response = await execute_client(
         app,
         client,
@@ -255,13 +264,13 @@ async def test_allows_post_with_url_encoding(app: Quart, client: QuartClient):
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {"data": {"test": "Hello World"}}
 
 
 @pytest.mark.asyncio
 async def test_supports_post_json_query_with_string_variables(
-    app: Quart, client: QuartClient
+    app: Quart, client: TestClientProtocol
 ):
     response = await execute_client(
         app,
@@ -275,13 +284,13 @@ async def test_supports_post_json_query_with_string_variables(
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {"data": {"test": "Hello Dolly"}}
 
 
 @pytest.mark.asyncio
 async def test_supports_post_json_query_with_json_variables(
-    app: Quart, client: QuartClient
+    app: Quart, client: TestClientProtocol
 ):
     response = await execute_client(
         app,
@@ -295,13 +304,13 @@ async def test_supports_post_json_query_with_json_variables(
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {"data": {"test": "Hello Dolly"}}
 
 
 @pytest.mark.asyncio
 async def test_supports_post_url_encoded_query_with_string_variables(
-    app: Quart, client: QuartClient
+    app: Quart, client: TestClientProtocol
 ):
     response = await execute_client(
         app,
@@ -317,13 +326,13 @@ async def test_supports_post_url_encoded_query_with_string_variables(
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {"data": {"test": "Hello Dolly"}}
 
 
 @pytest.mark.asyncio
 async def test_supports_post_json_query_with_get_variable_values(
-    app: Quart, client: QuartClient
+    app: Quart, client: TestClientProtocol
 ):
     response = await execute_client(
         app,
@@ -337,13 +346,13 @@ async def test_supports_post_json_query_with_get_variable_values(
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {"data": {"test": "Hello Dolly"}}
 
 
 @pytest.mark.asyncio
 async def test_post_url_encoded_query_with_get_variable_values(
-    app: Quart, client: QuartClient
+    app: Quart, client: TestClientProtocol
 ):
     response = await execute_client(
         app,
@@ -359,13 +368,13 @@ async def test_post_url_encoded_query_with_get_variable_values(
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {"data": {"test": "Hello Dolly"}}
 
 
 @pytest.mark.asyncio
 async def test_supports_post_raw_text_query_with_get_variable_values(
-    app: Quart, client: QuartClient
+    app: Quart, client: TestClientProtocol
 ):
     response = await execute_client(
         app,
@@ -377,12 +386,12 @@ async def test_supports_post_raw_text_query_with_get_variable_values(
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {"data": {"test": "Hello Dolly"}}
 
 
 @pytest.mark.asyncio
-async def test_allows_post_with_operation_name(app: Quart, client: QuartClient):
+async def test_allows_post_with_operation_name(app: Quart, client: TestClientProtocol):
     response = await execute_client(
         app,
         client,
@@ -402,14 +411,16 @@ async def test_allows_post_with_operation_name(app: Quart, client: QuartClient):
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {
         "data": {"test": "Hello World", "shared": "Hello Everyone"}
     }
 
 
 @pytest.mark.asyncio
-async def test_allows_post_with_get_operation_name(app: Quart, client: QuartClient):
+async def test_allows_post_with_get_operation_name(
+    app: Quart, client: TestClientProtocol
+):
     response = await execute_client(
         app,
         client,
@@ -427,7 +438,7 @@ async def test_allows_post_with_get_operation_name(app: Quart, client: QuartClie
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {
         "data": {"test": "Hello World", "shared": "Hello Everyone"}
     }
@@ -435,35 +446,39 @@ async def test_allows_post_with_get_operation_name(app: Quart, client: QuartClie
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("app", [create_app(pretty=True)])
-async def test_supports_pretty_printing(app: Quart, client: QuartClient):
+async def test_supports_pretty_printing(app: Quart, client: TestClientProtocol):
     response = await execute_client(app, client, query="{test}")
 
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert result == ("{\n" '  "data": {\n' '    "test": "Hello World"\n' "  }\n" "}")
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("app", [create_app(pretty=False)])
-async def test_not_pretty_by_default(app: Quart, client: QuartClient):
+async def test_not_pretty_by_default(app: Quart, client: TestClientProtocol):
     response = await execute_client(app, client, query="{test}")
 
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert result == '{"data":{"test":"Hello World"}}'
 
 
 @pytest.mark.asyncio
-async def test_supports_pretty_printing_by_request(app: Quart, client: QuartClient):
+async def test_supports_pretty_printing_by_request(
+    app: Quart, client: TestClientProtocol
+):
     response = await execute_client(app, client, query="{test}", pretty="1")
 
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert result == "{\n" '  "data": {\n' '    "test": "Hello World"\n' "  }\n" "}"
 
 
 @pytest.mark.asyncio
-async def test_handles_field_errors_caught_by_graphql(app: Quart, client: QuartClient):
+async def test_handles_field_errors_caught_by_graphql(
+    app: Quart, client: TestClientProtocol
+):
     response = await execute_client(app, client, query="{thrower}")
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {
         "errors": [
             {
@@ -477,10 +492,12 @@ async def test_handles_field_errors_caught_by_graphql(app: Quart, client: QuartC
 
 
 @pytest.mark.asyncio
-async def test_handles_syntax_errors_caught_by_graphql(app: Quart, client: QuartClient):
+async def test_handles_syntax_errors_caught_by_graphql(
+    app: Quart, client: TestClientProtocol
+):
     response = await execute_client(app, client, query="syntaxerror")
     assert response.status_code == 400
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {
         "errors": [
             {
@@ -493,19 +510,21 @@ async def test_handles_syntax_errors_caught_by_graphql(app: Quart, client: Quart
 
 @pytest.mark.asyncio
 async def test_handles_errors_caused_by_a_lack_of_query(
-    app: Quart, client: QuartClient
+    app: Quart, client: TestClientProtocol
 ):
     response = await execute_client(app, client)
 
     assert response.status_code == 400
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {
         "errors": [{"message": "Must provide query string."}]
     }
 
 
 @pytest.mark.asyncio
-async def test_handles_batch_correctly_if_is_disabled(app: Quart, client: QuartClient):
+async def test_handles_batch_correctly_if_is_disabled(
+    app: Quart, client: TestClientProtocol
+):
     response = await execute_client(
         app,
         client,
@@ -515,7 +534,7 @@ async def test_handles_batch_correctly_if_is_disabled(app: Quart, client: QuartC
     )
 
     assert response.status_code == 400
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {
         "errors": [
             {
@@ -526,7 +545,7 @@ async def test_handles_batch_correctly_if_is_disabled(app: Quart, client: QuartC
 
 
 @pytest.mark.asyncio
-async def test_handles_incomplete_json_bodies(app: Quart, client: QuartClient):
+async def test_handles_incomplete_json_bodies(app: Quart, client: TestClientProtocol):
     response = await execute_client(
         app,
         client,
@@ -536,14 +555,14 @@ async def test_handles_incomplete_json_bodies(app: Quart, client: QuartClient):
     )
 
     assert response.status_code == 400
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {
         "errors": [{"message": "POST body sent invalid JSON."}]
     }
 
 
 @pytest.mark.asyncio
-async def test_handles_plain_post_text(app: Quart, client: QuartClient):
+async def test_handles_plain_post_text(app: Quart, client: TestClientProtocol):
     response = await execute_client(
         app,
         client,
@@ -553,14 +572,14 @@ async def test_handles_plain_post_text(app: Quart, client: QuartClient):
         variables=json.dumps({"who": "Dolly"}),
     )
     assert response.status_code == 400
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {
         "errors": [{"message": "Must provide query string."}]
     }
 
 
 @pytest.mark.asyncio
-async def test_handles_poorly_formed_variables(app: Quart, client: QuartClient):
+async def test_handles_poorly_formed_variables(app: Quart, client: TestClientProtocol):
     response = await execute_client(
         app,
         client,
@@ -568,17 +587,17 @@ async def test_handles_poorly_formed_variables(app: Quart, client: QuartClient):
         variables="who:You",
     )
     assert response.status_code == 400
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {
         "errors": [{"message": "Variables are invalid JSON."}]
     }
 
 
 @pytest.mark.asyncio
-async def test_handles_unsupported_http_methods(app: Quart, client: QuartClient):
+async def test_handles_unsupported_http_methods(app: Quart, client: TestClientProtocol):
     response = await execute_client(app, client, method="PUT", query="{test}")
     assert response.status_code == 405
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response.headers["Allow"] in ["GET, POST", "HEAD, GET, POST, OPTIONS"]
     assert response_json(result) == {
         "errors": [{"message": "GraphQL only supports GET and POST requests."}]
@@ -586,21 +605,25 @@ async def test_handles_unsupported_http_methods(app: Quart, client: QuartClient)
 
 
 @pytest.mark.asyncio
-async def test_passes_request_into_request_context(app: Quart, client: QuartClient):
+async def test_passes_request_into_request_context(
+    app: Quart, client: TestClientProtocol
+):
     response = await execute_client(app, client, query="{request}", q="testing")
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == {"data": {"request": "testing"}}
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("app", [create_app(context={"session": "CUSTOM CONTEXT"})])
-async def test_passes_custom_context_into_context(app: Quart, client: QuartClient):
+async def test_passes_custom_context_into_context(
+    app: Quart, client: TestClientProtocol
+):
     response = await execute_client(app, client, query="{context { session request }}")
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     res = response_json(result)
     assert "data" in res
     assert "session" in res["data"]["context"]
@@ -611,11 +634,11 @@ async def test_passes_custom_context_into_context(app: Quart, client: QuartClien
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("app", [create_app(context="CUSTOM CONTEXT")])
-async def test_context_remapped_if_not_mapping(app: Quart, client: QuartClient):
+async def test_context_remapped_if_not_mapping(app: Quart, client: TestClientProtocol):
     response = await execute_client(app, client, query="{context { session request }}")
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     res = response_json(result)
     assert "data" in res
     assert "session" in res["data"]["context"]
@@ -625,7 +648,7 @@ async def test_context_remapped_if_not_mapping(app: Quart, client: QuartClient):
 
 
 # @pytest.mark.asyncio
-# async def test_post_multipart_data(app: Quart, client: QuartClient):
+# async def test_post_multipart_data(app: Quart, client: TestClientProtocol):
 #     query = "mutation TestMutation { writeTest { test } }"
 #     response = await execute_client(
 #         app,
@@ -644,7 +667,9 @@ async def test_context_remapped_if_not_mapping(app: Quart, client: QuartClient):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("app", [create_app(batch=True)])
-async def test_batch_allows_post_with_json_encoding(app: Quart, client: QuartClient):
+async def test_batch_allows_post_with_json_encoding(
+    app: Quart, client: TestClientProtocol
+):
     response = await execute_client(
         app,
         client,
@@ -654,14 +679,14 @@ async def test_batch_allows_post_with_json_encoding(app: Quart, client: QuartCli
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == [{"data": {"test": "Hello World"}}]
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("app", [create_app(batch=True)])
 async def test_batch_supports_post_json_query_with_json_variables(
-    app: Quart, client: QuartClient
+    app: Quart, client: TestClientProtocol
 ):
     response = await execute_client(
         app,
@@ -675,13 +700,15 @@ async def test_batch_supports_post_json_query_with_json_variables(
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == [{"data": {"test": "Hello Dolly"}}]
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("app", [create_app(batch=True)])
-async def test_batch_allows_post_with_operation_name(app: Quart, client: QuartClient):
+async def test_batch_allows_post_with_operation_name(
+    app: Quart, client: TestClientProtocol
+):
     response = await execute_client(
         app,
         client,
@@ -702,7 +729,7 @@ async def test_batch_allows_post_with_operation_name(app: Quart, client: QuartCl
     )
 
     assert response.status_code == 200
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert response_json(result) == [
         {"data": {"test": "Hello World", "shared": "Hello Everyone"}}
     ]

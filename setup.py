@@ -1,30 +1,33 @@
 from re import search
 from setuptools import setup, find_packages
 
-install_requires = ["graphql-core>=3.2,<3.3", "typing-extensions>=4,<5"]
+install_requires = [
+    "graphql-core>=3.2,<3.3",
+    "typing-extensions>=4,<5",
+]
 
 tests_requires = [
-    "pytest>=6.2,<6.3",
-    "pytest-asyncio>=0.16,<1",
-    "pytest-cov>=3,<4",
-    "aiohttp>=3.8,<4",
-    "Jinja2>=2.11,<3",
+    "pytest>=7.2,<8",
+    "pytest-asyncio>=0.20,<1",
+    "pytest-cov>=4,<5",
+    "Jinja2>=3.1,<4",
+    "sanic-testing>=22.3,<23",
 ]
 
 dev_requires = [
-    "flake8>=4,<5",
+    "flake8>=5,<6",
     "isort>=5,<6",
-    "black>=19.10b0",
-    "mypy>=0.931,<1",
+    "black>=22.12,<22.13",
+    "mypy>=0.991,<1",
     "check-manifest>=0.47,<1",
 ] + tests_requires
 
 install_flask_requires = [
-    "flask>=1,<2",
+    "flask>=1,<3",
 ]
 
 install_sanic_requires = [
-    "sanic>=20.3,<21",
+    "sanic>=21.12,<23",
 ]
 
 install_webob_requires = [
@@ -35,7 +38,7 @@ install_aiohttp_requires = [
     "aiohttp>=3.8,<4",
 ]
 
-install_quart_requires = ["quart>=0.6.15,<0.15"]
+install_quart_requires = ["quart>=0.15,<1"]
 
 install_all_requires = (
     install_requires

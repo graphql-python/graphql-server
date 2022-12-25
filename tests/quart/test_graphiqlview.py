@@ -1,6 +1,8 @@
+from typing import Optional
+
 import pytest
 from quart import Quart, Response, url_for
-from quart.testing import QuartClient
+from quart.typing import TestClientProtocol
 from werkzeug.datastructures import Headers
 
 from .app import create_app
@@ -18,16 +20,16 @@ def app() -> Quart:
 
 
 @pytest.fixture
-def client(app: Quart) -> QuartClient:
+def client(app: Quart) -> TestClientProtocol:
     return app.test_client()
 
 
 @pytest.mark.asyncio
 async def execute_client(
     app: Quart,
-    client: QuartClient,
+    client: TestClientProtocol,
     method: str = "GET",
-    headers: Headers = None,
+    headers: Optional[Headers] = None,
     **extra_params
 ) -> Response:
     test_request_context = app.test_request_context(path="/", method=method)
@@ -37,7 +39,7 @@ async def execute_client(
 
 
 @pytest.mark.asyncio
-async def test_graphiql_is_enabled(app: Quart, client: QuartClient):
+async def test_graphiql_is_enabled(app: Quart, client: TestClientProtocol):
     response = await execute_client(
         app, client, headers=Headers({"Accept": "text/html"}), externals=False
     )
@@ -45,7 +47,7 @@ async def test_graphiql_is_enabled(app: Quart, client: QuartClient):
 
 
 @pytest.mark.asyncio
-async def test_graphiql_renders_pretty(app: Quart, client: QuartClient):
+async def test_graphiql_renders_pretty(app: Quart, client: TestClientProtocol):
     response = await execute_client(
         app, client, headers=Headers({"Accept": "text/html"}), query="{test}"
     )
@@ -57,16 +59,16 @@ async def test_graphiql_renders_pretty(app: Quart, client: QuartClient):
         "  }\n"
         "}".replace('"', '\\"').replace("\n", "\\n")
     )
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert pretty_response in result
 
 
 @pytest.mark.asyncio
-async def test_graphiql_default_title(app: Quart, client: QuartClient):
+async def test_graphiql_default_title(app: Quart, client: TestClientProtocol):
     response = await execute_client(
         app, client, headers=Headers({"Accept": "text/html"})
     )
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert "<title>GraphiQL</title>" in result
 
 
@@ -74,9 +76,9 @@ async def test_graphiql_default_title(app: Quart, client: QuartClient):
 @pytest.mark.parametrize(
     "app", [create_app(graphiql=True, graphiql_html_title="Awesome")]
 )
-async def test_graphiql_custom_title(app: Quart, client: QuartClient):
+async def test_graphiql_custom_title(app: Quart, client: TestClientProtocol):
     response = await execute_client(
         app, client, headers=Headers({"Accept": "text/html"})
     )
-    result = await response.get_data(raw=False)
+    result = await response.get_data(as_text=True)
     assert "<title>Awesome</title>" in result

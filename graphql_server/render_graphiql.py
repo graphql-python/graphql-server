@@ -1,4 +1,4 @@
-"""Based on (express-graphql)[https://github.com/graphql/express-graphql/blob/master/src/renderGraphiQL.js] and
+"""Based on (express-graphql)[https://github.com/graphql/express-graphql/blob/main/src/renderGraphiQL.ts] and
 (subscriptions-transport-ws)[https://github.com/apollographql/subscriptions-transport-ws]"""
 import json
 import re
@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, Tuple
 from jinja2 import Environment
 from typing_extensions import TypedDict
 
-GRAPHIQL_VERSION = "1.0.3"
+GRAPHIQL_VERSION = "1.4.7"
 
 GRAPHIQL_TEMPLATE = """<!--
 The request to this GraphQL server provided the header "Accept: text/html"
@@ -34,12 +34,12 @@ add "&raw" to the end of the URL within a browser.
     }
   </style>
   <link href="//cdn.jsdelivr.net/npm/graphiql@{{graphiql_version}}/graphiql.css" rel="stylesheet" />
-  <script src="//cdn.jsdelivr.net/npm/promise-polyfill@8.1.3/dist/polyfill.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/unfetch@4.1.0/dist/unfetch.umd.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/react@16.13.1/umd/react.production.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/react-dom@16.13.1/umd/react-dom.production.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/promise-polyfill@8.2.0/dist/polyfill.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/unfetch@4.2.0/dist/unfetch.umd.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/react@16.14.0/umd/react.production.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/react-dom@16.14.0/umd/react-dom.production.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/graphiql@{{graphiql_version}}/graphiql.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/subscriptions-transport-ws@0.9.16/browser/client.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/subscriptions-transport-ws@0.9.18/browser/client.js"></script>
   <script src="//cdn.jsdelivr.net/npm/graphiql-subscriptions-fetcher@0.0.2/browser/client.js"></script>
 </head>
 <body>
@@ -308,9 +308,8 @@ async def render_graphiql_async(
     jinja_env: Optional[Environment] = config.get("jinja_env")
 
     if jinja_env:
-        # This method returns a Template. See https://jinja.palletsprojects.com/en/2.11.x/api/#jinja2.Template
         template = jinja_env.from_string(graphiql_template)
-        if jinja_env.is_async:  # type: ignore
+        if jinja_env.is_async:
             source = await template.render_async(**template_vars)
         else:
             source = template.render(**template_vars)

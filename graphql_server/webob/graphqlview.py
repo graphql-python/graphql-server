@@ -27,7 +27,6 @@ from graphql_server.render_graphiql import (
 
 class GraphQLView:
     schema = None
-    request = None
     root_value = None
     context = None
     pretty = False
@@ -187,8 +186,9 @@ class GraphQLView:
         if not self.graphiql or "raw" in request.params:
             return False
 
-        return self.request_wants_html()
+        return self.request_wants_html(request)
 
-    def request_wants_html(self):
-        best = self.request.accept.best_match(["application/json", "text/html"])
+    @staticmethod
+    def request_wants_html(request):
+        best = request.accept.best_match(["application/json", "text/html"])
         return best == "text/html"

@@ -2,6 +2,7 @@ import json
 from urllib.parse import urlencode
 
 import pytest
+import pytest_asyncio
 from aiohttp import FormData
 from aiohttp.test_utils import TestClient, TestServer
 
@@ -15,7 +16,7 @@ def app():
     return app
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def client(app):
     client = TestClient(TestServer(app))
     await client.start_server()

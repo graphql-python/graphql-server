@@ -1,4 +1,5 @@
 import pytest
+import pytest_asyncio
 from aiohttp.test_utils import TestClient, TestServer
 from jinja2 import Environment
 
@@ -12,7 +13,7 @@ def app():
     return app
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def client(app):
     client = TestClient(TestServer(app))
     await client.start_server()
