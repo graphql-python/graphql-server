@@ -58,7 +58,8 @@ More info at [Graphene v3 release notes](https://github.com/graphql-python/graph
  * `graphiql_html_title`: The graphiql title to display. Defaults to **"GraphiQL"**.
  * `batch`: Set the GraphQL view as batch (for using in [Apollo-Client](http://dev.apollodata.com/core/network.html#query-batching) or [ReactRelayNetworkLayer](https://github.com/nodkz/react-relay-network-layer))
  * `middleware`: A list of graphql [middlewares](http://docs.graphene-python.org/en/latest/execution/middleware/).
- * `validation_rules`: A list of graphql validation rules.   
+ * `validation_rules`: A list of graphql validation rules.
+ * `execution_context_class`: Specifies a custom execution context class.
  * `encode`: the encoder to use for responses (sensibly defaults to `graphql_server.json_encode`).
  * `format_error`: the error formatter to use for responses (sensibly defaults to `graphql_server.default_format_error`.
  * `subscriptions`: The GraphiQL socket endpoint for using subscriptions in graphql-ws.
