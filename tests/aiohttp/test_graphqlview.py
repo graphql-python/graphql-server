@@ -6,6 +6,7 @@ import pytest_asyncio
 from aiohttp import FormData
 from aiohttp.test_utils import TestClient, TestServer
 
+from ..utils import RepeatExecutionContext
 from .app import create_app, url_string
 from .schema import AsyncSchema
 
@@ -682,3 +683,18 @@ async def test_preflight_incorrect_request(client):
     )
 
     assert response.status == 400
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "app", [create_app(execution_context_class=RepeatExecutionContext)]
+)
+async def test_custom_execution_context_class(client):
+    response = await client.post(
+        "/graphql",
+        data=json.dumps(dict(query="{test}")),
+        headers={"content-type": "application/json"},
+    )
+
+    assert response.status == 200
+    assert await response.json() == {"data": {"test": "Hello WorldHello World"}}
