@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 
 import pytest
 
+from ..utils import RepeatExecutionContext
 from .app import Client, url_string
 
 
@@ -563,3 +564,17 @@ def test_batch_allows_post_with_operation_name(client, settings):
             "data": {"test": "Hello World", "shared": "Hello Everyone"}
         }
     ]
+
+
+@pytest.mark.parametrize(
+    "settings", [dict(execution_context_class=RepeatExecutionContext)]
+)
+def test_custom_execution_context_class(client):
+    response = client.post(
+        url_string(),
+        data=json_dump_kwarg(query="{test}"),
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+    assert response_json(response) == {"data": {"test": "Hello WorldHello World"}}
