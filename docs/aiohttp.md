@@ -52,11 +52,10 @@ gql_view(request)  # <-- the instance is callable and expects a `aiohttp.web.Req
  * `root_value`: The `root_value` you want to provide to graphql `execute`.
  * `pretty`: Whether or not you want the response to be pretty printed JSON.
  * `graphiql`: If `True`, may present [GraphiQL](https://github.com/graphql/graphiql) when loaded directly from a browser (a useful tool for debugging and exploration).
- * `graphiql_version`: The graphiql version to load. Defaults to **"1.0.3"**.
+ * `graphiql_version`: The graphiql version to load. Defaults to **"1.4.7"**.
  * `graphiql_template`: Inject a Jinja template string to customize GraphiQL.
  * `graphiql_html_title`: The graphiql title to display. Defaults to **"GraphiQL"**.
- * `jinja_env`: Sets jinja environment to be used to process GraphiQL template. If Jinja’s async mode is enabled (by `enable_async=True`), uses
-`Template.render_async` instead of `Template.render`. If environment is not set, fallbacks to simple regex-based renderer.
+ * `jinja_env`: Sets jinja environment to be used to process GraphiQL template. If Jinja’s async mode is enabled (by `enable_async=True`), uses `Template.render_async` instead of `Template.render`. If environment is not set, fallbacks to simple regex-based renderer.
  * `batch`: Set the GraphQL view as batch (for using in [Apollo-Client](http://dev.apollodata.com/core/network.html#query-batching) or [ReactRelayNetworkLayer](https://github.com/nodkz/react-relay-network-layer))
  * `middleware`: A list of graphql [middlewares](http://docs.graphene-python.org/en/latest/execution/middleware/).
  * `validation_rules`: A list of graphql validation rules.
