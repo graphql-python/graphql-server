@@ -27,6 +27,10 @@ install_flask_requires = [
     "flask>=1,<3",
 ]
 
+install_flask_async_requires = [
+    "flask[async]>=2,<3",
+]
+
 install_sanic_requires = [
     "sanic>=21.12,<23",
 ]
@@ -43,7 +47,7 @@ install_quart_requires = ["quart>=0.15,<1"]
 
 install_all_requires = (
     install_requires
-    + install_flask_requires
+    + install_flask_async_requires
     + install_sanic_requires
     + install_webob_requires
     + install_aiohttp_requires
