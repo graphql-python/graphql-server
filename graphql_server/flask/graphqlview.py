@@ -1,12 +1,14 @@
+import asyncio
 import copy
 from collections.abc import MutableMapping
 from functools import partial
 from typing import List
 
-from flask import Response, render_template_string, request
+from flask import Response, current_app, render_template_string, request
 from flask.views import View
 from graphql import specified_rules
 from graphql.error import GraphQLError
+from graphql.pyutils import is_awaitable
 from graphql.type.schema import GraphQLSchema
 
 from graphql_server import (
@@ -41,6 +43,7 @@ class GraphQLView(View):
     execution_context_class = None
     batch = False
     jinja_env = None
+    enable_async = False
     subscriptions = None
     headers = None
     default_query = None
@@ -110,12 +113,29 @@ class GraphQLView(View):
                 batch_enabled=self.batch,
                 catch=catch,
                 # Execute options
+                run_sync=not self.enable_async,
                 root_value=self.get_root_value(),
                 context_value=self.get_context(),
                 middleware=self.get_middleware(),
                 validation_rules=self.get_validation_rules(),
                 execution_context_class=self.get_execution_context_class(),
             )
+
+            async def get_async_execution_results():
+                return await asyncio.gather(
+                    *(
+                        ex
+                        if ex is not None and is_awaitable(ex)
+                        else asyncio.coroutine(lambda: ex)()
+                        for ex in execution_results
+                    )
+                )
+
+            if self.enable_async:
+                execution_results = current_app.ensure_sync(
+                    get_async_execution_results
+                )()
+
             result, status_code = encode_execution_results(
                 execution_results,
                 is_batch=isinstance(data, list),
