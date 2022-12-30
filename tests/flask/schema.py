@@ -1,3 +1,5 @@
+import asyncio
+
 from graphql.type.definition import (
     GraphQLArgument,
     GraphQLField,
@@ -49,3 +51,29 @@ MutationRootType = GraphQLObjectType(
 )
 
 Schema = GraphQLSchema(QueryRootType, MutationRootType)
+
+
+async def resolver_field_async_1(_obj, info):
+    await asyncio.sleep(0.001)
+    return "hey"
+
+
+async def resolver_field_async_2(_obj, info):
+    await asyncio.sleep(0.003)
+    return "hey2"
+
+
+def resolver_field_sync(_obj, info):
+    return "hey3"
+
+
+AsyncQueryType = GraphQLObjectType(
+    name="AsyncQueryType",
+    fields={
+        "a": GraphQLField(GraphQLString, resolve=resolver_field_async_1),
+        "b": GraphQLField(GraphQLString, resolve=resolver_field_async_2),
+        "c": GraphQLField(GraphQLString, resolve=resolver_field_sync),
+    },
+)
+
+AsyncSchema = GraphQLSchema(AsyncQueryType)

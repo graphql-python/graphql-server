@@ -7,6 +7,7 @@ from flask import url_for
 
 from ..utils import RepeatExecutionContext
 from .app import create_app
+from .schema import AsyncSchema
 
 
 def url_string(app, **url_params):
@@ -574,3 +575,11 @@ def test_custom_execution_context_class(app, client):
 
     assert response.status_code == 200
     assert response_json(response) == {"data": {"test": "Hello WorldHello World"}}
+
+
+@pytest.mark.parametrize("app", [create_app(schema=AsyncSchema, enable_async=True)])
+def test_async_schema(app, client):
+    response = client.get(url_string(app, query="{a,b,c}"))
+
+    assert response.status_code == 200
+    assert response_json(response) == {"data": {"a": "hey", "b": "hey2", "c": "hey3"}}
