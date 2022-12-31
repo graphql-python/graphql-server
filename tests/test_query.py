@@ -15,6 +15,11 @@ from graphql_server import (
     load_json_body,
     run_http_query,
 )
+from graphql_server.render_graphiql import (
+    GraphiQLConfig,
+    GraphiQLData,
+    render_graphiql_sync,
+)
 
 from .schema import invalid_schema, schema
 from .utils import as_dicts
@@ -653,3 +658,21 @@ def test_batch_allows_post_with_operation_name():
     results, params = run_http_query(schema, "post", data, batch_enabled=True)
 
     assert results == [({"test": "Hello World", "shared": "Hello Everyone"}, None)]
+
+
+def test_graphiql_render_umlaut():
+    results, params = run_http_query(
+        schema,
+        "get",
+        data=dict(query="query helloWho($who: String){ test(who: $who) }"),
+        query_data=dict(variables='{"who": "Björn"}'),
+        catch=True,
+    )
+    result, status_code = encode_execution_results(results)
+
+    assert status_code == 200
+
+    graphiql_data = GraphiQLData(result=result, query=params[0].query)
+    source = render_graphiql_sync(data=graphiql_data, config=GraphiQLConfig())
+
+    assert "Hello Bj\\\\u00f6rn" in source
