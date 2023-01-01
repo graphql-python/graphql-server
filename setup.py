@@ -1,5 +1,6 @@
 from re import search
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
 
 install_requires = [
     "graphql-core>=3.2,<3.3",
