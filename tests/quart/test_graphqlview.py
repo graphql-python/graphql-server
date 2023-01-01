@@ -8,6 +8,7 @@ from quart.typing import TestClientProtocol
 from werkzeug.datastructures import Headers
 
 from .app import create_app
+from .schema import AsyncSchema
 
 
 @pytest.fixture
@@ -733,3 +734,17 @@ async def test_batch_allows_post_with_operation_name(
     assert response_json(result) == [
         {"data": {"test": "Hello World", "shared": "Hello Everyone"}}
     ]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("app", [create_app(schema=AsyncSchema, enable_async=True)])
+async def test_async_schema(app, client):
+    response = await execute_client(
+        app,
+        client,
+        query="{a,b,c}",
+    )
+
+    assert response.status_code == 200
+    result = await response.get_data(as_text=True)
+    assert response_json(result) == {"data": {"a": "hey", "b": "hey2", "c": "hey3"}}

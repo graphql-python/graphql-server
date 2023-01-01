@@ -1,3 +1,5 @@
+import asyncio
+
 from graphql.type.definition import (
     GraphQLArgument,
     GraphQLField,
@@ -12,6 +14,7 @@ def resolve_raises(*_):
     raise Exception("Throws!")
 
 
+# Sync schema
 QueryRootType = GraphQLObjectType(
     name="QueryRoot",
     fields={
@@ -36,7 +39,7 @@ QueryRootType = GraphQLObjectType(
         "test": GraphQLField(
             type_=GraphQLString,
             args={"who": GraphQLArgument(GraphQLString)},
-            resolve=lambda obj, info, who="World": "Hello %s" % who,
+            resolve=lambda obj, info, who="World": f"Hello {who}",
         ),
     },
 )
@@ -49,3 +52,48 @@ MutationRootType = GraphQLObjectType(
 )
 
 Schema = GraphQLSchema(QueryRootType, MutationRootType)
+
+
+# Schema with async methods
+async def resolver_field_async_1(_obj, info):
+    await asyncio.sleep(0.001)
+    return "hey"
+
+
+async def resolver_field_async_2(_obj, info):
+    await asyncio.sleep(0.003)
+    return "hey2"
+
+
+def resolver_field_sync(_obj, info):
+    return "hey3"
+
+
+AsyncQueryType = GraphQLObjectType(
+    name="AsyncQueryType",
+    fields={
+        "a": GraphQLField(GraphQLString, resolve=resolver_field_async_1),
+        "b": GraphQLField(GraphQLString, resolve=resolver_field_async_2),
+        "c": GraphQLField(GraphQLString, resolve=resolver_field_sync),
+    },
+)
+
+
+def resolver_field_sync_1(_obj, info):
+    return "synced_one"
+
+
+def resolver_field_sync_2(_obj, info):
+    return "synced_two"
+
+
+SyncQueryType = GraphQLObjectType(
+    "SyncQueryType",
+    {
+        "a": GraphQLField(GraphQLString, resolve=resolver_field_sync_1),
+        "b": GraphQLField(GraphQLString, resolve=resolver_field_sync_2),
+    },
+)
+
+AsyncSchema = GraphQLSchema(AsyncQueryType)
+SyncSchema = GraphQLSchema(SyncQueryType)
