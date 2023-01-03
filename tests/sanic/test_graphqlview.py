@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 
 import pytest
 
+from ..utils import RepeatExecutionContext
 from .app import create_app, url_string
 from .schema import AsyncSchema
 
@@ -618,3 +619,17 @@ def test_preflight_incorrect_request(app):
     )
 
     assert response.status == 400
+
+
+@pytest.mark.parametrize(
+    "app", [create_app(execution_context_class=RepeatExecutionContext)]
+)
+def test_custom_execution_context_class(app):
+    _, response = app.test_client.post(
+        uri=url_string(),
+        content=json_dump_kwarg(query="{test}"),
+        headers={"content-type": "application/json"},
+    )
+
+    assert response.status == 200
+    assert response_json(response) == {"data": {"test": "Hello WorldHello World"}}

@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 import pytest
 from flask import url_for
 
+from ..utils import RepeatExecutionContext
 from .app import create_app
 
 
@@ -578,3 +579,17 @@ def test_batch_allows_post_with_operation_name(app, client):
     assert response_json(response) == [
         {"data": {"test": "Hello World", "shared": "Hello Everyone"}}
     ]
+
+
+@pytest.mark.parametrize(
+    "app", [create_app(execution_context_class=RepeatExecutionContext)]
+)
+def test_custom_execution_context_class(app, client):
+    response = client.post(
+        url_string(app),
+        data=json_dump_kwarg(query="{test}"),
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+    assert response_json(response) == {"data": {"test": "Hello WorldHello World"}}

@@ -7,6 +7,7 @@ from quart import Quart, Response, url_for
 from quart.typing import TestClientProtocol
 from werkzeug.datastructures import Headers
 
+from ..utils import RepeatExecutionContext
 from .app import create_app
 from .schema import AsyncSchema
 
@@ -743,8 +744,23 @@ async def test_async_schema(app, client):
         app,
         client,
         query="{a,b,c}",
+        
+    assert response_json(result) == {"data": {"a": "hey", "b": "hey2", "c": "hey3"}}
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "app", [create_app(execution_context_class=RepeatExecutionContext)]
+)
+async def test_custom_execution_context_class(app: Quart, client: TestClientProtocol):
+    response = await execute_client(
+        app,
+        client,
+        method="POST",
+        data=json_dump_kwarg(query="{test}"),
+        headers=Headers({"Content-Type": "application/json"}),
+
     )
 
     assert response.status_code == 200
     result = await response.get_data(as_text=True)
-    assert response_json(result) == {"data": {"a": "hey", "b": "hey2", "c": "hey3"}}
+    assert response_json(result) == {"data": {"test": "Hello WorldHello World"}}

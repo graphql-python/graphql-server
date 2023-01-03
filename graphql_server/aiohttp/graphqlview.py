@@ -38,6 +38,7 @@ class GraphQLView:
     graphiql_html_title = None
     middleware = None
     validation_rules = None
+    execution_context_class = None
     batch = False
     jinja_env = None
     max_age = 86400
@@ -85,6 +86,9 @@ class GraphQLView:
         if self.validation_rules is None:
             return specified_rules
         return self.validation_rules
+
+    def get_execution_context_class(self):
+        return self.execution_context_class
 
     @staticmethod
     async def parse_body(request):
@@ -161,6 +165,7 @@ class GraphQLView:
                 context_value=self.get_context(request),
                 middleware=self.get_middleware(),
                 validation_rules=self.get_validation_rules(),
+                execution_context_class=self.get_execution_context_class(),
             )
 
             exec_res = (
