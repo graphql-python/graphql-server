@@ -750,6 +750,7 @@ async def test_async_schema(app, client):
     result = await response.get_data(as_text=True)
     assert response_json(result) == {"data": {"a": "hey", "b": "hey2", "c": "hey3"}}
 
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "app", [create_app(execution_context_class=RepeatExecutionContext)]
