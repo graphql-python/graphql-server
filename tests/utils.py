@@ -1,6 +1,7 @@
 from typing import List
 
 from graphql import ExecutionResult
+from graphql.execution import ExecutionContext
 
 
 def as_dicts(results: List[ExecutionResult]):
@@ -14,3 +15,9 @@ def as_dicts(results: List[ExecutionResult]):
         }
         for result in results
     ]
+
+
+class RepeatExecutionContext(ExecutionContext):
+    def execute_field(self, parent_type, source, field_nodes, path):
+        result = super().execute_field(parent_type, source, field_nodes, path)
+        return result * 2
