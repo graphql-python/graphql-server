@@ -7,13 +7,13 @@ else:
     from typing_extensions import ParamSpec
 
 
-__all__ = ["ensure_async"]
+__all__ = ["wrap_in_async"]
 
 P = ParamSpec("P")
 R = TypeVar("R")
 
 
-def ensure_async(f: Callable[P, R]) -> Callable[P, Awaitable[R]]:
+def wrap_in_async(f: Callable[P, R]) -> Callable[P, Awaitable[R]]:
     """Convert a sync callable (normal def or lambda) to a coroutine (async def).
 
     This is similar to asyncio.coroutine which was deprecated in Python 3.8.

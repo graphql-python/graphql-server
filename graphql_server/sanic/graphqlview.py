@@ -26,7 +26,7 @@ from graphql_server.render_graphiql import (
     GraphiQLOptions,
     render_graphiql_async,
 )
-from graphql_server.utils import ensure_async
+from graphql_server.utils import wrap_in_async
 
 
 class GraphQLView(HTTPMethodView):
@@ -126,7 +126,7 @@ class GraphQLView(HTTPMethodView):
                         *(
                             ex
                             if ex is not None and is_awaitable(ex)
-                            else ensure_async(lambda: ex)()
+                            else wrap_in_async(lambda: ex)()
                             for ex in execution_results
                         )
                     )
