@@ -3,16 +3,12 @@ from urllib.parse import urlencode
 from webob import Request
 
 from graphql_server.webob import GraphQLView
-from tests.webob.schema import Schema
+
+from .schema import Schema
 
 
-def url_string(**url_params):
-    string = "/graphql"
-
-    if url_params:
-        string += "?" + urlencode(url_params)
-
-    return string
+def url_string(url="/graphql", **url_params):
+    return f"{url}?{urlencode(url_params)}" if url_params else url
 
 
 class Client(object):

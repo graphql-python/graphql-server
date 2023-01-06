@@ -1,27 +1,12 @@
 from typing import Optional
 
 import pytest
+from jinja2 import Environment
 from quart import Quart, Response, url_for
 from quart.typing import TestClientProtocol
 from werkzeug.datastructures import Headers
 
 from .app import create_app
-
-
-@pytest.fixture
-def app() -> Quart:
-    # import app factory pattern
-    app = create_app(graphiql=True)
-
-    # pushes an application context manually
-    # ctx = app.app_context()
-    # await ctx.push()
-    return app
-
-
-@pytest.fixture
-def client(app: Quart) -> TestClientProtocol:
-    return app.test_client()
 
 
 @pytest.mark.asyncio
@@ -39,6 +24,10 @@ async def execute_client(
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "app",
+    [create_app(graphiql=True), create_app(graphiql=True, jinja_env=Environment())],
+)
 async def test_graphiql_is_enabled(app: Quart, client: TestClientProtocol):
     response = await execute_client(
         app, client, headers=Headers({"Accept": "text/html"}), externals=False
@@ -47,6 +36,10 @@ async def test_graphiql_is_enabled(app: Quart, client: TestClientProtocol):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "app",
+    [create_app(graphiql=True), create_app(graphiql=True, jinja_env=Environment())],
+)
 async def test_graphiql_renders_pretty(app: Quart, client: TestClientProtocol):
     response = await execute_client(
         app, client, headers=Headers({"Accept": "text/html"}), query="{test}"
@@ -64,6 +57,10 @@ async def test_graphiql_renders_pretty(app: Quart, client: TestClientProtocol):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "app",
+    [create_app(graphiql=True), create_app(graphiql=True, jinja_env=Environment())],
+)
 async def test_graphiql_default_title(app: Quart, client: TestClientProtocol):
     response = await execute_client(
         app, client, headers=Headers({"Accept": "text/html"})
@@ -74,7 +71,13 @@ async def test_graphiql_default_title(app: Quart, client: TestClientProtocol):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "app", [create_app(graphiql=True, graphiql_html_title="Awesome")]
+    "app",
+    [
+        create_app(graphiql=True, graphiql_html_title="Awesome"),
+        create_app(
+            graphiql=True, graphiql_html_title="Awesome", jinja_env=Environment()
+        ),
+    ],
 )
 async def test_graphiql_custom_title(app: Quart, client: TestClientProtocol):
     response = await execute_client(

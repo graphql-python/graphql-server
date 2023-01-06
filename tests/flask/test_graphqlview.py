@@ -9,30 +9,11 @@ from ..utils import RepeatExecutionContext
 from .app import create_app
 
 
-@pytest.fixture
-def app():
-    # import app factory pattern
-    app = create_app()
-
-    # pushes an application context manually
-    ctx = app.app_context()
-    ctx.push()
-    return app
-
-
-@pytest.fixture
-def client(app):
-    return app.test_client()
-
-
 def url_string(app, **url_params):
     with app.test_request_context():
-        string = url_for("graphql")
+        url = url_for("graphql")
 
-    if url_params:
-        string += "?" + urlencode(url_params)
-
-    return string
+    return f"{url}?{urlencode(url_params)}" if url_params else url
 
 
 def response_json(response):

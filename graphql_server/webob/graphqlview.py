@@ -38,6 +38,7 @@ class GraphQLView:
     validation_rules = None
     execution_context_class = None
     batch = False
+    jinja_env = None
     enable_async = False
     subscriptions = None
     headers = None
@@ -133,7 +134,7 @@ class GraphQLView:
                     graphiql_version=self.graphiql_version,
                     graphiql_template=self.graphiql_template,
                     graphiql_html_title=self.graphiql_html_title,
-                    jinja_env=None,
+                    jinja_env=self.jinja_env,
                 )
                 graphiql_options = GraphiQLOptions(
                     default_query=self.default_query,
