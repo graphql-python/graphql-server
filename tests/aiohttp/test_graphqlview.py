@@ -2,27 +2,11 @@ import json
 from urllib.parse import urlencode
 
 import pytest
-import pytest_asyncio
 from aiohttp import FormData
-from aiohttp.test_utils import TestClient, TestServer
 
 from ..utils import RepeatExecutionContext
 from .app import create_app, url_string
 from .schema import AsyncSchema
-
-
-@pytest.fixture
-def app():
-    app = create_app()
-    return app
-
-
-@pytest_asyncio.fixture
-async def client(app):
-    client = TestClient(TestServer(app))
-    await client.start_server()
-    yield client
-    await client.close()
 
 
 @pytest.mark.asyncio

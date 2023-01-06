@@ -17,5 +17,5 @@ def create_app(path="/graphql", schema=Schema, **kwargs):
     return app
 
 
-def url_string(uri="/graphql", **url_params):
-    return f"{uri}?{urlencode(url_params)}" if url_params else uri
+def url_string(url="/graphql", **url_params):
+    return f"{url}?{urlencode(url_params)}" if url_params else url
