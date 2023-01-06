@@ -4,7 +4,11 @@ import json
 import re
 from typing import Any, Dict, Optional, Tuple
 
-from jinja2 import Environment
+try:
+    from jinja2 import Environment
+except ImportError:
+    pass
+
 from typing_extensions import TypedDict
 
 GRAPHIQL_VERSION = "2.2.0"
