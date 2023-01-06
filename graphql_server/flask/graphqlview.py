@@ -12,6 +12,7 @@ from graphql.type.schema import GraphQLSchema
 from graphql_server import (
     GraphQLParams,
     HttpQueryError,
+    _check_jinja,
     encode_execution_results,
     format_error_default,
     json_encode,
@@ -62,6 +63,9 @@ class GraphQLView(View):
             self.schema = getattr(self.schema, "graphql_schema", None)
             if not isinstance(self.schema, GraphQLSchema):
                 raise TypeError("A Schema is required to be provided to GraphQLView.")
+
+        if self.jinja_env is not None:
+            _check_jinja(self.jinja_env)
 
     def get_root_value(self):
         return self.root_value
