@@ -39,16 +39,9 @@ if __name__ == '__main__':
 
 This will add `/graphql` endpoint to your app and enable the GraphiQL IDE.
 
-### Special Note for Graphene v3
-
-If you are using the `Schema` type of [Graphene](https://github.com/graphql-python/graphene) library, be sure to use the `graphql_schema` attribute to pass as schema on the `GraphQLView` view. Otherwise, the `GraphQLSchema` from `graphql-core` is the way to go.
-
-More info at [Graphene v3 release notes](https://github.com/graphql-python/graphene/wiki/v3-release-notes#graphene-schema-no-longer-subclasses-graphqlschema-type) and [GraphQL-core 3 usage](https://github.com/graphql-python/graphql-core#usage).
-
-
 ### Supported options for GraphQLView
 
- * `schema`: The `GraphQLSchema` object that you want the view to execute when it gets a valid request.
+ * `schema`: The GraphQL schema object that you want the view to execute when it gets a valid request. Accepts either an object of type `GraphQLSchema` from `graphql-core` or `Schema` from `graphene`. For Graphene v3, passing either `schema: graphene.Schema` or `schema.graphql_schema` is allowed.
  * `context`: A value to pass as the `context_value` to graphql `execute` function. By default is set to `dict` with request object at key `request`.
  * `root_value`: The `root_value` you want to provide to graphql `execute`.
  * `pretty`: Whether or not you want the response to be pretty printed JSON.

@@ -47,7 +47,7 @@ gql_view(request)  # <-- the instance is callable and expects a `aiohttp.web.Req
 
 ### Supported options for GraphQLView
 
- * `schema`: The `GraphQLSchema` object that you want the view to execute when it gets a valid request.
+ * `schema`: The GraphQL schema object that you want the view to execute when it gets a valid request. Accepts either an object of type `GraphQLSchema` from `graphql-core` or `Schema` from `graphene`. For Graphene v3, passing either `schema: graphene.Schema` or `schema.graphql_schema` is allowed.
  * `context`: A value to pass as the `context_value` to graphql `execute` function. By default is set to `dict` with request object at key `request`.
  * `root_value`: The `root_value` you want to provide to graphql `execute`.
  * `pretty`: Whether or not you want the response to be pretty printed JSON.
