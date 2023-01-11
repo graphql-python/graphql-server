@@ -471,6 +471,23 @@ def test_context_remapped_if_not_mapping(client, settings):
     assert "request" in res["data"]["context"]["request"]
 
 
+class CustomContext(dict):
+    property = "A custom property"
+
+
+@pytest.mark.parametrize("settings", [dict(context=CustomContext())])
+def test_allow_empty_custom_context(client, settings):
+    response = client.get(url_string(query="{context { property request }}"))
+
+    assert response.status_code == 200
+    res = response_json(response)
+    assert "data" in res
+    assert "request" in res["data"]["context"]
+    assert "property" in res["data"]["context"]
+    assert "A custom property" == res["data"]["context"]["property"]
+    assert "request" in res["data"]["context"]["request"]
+
+
 def test_post_multipart_data(client):
     query = "mutation TestMutation { writeTest { test } }"
     data = (
