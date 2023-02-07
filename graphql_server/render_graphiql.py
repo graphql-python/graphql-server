@@ -4,6 +4,8 @@ import json
 import re
 from typing import Any, Dict, Optional, Tuple
 
+# This Environment import is only for type checking purpose,
+# and only relevant if rendering GraphiQL with Jinja
 try:
     from jinja2 import Environment
 except ImportError:
