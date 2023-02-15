@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional, Tuple
 # and only relevant if rendering GraphiQL with Jinja
 try:
     from jinja2 import Environment
-except ImportError:
+except ImportError:  # pragma: no cover
     pass
 
 from typing_extensions import TypedDict

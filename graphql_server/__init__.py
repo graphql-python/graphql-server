@@ -340,12 +340,12 @@ def format_execution_result(
 def _check_jinja(jinja_env: Any) -> None:
     try:
         from jinja2 import Environment
-    except ImportError:
+    except ImportError:  # pragma: no cover
         raise RuntimeError(
             "Attempt to set 'jinja_env' to a value other than None while Jinja2 is not installed.\n"
             "Please install Jinja2 to render GraphiQL with Jinja2.\n"
             "Otherwise set 'jinja_env' to None to use the simple regex renderer."
         )
 
-    if not isinstance(jinja_env, Environment):
+    if not isinstance(jinja_env, Environment):  # pragma: no cover
         raise TypeError("'jinja_env' has to be of type jinja2.Environment.")
