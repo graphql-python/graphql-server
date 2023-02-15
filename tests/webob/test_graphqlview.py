@@ -4,17 +4,7 @@ from urllib.parse import urlencode
 import pytest
 
 from ..utils import RepeatExecutionContext
-from .app import Client, url_string
-
-
-@pytest.fixture
-def settings():
-    return {}
-
-
-@pytest.fixture
-def client(settings):
-    return Client(settings=settings)
+from .app import url_string
 
 
 def response_json(response):

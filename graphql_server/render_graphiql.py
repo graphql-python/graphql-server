@@ -1,13 +1,19 @@
 """Based on (express-graphql)[https://github.com/graphql/express-graphql/blob/main/src/renderGraphiQL.ts] and
-(subscriptions-transport-ws)[https://github.com/apollographql/subscriptions-transport-ws]"""
+(graphql-ws)[https://github.com/enisdenjo/graphql-ws]"""
 import json
 import re
 from typing import Any, Dict, Optional, Tuple
 
-from jinja2 import Environment
+# This Environment import is only for type checking purpose,
+# and only relevant if rendering GraphiQL with Jinja
+try:
+    from jinja2 import Environment
+except ImportError:  # pragma: no cover
+    pass
+
 from typing_extensions import TypedDict
 
-GRAPHIQL_VERSION = "1.4.7"
+GRAPHIQL_VERSION = "2.2.0"
 
 GRAPHIQL_TEMPLATE = """<!--
 The request to this GraphQL server provided the header "Accept: text/html"
@@ -34,13 +40,12 @@ add "&raw" to the end of the URL within a browser.
     }
   </style>
   <link href="//cdn.jsdelivr.net/npm/graphiql@{{graphiql_version}}/graphiql.css" rel="stylesheet" />
-  <script src="//cdn.jsdelivr.net/npm/promise-polyfill@8.2.0/dist/polyfill.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/unfetch@4.2.0/dist/unfetch.umd.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/react@16.14.0/umd/react.production.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/react-dom@16.14.0/umd/react-dom.production.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/promise-polyfill@8.2.3/dist/polyfill.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/unfetch@5.0.0/dist/unfetch.umd.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/graphiql@{{graphiql_version}}/graphiql.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/subscriptions-transport-ws@0.9.18/browser/client.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/graphiql-subscriptions-fetcher@0.0.2/browser/client.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/graphql-ws@5.11.2/umd/graphql-ws.min.js"></script>
 </head>
 <body>
   <div id="graphiql">Loading...</div>
@@ -75,35 +80,16 @@ add "&raw" to the end of the URL within a browser.
         otherParams[k] = parameters[k];
       }
     }
-    // Configure the subscription client
-    let subscriptionsFetcher = null;
-    if ('{{subscription_url}}') {
-      let subscriptionsClient = new SubscriptionsTransportWs.SubscriptionClient(
-        '{{ subscription_url }}',
-        { reconnect: true }
-      );
-      subscriptionsFetcher = GraphiQLSubscriptionsFetcher.graphQLFetcher(
-        subscriptionsClient,
-        graphQLFetcher
-      );
-    }
     var fetchURL = locationQuery(otherParams);
-    // Defines a GraphQL fetcher using the fetch API.
-    function graphQLFetcher(graphQLParams, opts) {
-      return fetch(fetchURL, {
-        method: 'post',
-        headers: Object.assign(
-          {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          opts && opts.headers,
-        ),
-        body: JSON.stringify(graphQLParams),
-        credentials: 'include',
-      }).then(function (response) {
-        return response.json();
+    // Defines a GraphQL fetcher.
+    var graphQLFetcher;
+    if ('{{subscription_url}}') {
+      graphQLFetcher = GraphiQL.createFetcher({
+        url: fetchURL,
+        subscription_url: '{{subscription_url}}'
       });
+    } else {
+      graphQLFetcher = GraphiQL.createFetcher({ url: fetchURL });
     }
     // When the query and variables string is edited, update the URL bar so
     // that it can be easily shared.
@@ -129,7 +115,7 @@ add "&raw" to the end of the URL within a browser.
     // Render <GraphiQL /> into the body.
     ReactDOM.render(
       React.createElement(GraphiQL, {
-        fetcher: subscriptionsFetcher || graphQLFetcher,
+        fetcher: graphQLFetcher,
         onEditQuery: onEditQuery,
         onEditVariables: onEditVariables,
         onEditHeaders: onEditHeaders,
@@ -140,7 +126,7 @@ add "&raw" to the end of the URL within a browser.
         headers: {{headers|tojson}},
         operationName: {{operation_name|tojson}},
         defaultQuery: {{default_query|tojson}},
-        headerEditorEnabled: {{header_editor_enabled|tojson}},
+        isHeadersEditorEnabled: {{header_editor_enabled|tojson}},
         shouldPersistHeaders: {{should_persist_headers|tojson}}
       }),
       document.getElementById('graphiql')
@@ -216,24 +202,12 @@ class GraphiQLOptions(TypedDict):
     should_persist_headers: Optional[bool]
 
 
-def escape_js_value(value: Any) -> Any:
-    quotation = False
-    if value.startswith('"') and value.endswith('"'):
-        quotation = True
-        value = value[1 : len(value) - 1]
-
-    value = value.replace("\\\\n", "\\\\\\n").replace("\\n", "\\\\n")
-    if quotation:
-        value = '"' + value.replace('\\\\"', '"').replace('"', '\\"') + '"'
-
-    return value
-
-
 def process_var(template: str, name: str, value: Any, jsonify=False) -> str:
-    pattern = r"{{\s*" + name + r"(\s*|[^}]+)*\s*}}"
+    pattern = r"{{\s*" + name.replace("\\", r"\\") + r"(\s*|[^}]+)*\s*}}"
     if jsonify and value not in ["null", "undefined"]:
         value = json.dumps(value)
-        value = escape_js_value(value)
+
+    value = value.replace("\\", r"\\")
 
     return re.sub(pattern, value, template)
 
@@ -296,6 +270,9 @@ def _render_graphiql(
         or "false",
     }
 
+    if template_vars["result"] in ("null"):
+        template_vars["result"] = None
+
     return graphiql_template, template_vars
 
 
@@ -305,7 +282,7 @@ async def render_graphiql_async(
     options: Optional[GraphiQLOptions] = None,
 ) -> str:
     graphiql_template, template_vars = _render_graphiql(data, config, options)
-    jinja_env: Optional[Environment] = config.get("jinja_env")
+    jinja_env = config.get("jinja_env")
 
     if jinja_env:
         template = jinja_env.from_string(graphiql_template)
@@ -324,6 +301,11 @@ def render_graphiql_sync(
     options: Optional[GraphiQLOptions] = None,
 ) -> str:
     graphiql_template, template_vars = _render_graphiql(data, config, options)
+    jinja_env = config.get("jinja_env")
 
-    source = simple_renderer(graphiql_template, **template_vars)
+    if jinja_env:
+        template = jinja_env.from_string(graphiql_template)
+        source = template.render(**template_vars)
+    else:
+        source = simple_renderer(graphiql_template, **template_vars)
     return source

@@ -14,6 +14,7 @@ from quart.views import View
 from graphql_server import (
     GraphQLParams,
     HttpQueryError,
+    _check_jinja,
     encode_execution_results,
     format_error_default,
     json_encode,
@@ -42,6 +43,7 @@ class GraphQLView(View):
     validation_rules = None
     execution_context_class = None
     batch = False
+    jinja_env = None
     enable_async = False
     subscriptions = None
     headers = None
@@ -65,6 +67,9 @@ class GraphQLView(View):
             self.schema = getattr(self.schema, "graphql_schema", None)
             if not isinstance(self.schema, GraphQLSchema):
                 raise TypeError("A Schema is required to be provided to GraphQLView.")
+
+        if self.jinja_env is not None:
+            _check_jinja(self.jinja_env)
 
     def get_root_value(self):
         return self.root_value
@@ -147,7 +152,7 @@ class GraphQLView(View):
                     graphiql_version=self.graphiql_version,
                     graphiql_template=self.graphiql_template,
                     graphiql_html_title=self.graphiql_html_title,
-                    jinja_env=None,
+                    jinja_env=self.jinja_env,
                 )
                 graphiql_options = GraphiQLOptions(
                     default_query=self.default_query,

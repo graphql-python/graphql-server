@@ -12,22 +12,6 @@ from .app import create_app
 from .schema import AsyncSchema
 
 
-@pytest.fixture
-def app() -> Quart:
-    # import app factory pattern
-    app = create_app(graphiql=True)
-
-    # pushes an application context manually
-    # ctx = app.app_context()
-    # await ctx.push()
-    return app
-
-
-@pytest.fixture
-def client(app: Quart) -> TestClientProtocol:
-    return app.test_client()
-
-
 @pytest.mark.asyncio
 async def execute_client(
     app: Quart,
