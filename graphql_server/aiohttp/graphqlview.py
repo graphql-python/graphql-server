@@ -1,10 +1,12 @@
+import asyncio
 import copy
 from collections.abc import MutableMapping
 from functools import partial
 from typing import List
 
 from aiohttp import web
-from graphql import ExecutionResult, GraphQLError, specified_rules
+from graphql import GraphQLError, specified_rules
+from graphql.pyutils import is_awaitable
 from graphql.type.schema import GraphQLSchema
 
 from graphql_server import (
@@ -22,6 +24,7 @@ from graphql_server.render_graphiql import (
     GraphiQLOptions,
     render_graphiql_async,
 )
+from graphql_server.utils import wrap_in_async
 
 
 class GraphQLView:
@@ -166,10 +169,14 @@ class GraphQLView:
             )
 
             exec_res = (
-                [
-                    ex if ex is None or isinstance(ex, ExecutionResult) else await ex
-                    for ex in execution_results
-                ]
+                await asyncio.gather(
+                    *(
+                        ex
+                        if ex is not None and is_awaitable(ex)
+                        else wrap_in_async(lambda: ex)()
+                        for ex in execution_results
+                    )
+                )
                 if self.enable_async
                 else execution_results
             )
