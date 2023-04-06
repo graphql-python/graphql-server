@@ -31,8 +31,7 @@ QueryRootType = GraphQLObjectType(
                         resolve=lambda obj, info: info.context["request"],
                     ),
                     "property": GraphQLField(
-                        GraphQLString,
-                        resolve=lambda obj, info: info.context.property
+                        GraphQLString, resolve=lambda obj, info: info.context.property
                     ),
                 },
             ),

@@ -654,9 +654,7 @@ class CustomContext(dict):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("app", [create_app(context=CustomContext())])
-async def test_allow_empty_custom_context(
-    app: Quart, client: TestClientProtocol
-):
+async def test_allow_empty_custom_context(app: Quart, client: TestClientProtocol):
     response = await execute_client(app, client, query="{context { property request }}")
 
     assert response.status_code == 200
