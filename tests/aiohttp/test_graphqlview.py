@@ -539,6 +539,24 @@ async def test_context_remapped_if_not_mapping(app, client):
     assert "Request" in _json["data"]["context"]["request"]
 
 
+class CustomContext(dict):
+    property = "A custom property"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("app", [create_app(context=CustomContext())])
+async def test_allow_empty_custom_context(app, client):
+    response = await client.get(url_string(query="{context { property request }}"))
+
+    _json = await response.json()
+    assert response.status == 200
+    assert "data" in _json
+    assert "request" in _json["data"]["context"]
+    assert "property" in _json["data"]["context"]
+    assert "A custom property" == _json["data"]["context"]["property"]
+    assert "Request" in _json["data"]["context"]["request"]
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize("app", [create_app(context={"request": "test"})])
 async def test_request_not_replaced(app, client):

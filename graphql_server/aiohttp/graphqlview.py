@@ -76,7 +76,7 @@ class GraphQLView:
     def get_context(self, request):
         context = (
             copy.copy(self.context)
-            if self.context and isinstance(self.context, MutableMapping)
+            if self.context is not None and isinstance(self.context, MutableMapping)
             else {}
         )
         if isinstance(context, MutableMapping) and "request" not in context:

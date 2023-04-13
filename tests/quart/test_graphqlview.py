@@ -633,6 +633,25 @@ async def test_context_remapped_if_not_mapping(app: Quart, client: TestClientPro
     assert "Request" in res["data"]["context"]["request"]
 
 
+class CustomContext(dict):
+    property = "A custom property"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("app", [create_app(context=CustomContext())])
+async def test_allow_empty_custom_context(app: Quart, client: TestClientProtocol):
+    response = await execute_client(app, client, query="{context { property request }}")
+
+    assert response.status_code == 200
+    result = await response.get_data(as_text=True)
+    res = response_json(result)
+    assert "data" in res
+    assert "request" in res["data"]["context"]
+    assert "property" in res["data"]["context"]
+    assert "A custom property" == res["data"]["context"]["property"]
+    assert "Request" in res["data"]["context"]["request"]
+
+
 # @pytest.mark.asyncio
 # async def test_post_multipart_data(app: Quart, client: TestClientProtocol):
 #     query = "mutation TestMutation { writeTest { test } }"
