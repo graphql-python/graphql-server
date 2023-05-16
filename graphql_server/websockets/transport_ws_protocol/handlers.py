@@ -15,6 +15,7 @@ from graphql.error import format_error as format_graphql_error
 from ..constants import GRAPHQL_TRANSPORT_WS_PROTOCOL
 
 from .types import (
+    Message,
     CompleteMessage,
     ConnectionAckMessage,
     ConnectionInitMessage,
@@ -137,7 +138,8 @@ class BaseGraphQLTransportWSHandler(ABC):
         if not self.connection_acknowledged:
             await self.close(code=4401, reason="Unauthorized")
             return
-
+        if isinstance(message, dict):
+            message = SubscribeMessage.from_dict(message)
         if message.id in self.subscriptions.keys():
             reason = f"Subscriber for {message.id} already exists"
             await self.close(code=4409, reason=reason)
@@ -210,8 +212,12 @@ class BaseGraphQLTransportWSHandler(ABC):
     async def handle_invalid_message(self, error_message: str) -> None:
         await self.close(code=4400, reason=error_message)
 
-    async def send_message(self, data: TypedDict) -> None:
-        await self.send_message({**data, "type": data.type})
+    async def send_message(self, data: Message) -> None:
+        data = data.asdict()
+        assert (
+            data.get("type") is not None
+        ), "expected dict with `type` field. Got {} instead".format(data)
+        await self.send_json(data)
 
     async def cleanup_operation(self, operation_id: str) -> None:
         await self.subscriptions[operation_id].aclose()
