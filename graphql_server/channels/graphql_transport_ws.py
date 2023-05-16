@@ -24,10 +24,10 @@ class GraphQLTransportWSHandler(BaseGraphQLTransportWSHandler):
         self._ws = ws
 
     async def get_context(self) -> Any:
-        return await self._get_context(request=self._ws)
+        return await self._get_context(self._ws)
 
     async def get_root_value(self) -> Any:
-        return await self._get_root_value(request=self._ws)
+        return await self._get_root_value(self._ws)
 
     async def send_json(self, data: dict) -> None:
         await self._ws.send_json(data)
@@ -37,9 +37,7 @@ class GraphQLTransportWSHandler(BaseGraphQLTransportWSHandler):
         await self._ws.close(code=code)
 
     async def handle_request(self) -> Any:
-        await self._ws.accept(
-            subprotocol=BaseGraphQLTransportWSHandler.GRAPHQL_TRANSPORT_WS_PROTOCOL
-        )
+        await self._ws.accept(subprotocol=BaseGraphQLTransportWSHandler.PROTOCOL)
 
     async def handle_disconnect(self, code):
         for operation_id in list(self.subscriptions.keys()):

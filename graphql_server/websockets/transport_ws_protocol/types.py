@@ -5,6 +5,8 @@ try:
 except ImportError:
     from typing_extensions import TypedDict
 
+from dataclasses import dataclass, asdict
+
 from .contstants import (
     GQL_CONNECTION_INIT,
     GQL_CONNECTION_ACK,
@@ -17,84 +19,103 @@ from .contstants import (
 )
 
 
-class ConnectionInitMessage(TypedDict):
+class Message:
+    def asdict(self):
+        return {key: value for key, value in asdict(self).items() if value is not None}
+
+
+@dataclass
+class ConnectionInitMessage(Message):
     """
     Direction: Client -> Server
     """
 
-    payload: Optional[Dict[str, Any]]
-    type = GQL_CONNECTION_INIT
+    payload: Optional[Dict[str, Any]] = None
+    type: str = GQL_CONNECTION_INIT
 
 
-class ConnectionAckMessage(TypedDict):
+@dataclass
+class ConnectionAckMessage(Message):
     """
     Direction: Server -> Client
     """
 
-    payload: Optional[Dict[str, Any]]
-    type = GQL_CONNECTION_ACK
+    payload: Optional[Dict[str, Any]] = None
+    type: str = GQL_CONNECTION_ACK
 
 
-class PingMessage(TypedDict):
+@dataclass
+class PingMessage(Message):
     """
     Direction: bidirectional
     """
 
-    payload: Optional[Dict[str, Any]]
-    type = GQL_PING
+    payload: Optional[Dict[str, Any]] = None
+    type: str = GQL_PING
 
 
-class PongMessage(TypedDict):
+@dataclass
+class PongMessage(Message):
     """
     Direction: bidirectional
     """
 
-    payload: Optional[Dict[str, Any]]
-    type = GQL_PONG
+    payload: Optional[Dict[str, Any]] = None
+    type: str = GQL_PONG
 
 
-class SubscribeMessagePayload(TypedDict):
+@dataclass
+class SubscribeMessagePayload(Message):
     query: str
-    operationName: Optional[str]
-    variables: Optional[Dict[str, Any]]
-    extensions: Optional[Dict[str, Any]]
+    operationName: Optional[str] = None
+    variables: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Any]] = None
 
 
-class SubscribeMessage(TypedDict):
+@dataclass
+class SubscribeMessage(Message):
     """
     Direction: Client -> Server
     """
 
     id: str
     payload: SubscribeMessagePayload
-    type = GQL_SUBSCRIBE
+    type: str = GQL_SUBSCRIBE
+
+    @classmethod
+    def from_dict(cls, message: dict):
+        subscribe_message = cls(**message)
+        subscribe_message.payload = SubscribeMessagePayload(**subscribe_message.payload)
+        return subscribe_message
 
 
-class NextMessage(TypedDict):
+@dataclass
+class NextMessage(Message):
     """
     Direction: Server -> Client
     """
 
     id: str
     payload: Dict[str, Any]  # TODO: shape like ExecutionResult
-    type = GQL_NEXT
+    type: str = GQL_NEXT
 
 
-class ErrorMessage(TypedDict):
+@dataclass
+class ErrorMessage(Message):
     """
     Direction: Server -> Client
     """
 
     id: str
     payload: List[Dict[str, Any]]  # TODO: shape like List[GraphQLError]
-    type = GQL_ERROR
+    type: str = GQL_ERROR
 
 
-class CompleteMessage(TypedDict):
+@dataclass
+class CompleteMessage(Message):
     """
     Direction: bidirectional
     """
 
-    type = GQL_COMPLETE
-
     id: str
+    type: str = GQL_COMPLETE
