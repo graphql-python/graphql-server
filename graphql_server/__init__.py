@@ -12,7 +12,7 @@ from collections.abc import MutableMapping
 from typing import Any, Callable, Collection, Dict, List, Optional, Type, Union, cast
 
 from graphql.error import GraphQLError
-from graphql.execution import ExecutionResult, execute
+from graphql.execution import ExecutionResult, experimental_execute_incrementally
 from graphql.language import OperationType, parse
 from graphql.pyutils import AwaitableOrValue
 from graphql.type import GraphQLSchema, validate_schema
@@ -293,7 +293,7 @@ def get_response(
         if validation_errors:
             return ExecutionResult(data=None, errors=validation_errors)
 
-        execution_result = execute(
+        execution_result = experimental_execute_incrementally(
             schema,
             document,
             variable_values=params.variables,

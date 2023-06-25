@@ -18,6 +18,6 @@ def as_dicts(results: List[ExecutionResult]):
 
 
 class RepeatExecutionContext(ExecutionContext):
-    def execute_field(self, parent_type, source, field_nodes, path):
-        result = super().execute_field(parent_type, source, field_nodes, path)
+    def execute_field(self, parent_type, source, field_nodes, path, async_payload_record = None):
+        result = super().execute_field(parent_type, source, field_nodes, path, async_payload_record)
         return result * 2

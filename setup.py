@@ -3,7 +3,7 @@ from re import search
 from setuptools import find_packages, setup
 
 install_requires = [
-    "graphql-core>=3.2,<3.3",
+    "graphql-core==3.3.0a3",
     "typing-extensions>=4,<5",
 ]
 
