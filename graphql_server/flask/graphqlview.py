@@ -164,15 +164,15 @@ class GraphQLView(View):
         # We use mimetype here since we don't need the other
         # information provided by content_type
         content_type = request.mimetype
-        if content_type == "application/graphql":
+        if "application/graphql" in content_type:
             return {"query": request.data.decode("utf8")}
 
-        elif content_type == "application/json":
+        elif "application/json" in content_type:
             return load_json_body(request.data.decode("utf8"))
 
-        elif content_type in (
-            "application/x-www-form-urlencoded",
-            "multipart/form-data",
+        elif (
+            "application/x-www-form-urlencoded" in content_type
+            or "multipart/form-data" in content_type
         ):
             return request.form
 
