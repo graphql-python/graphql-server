@@ -19,4 +19,4 @@ jobs:
     - name: Run lint and static type checks
       run: tox
       env:
-        TOXENV: flake8,black,import-order,mypy,manifest
+        TOXENV: pre-commit,mypy
