@@ -225,7 +225,7 @@ class GraphQLView:
         except HttpQueryError as err:
             parsed_error = GraphQLError(err.message)
             return web.Response(
-                body=self.encode(dict(errors=[self.format_error(parsed_error)])),
+                body=self.encode({"errors": [self.format_error(parsed_error)]}),
                 status=err.status_code,
                 headers=err.headers,
                 content_type="application/json",

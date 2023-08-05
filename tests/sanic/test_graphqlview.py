@@ -224,10 +224,10 @@ def test_supports_post_url_encoded_query_with_string_variables(app):
     _, response = app.test_client.post(
         uri=url_string(),
         content=urlencode(
-            dict(
-                query="query helloWho($who: String){ test(who: $who) }",
-                variables=json.dumps({"who": "Dolly"}),
-            )
+            {
+                "query": "query helloWho($who: String){ test(who: $who) }",
+                "variables": json.dumps({"who": "Dolly"}),
+            }
         ),
         headers={"content-type": "application/x-www-form-urlencoded"},
     )
@@ -253,9 +253,9 @@ def test_post_url_encoded_query_with_get_variable_values(app):
     _, response = app.test_client.post(
         uri=url_string(variables=json.dumps({"who": "Dolly"})),
         content=urlencode(
-            dict(
-                query="query helloWho($who: String){ test(who: $who) }",
-            )
+            {
+                "query": "query helloWho($who: String){ test(who: $who) }",
+            }
         ),
         headers={"content-type": "application/x-www-form-urlencoded"},
     )
@@ -434,9 +434,9 @@ def test_handles_poorly_formed_variables(app):
 def test_handles_unsupported_http_methods(app):
     _, response = app.test_client.put(uri=url_string(query="{test}"))
     assert response.status == 405
-    allowed_methods = set(
+    allowed_methods = {
         method.strip() for method in response.headers["Allow"].split(",")
-    )
+    }
     assert allowed_methods in [{"GET", "POST"}, {"HEAD", "GET", "POST", "OPTIONS"}]
     assert response_json(response) == {
         "errors": [

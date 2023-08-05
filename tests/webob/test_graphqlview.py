@@ -176,7 +176,7 @@ def test_allows_sending_a_mutation_via_post(client):
 def test_allows_post_with_url_encoding(client):
     response = client.post(
         url_string(),
-        data=urlencode(dict(query="{test}")),
+        data=urlencode({"query": "{test}"}),
         content_type="application/x-www-form-urlencoded",
     )
 
@@ -216,10 +216,10 @@ def test_supports_post_url_encoded_query_with_string_variables(client):
     response = client.post(
         url_string(),
         data=urlencode(
-            dict(
-                query="query helloWho($who: String){ test(who: $who) }",
-                variables=json.dumps({"who": "Dolly"}),
-            )
+            {
+                "query": "query helloWho($who: String){ test(who: $who) }",
+                "variables": json.dumps({"who": "Dolly"}),
+            }
         ),
         content_type="application/x-www-form-urlencoded",
     )
@@ -245,9 +245,9 @@ def test_post_url_encoded_query_with_get_variable_values(client):
     response = client.post(
         url_string(variables=json.dumps({"who": "Dolly"})),
         data=urlencode(
-            dict(
-                query="query helloWho($who: String){ test(who: $who) }",
-            )
+            {
+                "query": "query helloWho($who: String){ test(who: $who) }",
+            }
         ),
         content_type="application/x-www-form-urlencoded",
     )
@@ -310,7 +310,7 @@ def test_allows_post_with_get_operation_name(client):
     }
 
 
-@pytest.mark.parametrize("settings", [dict(pretty=True)])
+@pytest.mark.parametrize("settings", [{"pretty": True}])
 def test_supports_pretty_printing(client, settings):
     response = client.get(url_string(query="{test}"))
 
@@ -319,7 +319,7 @@ def test_supports_pretty_printing(client, settings):
     )
 
 
-@pytest.mark.parametrize("settings", [dict(pretty=False)])
+@pytest.mark.parametrize("settings", [{"pretty": False}])
 def test_not_pretty_by_default(client, settings):
     response = client.get(url_string(query="{test}"))
 
@@ -435,7 +435,7 @@ def test_passes_request_into_request_context(client):
     assert response_json(response) == {"data": {"request": "testing"}}
 
 
-@pytest.mark.parametrize("settings", [dict(context={"session": "CUSTOM CONTEXT"})])
+@pytest.mark.parametrize("settings", [{"context": {"session": "CUSTOM CONTEXT"}}])
 def test_passes_custom_context_into_context(client, settings):
     response = client.get(url_string(query="{context { session request }}"))
 
@@ -448,7 +448,7 @@ def test_passes_custom_context_into_context(client, settings):
     assert "request" in res["data"]["context"]["request"]
 
 
-@pytest.mark.parametrize("settings", [dict(context="CUSTOM CONTEXT")])
+@pytest.mark.parametrize("settings", [{"context": "CUSTOM CONTEXT"}])
 def test_context_remapped_if_not_mapping(client, settings):
     response = client.get(url_string(query="{context { session request }}"))
 
@@ -465,7 +465,7 @@ class CustomContext(dict):
     property = "A custom property"
 
 
-@pytest.mark.parametrize("settings", [dict(context=CustomContext())])
+@pytest.mark.parametrize("settings", [{"context": CustomContext()}])
 def test_allow_empty_custom_context(client, settings):
     response = client.get(url_string(query="{context { property request }}"))
 
@@ -504,7 +504,7 @@ def test_post_multipart_data(client):
     assert response_json(response) == {"data": {"writeTest": {"test": "Hello World"}}}
 
 
-@pytest.mark.parametrize("settings", [dict(batch=True)])
+@pytest.mark.parametrize("settings", [{"batch": True}])
 def test_batch_allows_post_with_json_encoding(client, settings):
     response = client.post(
         url_string(),
@@ -524,7 +524,7 @@ def test_batch_allows_post_with_json_encoding(client, settings):
     ]
 
 
-@pytest.mark.parametrize("settings", [dict(batch=True)])
+@pytest.mark.parametrize("settings", [{"batch": True}])
 def test_batch_supports_post_json_query_with_json_variables(client, settings):
     response = client.post(
         url_string(),
@@ -545,7 +545,7 @@ def test_batch_supports_post_json_query_with_json_variables(client, settings):
     ]
 
 
-@pytest.mark.parametrize("settings", [dict(batch=True)])
+@pytest.mark.parametrize("settings", [{"batch": True}])
 def test_batch_allows_post_with_operation_name(client, settings):
     response = client.post(
         url_string(),
@@ -574,7 +574,7 @@ def test_batch_allows_post_with_operation_name(client, settings):
 
 
 @pytest.mark.parametrize(
-    "settings", [dict(execution_context_class=RepeatExecutionContext)]
+    "settings", [{"execution_context_class": RepeatExecutionContext}]
 )
 def test_custom_execution_context_class(client):
     response = client.post(

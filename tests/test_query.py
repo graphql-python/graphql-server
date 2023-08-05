@@ -39,7 +39,7 @@ def test_server_results():
 
 def test_validate_schema():
     query = "{test}"
-    results, params = run_http_query(invalid_schema, "get", {}, dict(query=query))
+    results, params = run_http_query(invalid_schema, "get", {}, {"query": query})
     assert as_dicts(results) == [
         {
             "data": None,
@@ -54,7 +54,7 @@ def test_validate_schema():
 
 def test_allows_get_with_query_param():
     query = "{test}"
-    results, params = run_http_query(schema, "get", {}, dict(query=query))
+    results, params = run_http_query(schema, "get", {}, {"query": query})
 
     assert as_dicts(results) == [{"data": {"test": "Hello World"}, "errors": None}]
     assert params == [GraphQLParams(query=query, variables=None, operation_name=None)]
@@ -65,10 +65,10 @@ def test_allows_get_with_variable_values():
         schema,
         "get",
         {},
-        dict(
-            query="query helloWho($who: String){ test(who: $who) }",
-            variables=json.dumps({"who": "Dolly"}),
-        ),
+        {
+            "query": "query helloWho($who: String){ test(who: $who) }",
+            "variables": json.dumps({"who": "Dolly"}),
+        },
     )
 
     assert as_dicts(results) == [{"data": {"test": "Hello Dolly"}, "errors": None}]
@@ -79,8 +79,8 @@ def test_allows_get_with_operation_name():
         schema,
         "get",
         {},
-        query_data=dict(
-            query="""
+        query_data={
+            "query": """
         query helloYou { test(who: "You"), ...shared }
         query helloWorld { test(who: "World"), ...shared }
         query helloDolly { test(who: "Dolly"), ...shared }
@@ -88,8 +88,8 @@ def test_allows_get_with_operation_name():
           shared: test(who: "Everyone")
         }
         """,
-            operationName="helloWorld",
-        ),
+            "operationName": "helloWorld",
+        },
     )
 
     assert as_dicts(results) == [
@@ -102,7 +102,7 @@ def test_allows_get_with_operation_name():
 
 def test_reports_validation_errors():
     results, params = run_http_query(
-        schema, "get", {}, query_data=dict(query="{ test, unknownOne, unknownTwo }")
+        schema, "get", {}, query_data={"query": "{ test, unknownOne, unknownTwo }"}
     )
 
     assert as_dicts(results) == [
@@ -134,7 +134,7 @@ def test_reports_custom_validation_errors():
         schema,
         "get",
         {},
-        query_data=dict(query="{ test }"),
+        query_data={"query": "{ test }"},
         validation_rules=[CustomValidationRule],
     )
 
@@ -159,7 +159,7 @@ def test_reports_max_num_of_validation_errors():
         schema,
         "get",
         {},
-        query_data=dict(query="{ test, unknownOne, unknownTwo }"),
+        query_data={"query": "{ test, unknownOne, unknownTwo }"},
         max_errors=1,
     )
 
@@ -207,12 +207,12 @@ def test_errors_when_missing_operation_name():
         schema,
         "get",
         {},
-        query_data=dict(
-            query="""
+        query_data={
+            "query": """
         query TestQuery { test }
         mutation TestMutation { writeTest { test } }
         """
-        ),
+        },
     )
 
     assert as_dicts(results) == [
@@ -237,11 +237,11 @@ def test_errors_when_sending_a_mutation_via_get():
             schema,
             "get",
             {},
-            query_data=dict(
-                query="""
+            query_data={
+                "query": """
                 mutation TestMutation { writeTest { test } }
                 """
-            ),
+            },
         )
 
     assert exc_info.value == HttpQueryError(
@@ -256,11 +256,11 @@ def test_catching_errors_when_sending_a_mutation_via_get():
         schema,
         "get",
         {},
-        query_data=dict(
-            query="""
+        query_data={
+            "query": """
                 mutation TestMutation { writeTest { test } }
                 """
-        ),
+        },
         catch=True,
     )
 
@@ -273,13 +273,13 @@ def test_errors_when_selecting_a_mutation_within_a_get():
             schema,
             "get",
             {},
-            query_data=dict(
-                query="""
+            query_data={
+                "query": """
                 query TestQuery { test }
                 mutation TestMutation { writeTest { test } }
                 """,
-                operationName="TestMutation",
-            ),
+                "operationName": "TestMutation",
+            },
         )
 
     assert exc_info.value == HttpQueryError(
@@ -294,13 +294,13 @@ def test_allows_mutation_to_exist_within_a_get():
         schema,
         "get",
         {},
-        query_data=dict(
-            query="""
+        query_data={
+            "query": """
             query TestQuery { test }
             mutation TestMutation { writeTest { test } }
             """,
-            operationName="TestQuery",
-        ),
+            "operationName": "TestQuery",
+        },
     )
 
     assert as_dicts(results) == [{"data": {"test": "Hello World"}, "errors": None}]
@@ -311,16 +311,14 @@ def test_allows_sending_a_mutation_via_post():
         schema,
         "post",
         {},
-        query_data=dict(query="mutation TestMutation { writeTest { test } }"),
+        query_data={"query": "mutation TestMutation { writeTest { test } }"},
     )
 
     assert results == [({"writeTest": {"test": "Hello World"}}, None)]
 
 
 def test_allows_post_with_url_encoding():
-    results, params = run_http_query(
-        schema, "post", {}, query_data=dict(query="{test}")
-    )
+    results, params = run_http_query(schema, "post", {}, query_data={"query": "{test}"})
 
     assert results == [({"test": "Hello World"}, None)]
 
@@ -330,10 +328,10 @@ def test_supports_post_json_query_with_string_variables():
         schema,
         "post",
         {},
-        query_data=dict(
-            query="query helloWho($who: String){ test(who: $who) }",
-            variables='{"who": "Dolly"}',
-        ),
+        query_data={
+            "query": "query helloWho($who: String){ test(who: $who) }",
+            "variables": '{"who": "Dolly"}',
+        },
     )
 
     assert results == [({"test": "Hello Dolly"}, None)]
@@ -357,10 +355,10 @@ def test_supports_post_url_encoded_query_with_string_variables():
         schema,
         "post",
         {},
-        query_data=dict(
-            query="query helloWho($who: String){ test(who: $who) }",
-            variables='{"who": "Dolly"}',
-        ),
+        query_data={
+            "query": "query helloWho($who: String){ test(who: $who) }",
+            "variables": '{"who": "Dolly"}',
+        },
     )
 
     assert results == [({"test": "Hello Dolly"}, None)]
@@ -370,8 +368,8 @@ def test_supports_post_json_query_with_get_variable_values():
     results, params = run_http_query(
         schema,
         "post",
-        data=dict(query="query helloWho($who: String){ test(who: $who) }"),
-        query_data=dict(variables={"who": "Dolly"}),
+        data={"query": "query helloWho($who: String){ test(who: $who) }"},
+        query_data={"variables": {"who": "Dolly"}},
     )
 
     assert results == [({"test": "Hello Dolly"}, None)]
@@ -381,8 +379,8 @@ def test_post_url_encoded_query_with_get_variable_values():
     results, params = run_http_query(
         schema,
         "get",
-        data=dict(query="query helloWho($who: String){ test(who: $who) }"),
-        query_data=dict(variables='{"who": "Dolly"}'),
+        data={"query": "query helloWho($who: String){ test(who: $who) }"},
+        query_data={"variables": '{"who": "Dolly"}'},
     )
 
     assert results == [({"test": "Hello Dolly"}, None)]
@@ -392,8 +390,8 @@ def test_supports_post_raw_text_query_with_get_variable_values():
     results, params = run_http_query(
         schema,
         "get",
-        data=dict(query="query helloWho($who: String){ test(who: $who) }"),
-        query_data=dict(variables='{"who": "Dolly"}'),
+        data={"query": "query helloWho($who: String){ test(who: $who) }"},
+        query_data={"variables": '{"who": "Dolly"}'},
     )
 
     assert results == [({"test": "Hello Dolly"}, None)]
@@ -403,8 +401,8 @@ def test_allows_post_with_operation_name():
     results, params = run_http_query(
         schema,
         "get",
-        data=dict(
-            query="""
+        data={
+            "query": """
             query helloYou { test(who: "You"), ...shared }
             query helloWorld { test(who: "World"), ...shared }
             query helloDolly { test(who: "Dolly"), ...shared }
@@ -412,8 +410,8 @@ def test_allows_post_with_operation_name():
               shared: test(who: "Everyone")
             }
             """,
-            operationName="helloWorld",
-        ),
+            "operationName": "helloWorld",
+        },
     )
 
     assert results == [({"test": "Hello World", "shared": "Hello Everyone"}, None)]
@@ -423,8 +421,8 @@ def test_allows_post_with_get_operation_name():
     results, params = run_http_query(
         schema,
         "get",
-        data=dict(
-            query="""
+        data={
+            "query": """
             query helloYou { test(who: "You"), ...shared }
             query helloWorld { test(who: "World"), ...shared }
             query helloDolly { test(who: "Dolly"), ...shared }
@@ -432,15 +430,15 @@ def test_allows_post_with_get_operation_name():
               shared: test(who: "Everyone")
             }
             """
-        ),
-        query_data=dict(operationName="helloWorld"),
+        },
+        query_data={"operationName": "helloWorld"},
     )
 
     assert results == [({"test": "Hello World", "shared": "Hello Everyone"}, None)]
 
 
 def test_supports_pretty_printing_data():
-    results, params = run_http_query(schema, "get", data=dict(query="{test}"))
+    results, params = run_http_query(schema, "get", data={"query": "{test}"})
     result = {"data": results[0].data}
 
     assert json_encode(result, pretty=True) == (
@@ -449,14 +447,14 @@ def test_supports_pretty_printing_data():
 
 
 def test_not_pretty_data_by_default():
-    results, params = run_http_query(schema, "get", data=dict(query="{test}"))
+    results, params = run_http_query(schema, "get", data={"query": "{test}"})
     result = {"data": results[0].data}
 
     assert json_encode(result) == '{"data":{"test":"Hello World"}}'
 
 
 def test_handles_field_errors_caught_by_graphql():
-    results, params = run_http_query(schema, "get", data=dict(query="{thrower}"))
+    results, params = run_http_query(schema, "get", data={"query": "{thrower}"})
 
     assert results == [
         (None, [{"message": "Throws!", "locations": [(1, 2)], "path": ["thrower"]}])
@@ -467,7 +465,7 @@ def test_handles_field_errors_caught_by_graphql():
 
 
 def test_handles_syntax_errors_caught_by_graphql():
-    results, params = run_http_query(schema, "get", data=dict(query="syntaxerror"))
+    results, params = run_http_query(schema, "get", data={"query": "syntaxerror"})
 
     assert results == [
         (
@@ -491,7 +489,7 @@ def test_handles_errors_caused_by_a_lack_of_query():
 
 def test_handles_errors_caused_by_invalid_query_type():
     with raises(HttpQueryError) as exc_info:
-        results, params = run_http_query(schema, "get", dict(query=42))
+        results, params = run_http_query(schema, "get", {"query": 42})
 
     assert exc_info.value == HttpQueryError(400, "Unexpected query type.")
 
@@ -525,10 +523,10 @@ def test_handles_poorly_formed_variables():
             schema,
             "get",
             {},
-            dict(
-                query="query helloWho($who: String){ test(who: $who) }",
-                variables="who:You",
-            ),
+            {
+                "query": "query helloWho($who: String){ test(who: $who) }",
+                "variables": "who:You",
+            },
         )
 
     assert exc_info.value == HttpQueryError(400, "Variables are invalid JSON.")
@@ -597,7 +595,7 @@ def test_passes_request_into_request_context():
         schema,
         "get",
         {},
-        query_data=dict(query="{request}"),
+        query_data={"query": "{request}"},
         context_value={"q": "testing"},
     )
 
@@ -610,7 +608,7 @@ def test_supports_pretty_printing_context():
             return "CUSTOM CONTEXT"
 
     results, params = run_http_query(
-        schema, "get", {}, query_data=dict(query="{context}"), context_value=Context()
+        schema, "get", {}, query_data={"query": "{context}"}, context_value=Context()
     )
 
     assert results == [({"context": "CUSTOM CONTEXT"}, None)]
@@ -618,7 +616,7 @@ def test_supports_pretty_printing_context():
 
 def test_post_multipart_data():
     query = "mutation TestMutation { writeTest { test } }"
-    results, params = run_http_query(schema, "post", {}, query_data=dict(query=query))
+    results, params = run_http_query(schema, "post", {}, query_data={"query": query})
 
     assert results == [({"writeTest": {"test": "Hello World"}}, None)]
 
@@ -642,8 +640,8 @@ def test_batch_supports_post_json_query_with_json_variables():
 
 def test_batch_allows_post_with_operation_name():
     data = [
-        dict(
-            query="""
+        {
+            "query": """
             query helloYou { test(who: "You"), ...shared }
             query helloWorld { test(who: "World"), ...shared }
             query helloDolly { test(who: "Dolly"), ...shared }
@@ -651,8 +649,8 @@ def test_batch_allows_post_with_operation_name():
               shared: test(who: "Everyone")
             }
             """,
-            operationName="helloWorld",
-        )
+            "operationName": "helloWorld",
+        }
     ]
     data = load_json_body(json_encode(data))
     results, params = run_http_query(schema, "post", data, batch_enabled=True)
@@ -664,8 +662,8 @@ def test_graphiql_render_umlaut():
     results, params = run_http_query(
         schema,
         "get",
-        data=dict(query="query helloWho($who: String){ test(who: $who) }"),
-        query_data=dict(variables='{"who": "Björn"}'),
+        data={"query": "query helloWho($who: String){ test(who: $who) }"},
+        query_data={"variables": '{"who": "Björn"}'},
         catch=True,
     )
     result, status_code = encode_execution_results(results)

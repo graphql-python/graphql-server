@@ -179,7 +179,7 @@ async def test_allows_mutation_to_exist_within_a_get(client):
 async def test_allows_post_with_json_encoding(client):
     response = await client.post(
         "/graphql",
-        data=json.dumps(dict(query="{test}")),
+        data=json.dumps({"query": "{test}"}),
         headers={"content-type": "application/json"},
     )
 
@@ -192,9 +192,9 @@ async def test_allows_sending_a_mutation_via_post(client):
     response = await client.post(
         "/graphql",
         data=json.dumps(
-            dict(
-                query="mutation TestMutation { writeTest { test } }",
-            )
+            {
+                "query": "mutation TestMutation { writeTest { test } }",
+            }
         ),
         headers={"content-type": "application/json"},
     )
@@ -222,10 +222,10 @@ async def test_supports_post_json_query_with_string_variables(client):
     response = await client.post(
         "/graphql",
         data=json.dumps(
-            dict(
-                query="query helloWho($who: String){ test(who: $who) }",
-                variables=json.dumps({"who": "Dolly"}),
-            )
+            {
+                "query": "query helloWho($who: String){ test(who: $who) }",
+                "variables": json.dumps({"who": "Dolly"}),
+            }
         ),
         headers={"content-type": "application/json"},
     )
@@ -239,10 +239,10 @@ async def test_supports_post_json_query_with_json_variables(client):
     response = await client.post(
         "/graphql",
         data=json.dumps(
-            dict(
-                query="query helloWho($who: String){ test(who: $who) }",
-                variables={"who": "Dolly"},
-            )
+            {
+                "query": "query helloWho($who: String){ test(who: $who) }",
+                "variables": {"who": "Dolly"},
+            }
         ),
         headers={"content-type": "application/json"},
     )
@@ -256,10 +256,10 @@ async def test_supports_post_url_encoded_query_with_string_variables(client):
     response = await client.post(
         "/graphql",
         data=urlencode(
-            dict(
-                query="query helloWho($who: String){ test(who: $who) }",
-                variables=json.dumps({"who": "Dolly"}),
-            ),
+            {
+                "query": "query helloWho($who: String){ test(who: $who) }",
+                "variables": json.dumps({"who": "Dolly"}),
+            },
         ),
         headers={"content-type": "application/x-www-form-urlencoded"},
     )
@@ -273,9 +273,9 @@ async def test_supports_post_json_quey_with_get_variable_values(client):
     response = await client.post(
         url_string(variables=json.dumps({"who": "Dolly"})),
         data=json.dumps(
-            dict(
-                query="query helloWho($who: String){ test(who: $who) }",
-            )
+            {
+                "query": "query helloWho($who: String){ test(who: $who) }",
+            }
         ),
         headers={"content-type": "application/json"},
     )
@@ -289,9 +289,9 @@ async def test_post_url_encoded_query_with_get_variable_values(client):
     response = await client.post(
         url_string(variables=json.dumps({"who": "Dolly"})),
         data=urlencode(
-            dict(
-                query="query helloWho($who: String){ test(who: $who) }",
-            )
+            {
+                "query": "query helloWho($who: String){ test(who: $who) }",
+            }
         ),
         headers={"content-type": "application/x-www-form-urlencoded"},
     )
@@ -317,8 +317,8 @@ async def test_allows_post_with_operation_name(client):
     response = await client.post(
         "/graphql",
         data=json.dumps(
-            dict(
-                query="""
+            {
+                "query": """
             query helloYou { test(who: "You"), ...shared }
             query helloWorld { test(who: "World"), ...shared }
             query helloDolly { test(who: "Dolly"), ...shared }
@@ -326,8 +326,8 @@ async def test_allows_post_with_operation_name(client):
               shared: test(who: "Everyone")
             }
             """,
-                operationName="helloWorld",
-            )
+                "operationName": "helloWorld",
+            }
         ),
         headers={"content-type": "application/json"},
     )
@@ -599,7 +599,7 @@ async def test_post_multipart_data(client):
 async def test_batch_allows_post_with_json_encoding(app, client):
     response = await client.post(
         "/graphql",
-        data=json.dumps([dict(id=1, query="{test}")]),
+        data=json.dumps([{"id": 1, "query": "{test}"}]),
         headers={"content-type": "application/json"},
     )
 
@@ -614,11 +614,11 @@ async def test_batch_supports_post_json_query_with_json_variables(app, client):
         "/graphql",
         data=json.dumps(
             [
-                dict(
-                    id=1,
-                    query="query helloWho($who: String){ test(who: $who) }",
-                    variables={"who": "Dolly"},
-                )
+                {
+                    "id": 1,
+                    "query": "query helloWho($who: String){ test(who: $who) }",
+                    "variables": {"who": "Dolly"},
+                }
             ]
         ),
         headers={"content-type": "application/json"},
@@ -635,9 +635,9 @@ async def test_batch_allows_post_with_operation_name(app, client):
         "/graphql",
         data=json.dumps(
             [
-                dict(
-                    id=1,
-                    query="""
+                {
+                    "id": 1,
+                    "query": """
             query helloYou { test(who: "You"), ...shared }
             query helloWorld { test(who: "World"), ...shared }
             query helloDolly { test(who: "Dolly"), ...shared }
@@ -645,8 +645,8 @@ async def test_batch_allows_post_with_operation_name(app, client):
               shared: test(who: "Everyone")
             }
             """,
-                    operationName="helloWorld",
-                )
+                    "operationName": "helloWorld",
+                }
             ]
         ),
         headers={"content-type": "application/json"},
@@ -694,7 +694,7 @@ async def test_preflight_incorrect_request(client):
 async def test_custom_execution_context_class(client):
     response = await client.post(
         "/graphql",
-        data=json.dumps(dict(query="{test}")),
+        data=json.dumps({"query": "{test}"}),
         headers={"content-type": "application/json"},
     )
 

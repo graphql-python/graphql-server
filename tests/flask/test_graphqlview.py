@@ -191,7 +191,7 @@ def test_allows_sending_a_mutation_via_post(app, client):
 def test_allows_post_with_url_encoding(app, client):
     response = client.post(
         url_string(app),
-        data=urlencode(dict(query="{test}")),
+        data=urlencode({"query": "{test}"}),
         content_type="application/x-www-form-urlencoded",
     )
 
@@ -231,10 +231,10 @@ def test_supports_post_url_encoded_query_with_string_variables(app, client):
     response = client.post(
         url_string(app),
         data=urlencode(
-            dict(
-                query="query helloWho($who: String){ test(who: $who) }",
-                variables=json.dumps({"who": "Dolly"}),
-            )
+            {
+                "query": "query helloWho($who: String){ test(who: $who) }",
+                "variables": json.dumps({"who": "Dolly"}),
+            }
         ),
         content_type="application/x-www-form-urlencoded",
     )
@@ -260,9 +260,9 @@ def test_post_url_encoded_query_with_get_variable_values(app, client):
     response = client.post(
         url_string(app, variables=json.dumps({"who": "Dolly"})),
         data=urlencode(
-            dict(
-                query="query helloWho($who: String){ test(who: $who) }",
-            )
+            {
+                "query": "query helloWho($who: String){ test(who: $who) }",
+            }
         ),
         content_type="application/x-www-form-urlencoded",
     )
