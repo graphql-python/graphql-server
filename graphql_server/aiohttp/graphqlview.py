@@ -188,7 +188,7 @@ class GraphQLView:
                 exec_res,
                 is_batch=isinstance(data, list),
                 format_error=self.format_error,
-                encode=partial(self.encode, pretty=is_pretty),  # noqa: ignore
+                encode=partial(self.encode, pretty=is_pretty),  # noqa
             )
 
             if is_graphiql:
