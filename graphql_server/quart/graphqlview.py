@@ -125,7 +125,7 @@ class GraphQLView(View):
                     *(
                         ex
                         if ex is not None and is_awaitable(ex)
-                        else wrap_in_async(lambda: ex)()
+                        else wrap_in_async(lambda x: x)(ex)
                         for ex in execution_results
                     )
                 )
