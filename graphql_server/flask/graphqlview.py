@@ -53,7 +53,7 @@ class GraphQLView(View):
     encode = staticmethod(json_encode)
 
     def __init__(self, **kwargs):
-        super(GraphQLView, self).__init__()
+        super().__init__()
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
@@ -126,9 +126,9 @@ class GraphQLView(View):
             if show_graphiql:
                 graphiql_data = GraphiQLData(
                     result=result,
-                    query=getattr(all_params[0], "query"),
-                    variables=getattr(all_params[0], "variables"),
-                    operation_name=getattr(all_params[0], "operation_name"),
+                    query=all_params[0].query,
+                    variables=all_params[0].variables,
+                    operation_name=all_params[0].operation_name,
                     subscription_url=self.subscriptions,
                     headers=self.headers,
                 )

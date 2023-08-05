@@ -139,7 +139,7 @@ def test_encode_execution_results_with_format_error():
     def format_error(error):
         return {
             "msg": error.message,
-            "loc": "{}:{}".format(error.locations[0].line, error.locations[0].column),
+            "loc": f"{error.locations[0].line}:{error.locations[0].column}",
             "pth": "/".join(error.path),
         }
 
