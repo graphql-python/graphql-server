@@ -1,3 +1,4 @@
+import asyncio
 import copy
 from collections.abc import MutableMapping
 from functools import partial
@@ -5,7 +6,7 @@ from typing import List
 
 from flask import Response, render_template_string, request
 from flask.views import View
-from graphql import specified_rules
+from graphql import pyutils, specified_rules
 from graphql.error import GraphQLError
 from graphql.type.schema import GraphQLSchema
 
@@ -115,9 +116,23 @@ class GraphQLView(View):
                 middleware=self.get_middleware(),
                 validation_rules=self.get_validation_rules(),
                 execution_context_class=self.get_execution_context_class(),
+                run_sync=False,
             )
+
+            # This is (almost) copied from graphql_server.aiohttp.GraphQLView
+            # It is a bit weird as it originally calls await in a loop which
+            # a bit breaks the gains from doing operations asynchronously...
+            # But maybe it is required for correctness to execute those
+            # operations like that, so leaving it.
+            exec_res = [
+                ex
+                if ex is None or not pyutils.is_awaitable(ex)
+                else asyncio.run(ex)
+                for ex in execution_results
+            ]
+
             result, status_code = encode_execution_results(
-                execution_results,
+                exec_res,
                 is_batch=isinstance(data, list),
                 format_error=self.format_error,
                 encode=partial(self.encode, pretty=pretty),  # noqa
