@@ -1,5 +1,4 @@
 import json
-from io import StringIO
 from urllib.parse import urlencode
 
 import pytest
@@ -518,10 +517,24 @@ def test_allow_empty_custom_context(app, client):
 
 def test_post_multipart_data(app, client):
     query = "mutation TestMutation { writeTest { test } }"
+
+    data = (
+        "------flaskgraphql\r\n"
+        'Content-Disposition: form-data; name="query"\r\n'
+        "\r\n" + query + "\r\n"
+        "------flaskgraphql--\r\n"
+        "Content-Type: text/plain; charset=utf-8\r\n"
+        'Content-Disposition: form-data; name="file"; filename="text1.txt";'
+        " filename*=utf-8''text1.txt\r\n"
+        "\r\n"
+        "\r\n"
+        "------flaskgraphql--\r\n"
+    )
+
     response = client.post(
         url_string(app),
-        data={"query": query, "file": (StringIO(), "text1.txt")},
-        content_type="multipart/form-data",
+        data=data,
+        content_type="multipart/form-data; boundary=----flaskgraphql",
     )
 
     assert response.status_code == 200
