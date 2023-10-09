@@ -4,6 +4,7 @@ from setuptools import find_packages, setup
 
 install_requires = [
     "graphql-core>=3.2,<3.3",
+    "strawberry-graphql>=0.209",
     "typing-extensions>=4,<5",
 ]
 

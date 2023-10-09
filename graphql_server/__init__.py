@@ -6,6 +6,7 @@ GraphQL-Server is a base library that serves as a helper
 for building GraphQL servers or integrations into existing web frameworks using
 [GraphQL-Core](https://github.com/graphql-python/graphql-core).
 """
+import asyncio
 import json
 from collections import namedtuple
 from collections.abc import MutableMapping
@@ -15,9 +16,11 @@ from graphql.error import GraphQLError
 from graphql.execution import ExecutionResult, execute
 from graphql.language import OperationType, parse
 from graphql.pyutils import AwaitableOrValue
-from graphql.type import GraphQLSchema, validate_schema
 from graphql.utilities import get_operation_ast
 from graphql.validation import ASTValidationRule, validate
+
+from strawberry import Schema
+from strawberry.types.graphql import OperationType
 
 from .error import HttpQueryError
 from .version import version, version_info
@@ -60,7 +63,7 @@ def format_error_default(error: GraphQLError) -> Dict:
 
 
 def run_http_query(
-    schema: GraphQLSchema,
+    schema: Schema,
     request_method: str,
     data: Union[Dict, List[Dict]],
     query_data: Optional[Dict] = None,
@@ -84,8 +87,8 @@ def run_http_query(
     Returns a ServerResults tuple with the list of ExecutionResults as first item
     and the list of parameters that have been used for execution as second item.
     """
-    if not isinstance(schema, GraphQLSchema):
-        raise TypeError(f"Expected a GraphQL schema, but received {schema!r}.")
+    if not isinstance(schema, Schema):
+        raise TypeError(f"Expected a strawberry.Schema, but received {schema!r}.")
     if request_method not in ("get", "post"):
         raise HttpQueryError(
             405,
@@ -236,7 +239,7 @@ def assume_not_awaitable(_value: Any) -> bool:
 
 
 def get_response(
-    schema: GraphQLSchema,
+    schema: Schema,
     params: GraphQLParams,
     catch_exc: Type[BaseException],
     allow_only_query: bool = False,
@@ -263,43 +266,21 @@ def get_response(
         if not isinstance(params.query, str):
             raise HttpQueryError(400, "Unexpected query type.")
 
-        schema_validation_errors = validate_schema(schema)
-        if schema_validation_errors:
-            return ExecutionResult(data=None, errors=schema_validation_errors)
-
-        try:
-            document = parse(params.query)
-        except GraphQLError as e:
-            return ExecutionResult(data=None, errors=[e])
-        except Exception as e:
-            e = GraphQLError(str(e), original_error=e)
-            return ExecutionResult(data=None, errors=[e])
-
-        if allow_only_query:
-            operation_ast = get_operation_ast(document, params.operation_name)
-            if operation_ast:
-                operation = operation_ast.operation.value
-                if operation != OperationType.QUERY.value:
-                    raise HttpQueryError(
-                        405,
-                        f"Can only perform a {operation} operation"
-                        " from a POST request.",
-                        headers={"Allow": "POST"},
-                    )
-
-        validation_errors = validate(
-            schema, document, rules=validation_rules, max_errors=max_errors
+        strawberry_execution_result = asyncio.run(
+            schema.execute(
+                query=params.query,
+                variable_values=params.variables,
+                context_value=kwargs.get("context_value"),
+                root_value=kwargs.get("root_value"),
+                operation_name=params.operation_name,
+                allowed_operation_types=[OperationType.QUERY] if allow_only_query else None,
+            )
         )
-        if validation_errors:
-            return ExecutionResult(data=None, errors=validation_errors)
 
-        execution_result = execute(
-            schema,
-            document,
-            variable_values=params.variables,
-            operation_name=params.operation_name,
-            is_awaitable=assume_not_awaitable if run_sync else None,
-            **kwargs,
+        execution_result = ExecutionResult(
+            data=strawberry_execution_result.data,
+            errors=strawberry_execution_result.errors,
+            extensions=strawberry_execution_result.extensions,
         )
 
     except catch_exc:

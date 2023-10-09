@@ -7,7 +7,8 @@ from flask import Response, render_template_string, request
 from flask.views import View
 from graphql import specified_rules
 from graphql.error import GraphQLError
-from graphql.type.schema import GraphQLSchema
+
+from strawberry import Schema
 
 from graphql_server import (
     GraphQLParams,
@@ -58,11 +59,8 @@ class GraphQLView(View):
             if hasattr(self, key):
                 setattr(self, key, value)
 
-        if not isinstance(self.schema, GraphQLSchema):
-            # maybe the GraphQL schema is wrapped in a Graphene schema
-            self.schema = getattr(self.schema, "graphql_schema", None)
-            if not isinstance(self.schema, GraphQLSchema):
-                raise TypeError("A Schema is required to be provided to GraphQLView.")
+        if not isinstance(self.schema, Schema):
+            raise TypeError("A strawberry.Schema is required to be provided to GraphQLView.")
 
         if self.jinja_env is not None:
             _check_jinja(self.jinja_env)
