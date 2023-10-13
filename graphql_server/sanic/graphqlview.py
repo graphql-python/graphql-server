@@ -1,6 +1,5 @@
 import asyncio
 import copy
-from cgi import parse_header
 from collections.abc import MutableMapping
 from functools import partial
 from typing import List
@@ -8,6 +7,7 @@ from typing import List
 from graphql import GraphQLError, specified_rules
 from graphql.pyutils import is_awaitable
 from graphql.type.schema import GraphQLSchema
+from sanic.headers import parse_content_header
 from sanic.response import HTTPResponse, html
 from sanic.views import HTTPMethodView
 
@@ -213,7 +213,7 @@ class GraphQLView(HTTPMethodView):
         if "content-type" not in request.headers:
             return None
 
-        mime_type, _ = parse_header(request.headers["content-type"])
+        mime_type, _ = parse_content_header(request.headers["content-type"])
         return mime_type
 
     def should_display_graphiql(self, request):

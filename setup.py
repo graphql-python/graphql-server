@@ -12,23 +12,23 @@ tests_requires = [
     "pytest-asyncio>=0.20,<1",
     "pytest-cov>=4,<5",
     "Jinja2>=3.1,<4",
-    "sanic-testing>=22.3,<23",
+    "sanic-testing>=22.3,<24",
 ]
 
 dev_requires = [
-    "flake8>=5,<6",
+    "flake8>=6,<7",
     "isort>=5,<6",
-    "black>=22.12,<22.13",
-    "mypy>=0.991,<1",
+    "black>=23.9,<23.10",
+    "mypy>=1.6,<1.7",
     "check-manifest>=0.47,<1",
 ] + tests_requires
 
 install_flask_requires = [
-    "flask>=1,<3",
+    "flask>=1,<4",
 ]
 
 install_sanic_requires = [
-    "sanic>=21.12,<23",
+    "sanic>=21.12,<24",
 ]
 
 install_webob_requires = [
@@ -71,11 +71,10 @@ setup(
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Libraries",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "License :: OSI Approved :: MIT License",
     ],
     keywords="api graphql protocol rest",
