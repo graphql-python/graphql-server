@@ -16,10 +16,10 @@ tests_requires = [
 ]
 
 dev_requires = [
-    "flake8>=5,<6",
+    "flake8>=6,<7",
     "isort>=5,<6",
-    "black>=22.12,<22.13",
-    "mypy>=0.991,<1",
+    "black>=23.9,<23.10",
+    "mypy>=1.6,<1.7",
     "check-manifest>=0.47,<1",
 ] + tests_requires
 
