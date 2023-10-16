@@ -27,3 +27,9 @@ target-version = "py38"
 known-first-party = ["graphql_server"]
 force-wrap-aliases = true
 combine-as-imports = true
+
+[pyupgrade]
+# this keeps annotation syntaxes like Union[X, Y] instead of X | Y
+# to not break Python 3.8
+# https://beta.ruff.rs/docs/settings/#pyupgrade-keep-runtime-typing
+keep-runtime-typing = true
