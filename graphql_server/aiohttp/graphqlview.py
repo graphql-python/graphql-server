@@ -56,7 +56,7 @@ class GraphQLView:
     encode = staticmethod(json_encode)
 
     def __init__(self, **kwargs):
-        super(GraphQLView, self).__init__()
+        super().__init__()
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
@@ -177,7 +177,7 @@ class GraphQLView:
                     *(
                         ex
                         if ex is not None and is_awaitable(ex)
-                        else wrap_in_async(lambda: ex)()
+                        else wrap_in_async(lambda x: x)(ex)
                         for ex in execution_results
                     )
                 )
@@ -188,15 +188,15 @@ class GraphQLView:
                 exec_res,
                 is_batch=isinstance(data, list),
                 format_error=self.format_error,
-                encode=partial(self.encode, pretty=is_pretty),  # noqa: ignore
+                encode=partial(self.encode, pretty=is_pretty),
             )
 
             if is_graphiql:
                 graphiql_data = GraphiQLData(
                     result=result,
-                    query=getattr(all_params[0], "query"),
-                    variables=getattr(all_params[0], "variables"),
-                    operation_name=getattr(all_params[0], "operation_name"),
+                    query=all_params[0].query,
+                    variables=all_params[0].variables,
+                    operation_name=all_params[0].operation_name,
                     subscription_url=self.subscriptions,
                     headers=self.headers,
                 )
@@ -225,7 +225,7 @@ class GraphQLView:
         except HttpQueryError as err:
             parsed_error = GraphQLError(err.message)
             return web.Response(
-                body=self.encode(dict(errors=[self.format_error(parsed_error)])),
+                body=self.encode({"errors": [self.format_error(parsed_error)]}),
                 status=err.status_code,
                 headers=err.headers,
                 content_type="application/json",

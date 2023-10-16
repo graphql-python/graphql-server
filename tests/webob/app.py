@@ -11,7 +11,7 @@ def url_string(url="/graphql", **url_params):
     return f"{url}?{urlencode(url_params)}" if url_params else url
 
 
-class Client(object):
+class Client:
     def __init__(self, **kwargs):
         self.schema = kwargs.pop("schema", None) or Schema
         self.settings = kwargs.pop("settings", None) or {}

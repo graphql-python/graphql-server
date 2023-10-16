@@ -5,7 +5,7 @@ from .app import url_string
 
 
 @pytest.mark.parametrize(
-    "settings", [dict(graphiql=True), dict(graphiql=True, jinja_env=Environment())]
+    "settings", [{"graphiql": True}, {"graphiql": True, "jinja_env": Environment()}]
 )
 def test_graphiql_is_enabled(client):
     response = client.get(url_string(query="{test}"), headers={"Accept": "text/html"})
@@ -13,7 +13,7 @@ def test_graphiql_is_enabled(client):
 
 
 @pytest.mark.parametrize(
-    "settings", [dict(graphiql=True), dict(graphiql=True, jinja_env=Environment())]
+    "settings", [{"graphiql": True}, {"graphiql": True, "jinja_env": Environment()}]
 )
 def test_graphiql_simple_renderer(client):
     response = client.get(url_string(query="{test}"), headers={"Accept": "text/html"})
@@ -29,7 +29,7 @@ def test_graphiql_simple_renderer(client):
 
 
 @pytest.mark.parametrize(
-    "settings", [dict(graphiql=True), dict(graphiql=True, jinja_env=Environment())]
+    "settings", [{"graphiql": True}, {"graphiql": True, "jinja_env": Environment()}]
 )
 def test_graphiql_html_is_not_accepted(client):
     response = client.get(url_string(), headers={"Accept": "application/json"})

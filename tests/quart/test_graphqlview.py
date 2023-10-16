@@ -245,7 +245,7 @@ async def test_allows_post_with_url_encoding(app: Quart, client: TestClientProto
         app,
         client,
         method="POST",
-        data=urlencode(dict(query="{test}")),
+        data=urlencode({"query": "{test}"}),
         headers=Headers({"Content-Type": "application/x-www-form-urlencoded"}),
     )
 
@@ -303,10 +303,10 @@ async def test_supports_post_url_encoded_query_with_string_variables(
         client,
         method="POST",
         data=urlencode(
-            dict(
-                query="query helloWho($who: String){ test(who: $who) }",
-                variables=json.dumps({"who": "Dolly"}),
-            )
+            {
+                "query": "query helloWho($who: String){ test(who: $who) }",
+                "variables": json.dumps({"who": "Dolly"}),
+            }
         ),
         headers=Headers({"Content-Type": "application/x-www-form-urlencoded"}),
     )
@@ -345,9 +345,9 @@ async def test_post_url_encoded_query_with_get_variable_values(
         client,
         method="POST",
         data=urlencode(
-            dict(
-                query="query helloWho($who: String){ test(who: $who) }",
-            )
+            {
+                "query": "query helloWho($who: String){ test(who: $who) }",
+            }
         ),
         headers=Headers({"Content-Type": "application/x-www-form-urlencoded"}),
         variables=json.dumps({"who": "Dolly"}),

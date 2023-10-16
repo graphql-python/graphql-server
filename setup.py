@@ -16,11 +16,7 @@ tests_requires = [
 ]
 
 dev_requires = [
-    "flake8>=6,<7",
-    "isort>=5,<6",
-    "black>=23.9,<23.10",
     "mypy>=1.6,<1.7",
-    "check-manifest>=0.47,<1",
 ] + tests_requires
 
 install_flask_requires = [

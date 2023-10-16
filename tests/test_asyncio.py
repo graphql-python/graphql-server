@@ -47,7 +47,7 @@ def test_get_responses_using_asyncio_executor():
 
     async def get_results():
         result_promises, params = run_http_query(
-            schema, "get", {}, dict(query=query), run_sync=False
+            schema, "get", {}, {"query": query}, run_sync=False
         )
         res = [await result for result in result_promises]
         return res, params

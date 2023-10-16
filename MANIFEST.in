@@ -6,6 +6,8 @@ include CONTRIBUTING.md
 
 include codecov.yml
 include tox.ini
+include .pre-commit-config.yaml
+include .ruff.toml
 
 recursive-include docs *.md *.svg
 

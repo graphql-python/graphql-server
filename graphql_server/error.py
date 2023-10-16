@@ -16,7 +16,7 @@ class HttpQueryError(Exception):
         self.message = message
         self.is_graphql_error = is_graphql_error
         self.headers = headers
-        super(HttpQueryError, self).__init__(message)
+        super().__init__(message)
 
     def __eq__(self, other):
         """Check whether this HTTP query error is equal to another one."""

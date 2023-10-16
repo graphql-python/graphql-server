@@ -1,0 +1,35 @@
+select = [
+    "E",    # pycodestyle
+    "W",    # pycodestyle
+    "F",    # pyflake
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "UP",   # pyupgrade
+]
+
+ignore = [
+    "E501",  # line-too-long
+    "B904",  # check for raise statements in exception handlers that lack a from clause
+]
+
+exclude = [
+    "**/docs",
+]
+
+target-version = "py38"
+
+[per-file-ignores]
+# Ignore unused imports (F401) in these files
+"__init__.py" = ["F401"]
+
+[isort]
+known-first-party = ["graphql_server"]
+force-wrap-aliases = true
+combine-as-imports = true
+
+[pyupgrade]
+# this keeps annotation syntaxes like Union[X, Y] instead of X | Y
+# to not break Python 3.8
+# https://beta.ruff.rs/docs/settings/#pyupgrade-keep-runtime-typing
+keep-runtime-typing = true

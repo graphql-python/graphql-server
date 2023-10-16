@@ -58,7 +58,7 @@ class GraphQLView(HTTPMethodView):
     encode = staticmethod(json_encode)
 
     def __init__(self, **kwargs):
-        super(GraphQLView, self).__init__()
+        super().__init__()
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
@@ -130,7 +130,7 @@ class GraphQLView(HTTPMethodView):
                         *(
                             ex
                             if ex is not None and is_awaitable(ex)
-                            else wrap_in_async(lambda: ex)()
+                            else wrap_in_async(lambda x: x)(ex)
                             for ex in execution_results
                         )
                     )
@@ -141,15 +141,15 @@ class GraphQLView(HTTPMethodView):
                     exec_res,
                     is_batch=isinstance(data, list),
                     format_error=self.format_error,
-                    encode=partial(self.encode, pretty=pretty),  # noqa: ignore
+                    encode=partial(self.encode, pretty=pretty),
                 )
 
                 if show_graphiql:
                     graphiql_data = GraphiQLData(
                         result=result,
-                        query=getattr(all_params[0], "query"),
-                        variables=getattr(all_params[0], "variables"),
-                        operation_name=getattr(all_params[0], "operation_name"),
+                        query=all_params[0].query,
+                        variables=all_params[0].variables,
+                        operation_name=all_params[0].operation_name,
                         subscription_url=self.subscriptions,
                         headers=self.headers,
                     )
@@ -181,7 +181,7 @@ class GraphQLView(HTTPMethodView):
         except HttpQueryError as e:
             parsed_error = GraphQLError(e.message)
             return HTTPResponse(
-                self.encode(dict(errors=[self.format_error(parsed_error)])),
+                self.encode({"errors": [self.format_error(parsed_error)]}),
                 status=e.status_code,
                 headers=e.headers,
                 content_type="application/json",

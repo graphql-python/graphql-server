@@ -31,8 +31,7 @@ Activate the virtualenv and install dependencies by running:
 python pip install -e ".[test]"
 ```
 
-If you are using Linux or MacOS, you can make use of Makefile command 
-`make dev-setup`, which is a shortcut for the above python command.
+If you are using Linux or MacOS, you can make use of Makefile command `make dev-setup`, which is a shortcut for the above python command.
 
 ### Development on Conda
 
@@ -60,8 +59,7 @@ After developing, the full test suite can be evaluated by running:
 pytest tests --cov=graphql-server -vv
 ```
 
-If you are using Linux or MacOS, you can make use of Makefile command 
-`make tests`, which is a shortcut for the above python command.
+If you are using Linux or MacOS, you can make use of Makefile command `make tests`, which is a shortcut for the above python command.
 
 You can also test on several python environments by using tox.
 
@@ -73,8 +71,7 @@ Install tox:
 pip install tox
 ```
 
-Run `tox` on your virtualenv (do not forget to activate it!) 
-and that's it! 
+Run `tox` on your virtualenv (do not forget to activate it!) and that's it!
 
 ### Running tox on Conda
 
@@ -89,5 +86,4 @@ This install tox underneath so no need to install it before.
 
 Then uncomment the `requires = tox-conda` line on `tox.ini` file.
 
-Run `tox` and you will see all the environments being created 
-and all passing tests. :rocket:
+Run `tox` and you will see all the environments being created and all passing tests. :rocket:
