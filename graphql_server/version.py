@@ -36,7 +36,9 @@ class VersionInfo(NamedTuple):
     def __str__(self) -> str:
         v = f"{self.major}.{self.minor}.{self.micro}"
         level = self.releaselevel
-        if level and level != "final":
+        if level == "candidate":
+            v = f"{v}rc{self.serial}"
+        elif level and level != "final":
             v = f"{v}{level[:1]}{self.serial}"
         return v
 
