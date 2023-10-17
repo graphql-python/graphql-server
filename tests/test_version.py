@@ -1,126 +1,50 @@
-import re
-from typing import Tuple, Union
+import packaging
+from packaging.version import Version
 
-import pytest
+from graphql_server.version import version, version_info
 
-import graphql_server
-from graphql_server.version import VersionInfo, version, version_info
-
-_re_version = re.compile(r"(\d+)\.(\d+)\.(\d+)(?:([abc]|rc)(\d+))?$")
-
-TEST_CASES = [
-    (
-        (1, 2, 3),
-        "1.2.3",
-    ),
-    (
-        (1, 2, 3, "alpha", 4),
-        "1.2.3a4",
-    ),
-    (
-        (1, 2, 3, "beta", 4),
-        "1.2.3b4",
-    ),
-    (
-        (12, 34, 56, "candidate", 789),
-        "12.34.56rc789",
-    ),
-]
+RELEASE_LEVEL = {"alpha": "a", "beta": "b", "rc": "rc", "final": None}
 
 
-PARSED_VERSIONS = [parsed_version for parsed_version, _ in TEST_CASES]
-VERSION_STRINGS = [version_string for _, version_string in TEST_CASES]
+parsed_version = Version(version)
 
 
-def extract_version_components(
-    parsed_version: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]],
-) -> Tuple[int, int, int, str, int]:
-    if len(parsed_version) == 5:
-        return parsed_version  # type: ignore
-    elif len(parsed_version) == 3:
-        return tuple([*parsed_version, "final", 0])  # type: ignore
-
-    raise ValueError("parsed_version length should be either 3 or 5")
+def test_valid_version() -> None:
+    packaging.version.parse(version)
 
 
-@pytest.mark.parametrize("parsed_version", PARSED_VERSIONS)
-def test_create_version_info_from_fields(
-    parsed_version: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]],
-) -> None:
-    version_components = extract_version_components(parsed_version)
-    major, minor, micro, releaselevel, serial = version_components
-    v = VersionInfo(*version_components)
-
-    assert v.major == major
-    assert v.minor == minor
-    assert v.micro == micro
-    assert v.releaselevel == releaselevel
-    assert v.serial == serial
-
-
-@pytest.mark.parametrize("parsed_version, version_string", TEST_CASES)
-def test_create_version_info_from_str(
-    parsed_version: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]],
-    version_string: str,
-) -> None:
-    v = VersionInfo.from_str(version_string)
-    major, minor, micro, releaselevel, serial = extract_version_components(
-        parsed_version
-    )
-
-    assert v.major == major
-    assert v.minor == minor
-    assert v.micro == micro
-    assert v.releaselevel == releaselevel
-    assert v.serial == serial
-
-
-@pytest.mark.parametrize("parsed_version, version_string", TEST_CASES)
-def test_serialize_as_str(
-    parsed_version: Union[Tuple[int, int, int], Tuple[int, int, int, str, int]],
-    version_string: str,
-) -> None:
-    v = VersionInfo(*extract_version_components(parsed_version))
-    assert str(v) == version_string
-
-
-def test_base_package_has_correct_version() -> None:
-    assert graphql_server.__version__ == version
-    assert graphql_server.version == version
-
-
-def test_base_package_has_correct_version_info() -> None:
-    assert graphql_server.__version_info__ is version_info
-    assert graphql_server.version_info is version_info
-
-
-@pytest.mark.parametrize("version", VERSION_STRINGS + [version])
-def test_version_has_correct_format(version: str) -> None:
-    assert isinstance(version, str)
-    assert _re_version.match(version)
-
-
-@pytest.mark.parametrize(
-    "version,version_info",
-    zip(
-        VERSION_STRINGS + [version],
-        [VersionInfo.from_str(v) for v in VERSION_STRINGS] + [version_info],
-    ),
-)
-def test_version_info_has_correct_fields(
-    version: str, version_info: VersionInfo
-) -> None:
+def test_valid_version_info() -> None:
+    """version_info has to be a tuple[int, int, int, str, int]"""
     assert isinstance(version_info, tuple)
-    assert str(version_info) == version
-    groups = _re_version.match(version).groups()  # type: ignore
-    assert version_info.major == int(groups[0])
-    assert version_info.minor == int(groups[1])
-    assert version_info.micro == int(groups[2])
-    if groups[3] is None:  # pragma: no cover
-        assert groups[4] is None
-    else:  # pragma: no cover
-        if version_info.releaselevel == "candidate":
-            assert groups[3] == "rc"
-        else:
-            assert version_info.releaselevel[:1] == groups[3]
-        assert version_info.serial == int(groups[4])
+    assert len(version_info) == 5
+
+    major, minor, micro, release_level, serial = version_info
+    assert isinstance(major, int)
+    assert isinstance(minor, int)
+    assert isinstance(micro, int)
+    assert isinstance(release_level, str)
+    assert isinstance(serial, int)
+
+
+def test_valid_version_release_level() -> None:
+    if parsed_version.pre is not None:
+        valid_release_levels = {v for v in RELEASE_LEVEL.values() if v is not None}
+        assert parsed_version.pre[0] in valid_release_levels
+
+
+def test_valid_version_info_release_level() -> None:
+    assert version_info[3] in RELEASE_LEVEL.keys()
+
+
+def test_version_same_as_version_info() -> None:
+    assert (
+        parsed_version.major,
+        parsed_version.minor,
+        parsed_version.micro,
+    ) == version_info[:3]
+
+    release_level, serial = version_info[-2:]
+    if parsed_version.is_prerelease:
+        assert (RELEASE_LEVEL[release_level], serial) == parsed_version.pre
+    else:
+        assert (release_level, serial) == ("final", 0)

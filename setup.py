@@ -13,6 +13,7 @@ tests_requires = [
     "pytest-cov>=4,<5",
     "Jinja2>=3.1,<4",
     "sanic-testing>=22.3,<24",
+    "packaging==23.2",
 ]
 
 dev_requires = [

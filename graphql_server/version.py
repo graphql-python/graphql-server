@@ -1,46 +1,15 @@
-import re
-from typing import NamedTuple
-
 __all__ = ["version", "version_info"]
 
 
 version = "3.0.0b7"
-
-_re_version = re.compile(r"(\d+)\.(\d+)\.(\d+)(\D*)(\d*)")
-
-
-class VersionInfo(NamedTuple):
-    major: int
-    minor: int
-    micro: int
-    releaselevel: str
-    serial: int
-
-    @classmethod
-    def from_str(cls, v: str) -> "VersionInfo":
-        groups = _re_version.match(v).groups()  # type: ignore
-        major, minor, micro = map(int, groups[:3])
-        level = (groups[3] or "")[:1]
-        if level == "a":
-            level = "alpha"
-        elif level == "b":
-            level = "beta"
-        elif level in ("c", "r"):
-            level = "candidate"
-        else:
-            level = "final"
-        serial = groups[4]
-        serial = int(serial) if serial else 0
-        return cls(major, minor, micro, level, serial)
-
-    def __str__(self) -> str:
-        v = f"{self.major}.{self.minor}.{self.micro}"
-        level = self.releaselevel
-        if level == "candidate":
-            v = f"{v}rc{self.serial}"
-        elif level and level != "final":
-            v = f"{v}{level[:1]}{self.serial}"
-        return v
-
-
-version_info = VersionInfo.from_str(version)
+version_info = (3, 0, 0, "beta", 7)
+# version_info has the same format as django.VERSION
+# https://github.com/django/django/blob/4a5048b036fd9e965515e31fdd70b0af72655cba/django/utils/version.py#L22
+#
+# examples
+# "3.0.0" -> (3, 0, 0, "final", 0)
+# "3.0.0rc1" -> (3, 0, 0, "rc", 1)
+# "3.0.0b7" -> (3, 0, 0, "beta", 7)
+# "3.0.0a2" -> (3, 0, 0, "alpha", 2)
+#
+# also see tests/test_version.py
