@@ -15,7 +15,7 @@ async def execute_client(
     client: TestClientProtocol,
     method: str = "GET",
     headers: Optional[Headers] = None,
-    **extra_params
+    **extra_params,
 ) -> Response:
     test_request_context = app.test_request_context(path="/", method=method)
     async with test_request_context:
@@ -51,7 +51,7 @@ async def test_graphiql_renders_pretty(app: Quart, client: TestClientProtocol):
         '    "test": "Hello World"\n'
         "  }\n"
         "}".replace('"', '\\"').replace("\n", "\\n")
-    )
+    )  # fmt: skip
     result = await response.get_data(as_text=True)
     assert pretty_response in result
 

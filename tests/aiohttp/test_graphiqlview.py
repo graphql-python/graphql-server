@@ -27,7 +27,7 @@ async def test_graphiql_is_enabled(app, client):
         '    "test": "Hello World"\n'
         "  }\n"
         "}".replace('"', '\\"').replace("\n", "\\n")
-    )
+    )  # fmt: skip
 
     assert pretty_response in await response.text()
 

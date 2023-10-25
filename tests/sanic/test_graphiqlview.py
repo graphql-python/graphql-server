@@ -26,7 +26,7 @@ def test_graphiql_is_enabled(app):
         '    "test": "Hello World"\n'
         "  }\n"
         "}".replace('"', '\\"').replace("\n", "\\n")
-    )
+    )  # fmt: skip
 
     assert pretty_response in response.body.decode("utf-8")
 
