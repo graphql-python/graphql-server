@@ -33,7 +33,7 @@ def test_graphiql_renders_pretty(app, client):
         '    "test": "Hello World"\n'
         "  }\n"
         "}".replace('"', '\\"').replace("\n", "\\n")
-    )
+    )  # fmt: skip
 
     assert pretty_response in response.data.decode("utf-8")
 

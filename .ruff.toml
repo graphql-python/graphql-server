@@ -25,7 +25,6 @@ target-version = "py38"
 
 [isort]
 known-first-party = ["graphql_server"]
-force-wrap-aliases = true
 combine-as-imports = true
 
 [pyupgrade]
