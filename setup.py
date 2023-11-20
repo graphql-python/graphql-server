@@ -34,6 +34,7 @@ install_webob_requires = [
 
 install_aiohttp_requires = [
     "aiohttp>=3.8,<4",
+    "aiohttp>=3.9,<4; python_version >= '3.12'",
 ]
 
 install_quart_requires = ["quart>=0.15,<1"]
@@ -72,6 +73,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "License :: OSI Approved :: MIT License",
     ],
     keywords="api graphql protocol rest",
