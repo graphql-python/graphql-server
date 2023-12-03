@@ -32,6 +32,9 @@ class GraphQLTransportWSHandler(BaseGraphQLTransportWSHandler):
     async def send_json(self, data: dict) -> None:
         await self._ws.send_json(data)
 
+    async def send_xjson(self, data: dict) -> None:
+        await self._ws.send_json(data)
+
     async def close(self, code: int = 1000, reason: Optional[str] = None) -> None:
         # Close messages are not part of the ASGI ref yet
         await self._ws.close(code=code)
