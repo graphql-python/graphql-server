@@ -19,9 +19,8 @@ def _split_on_find(content, bound):
 
 
 def _header_parser(string):
-
-    headers = email.parser.HeaderParser().parsestr(string.decode("ascii")).items()
-    return {k: v.encode("ascii") for k, v in headers}
+    headers = email.parser.HeaderParser().parsestr(string.decode("utf-8")).items()
+    return {k: v.encode("utf-8") for k, v in headers}
 
 
 class BodyPart(object):
@@ -146,13 +145,13 @@ def parse_header(line):
     will be decoded later.
     """
     plist = _parse_header_params(b";" + line)
-    key = plist.pop(0).lower().decode("ascii")
+    key = plist.pop(0).lower().decode("utf-8")
     pdict = {}
     for p in plist:
         i = p.find(b"=")
         if i >= 0:
             has_encoding = False
-            name = p[:i].strip().lower().decode("ascii")
+            name = p[:i].strip().lower().decode("utf-8")
             if name.endswith("*"):
                 # Lang/encoding embedded in the value (like "filename*=UTF-8''file.ext")
                 # https://tools.ietf.org/html/rfc2231#section-4
