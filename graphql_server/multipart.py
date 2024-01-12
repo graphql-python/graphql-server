@@ -127,16 +127,14 @@ def get_post_and_files(body, content_type):
     files = {}
     parts = MultipartDecoder(body, content_type).parts
     for part in parts:
-        for name, header_value in part.headers.items():
+        for header_name, header_value in part.headers.items():
             value, params = parse_header(header_value)
-            if name.lower() == "content-disposition":
+            if header_name.lower() == "content-disposition":
+                name = params.get("name")
                 filename = params.get("filename")
                 if filename:
-                    files[name.decode("utf-8")] = File(
-                        content=part.content, filename=filename
-                    )
+                    files[name] = File(content=part.content, filename=filename)
                 else:
-                    name = params.get("name")
                     post[name.decode("utf-8")] = part.content.decode("utf-8")
     return post, files
 
