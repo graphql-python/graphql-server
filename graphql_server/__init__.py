@@ -25,7 +25,7 @@ from typing import (
 
 from graphql.error import GraphQLError
 from graphql.execution import ExecutionResult, execute
-from graphql.language import OperationType, parse
+from graphql.language import OperationType, parse, DocumentNode
 from graphql.pyutils import AwaitableOrValue
 from graphql.type import GraphQLSchema, validate_schema
 from graphql.utilities import get_operation_ast
@@ -61,7 +61,7 @@ __all__ = [
 
 @dataclass
 class GraphQLParams:
-    query: str
+    query: str | DocumentNode
     variables: Optional[Dict[str, Any]] = None
     operation_name: Optional[str] = None
 
@@ -158,8 +158,6 @@ def run_http_query(
     all_params: List[GraphQLParams] = [
         get_graphql_params(entry, extra_data) for entry in data
     ]
-    # print("GET ROOT VALUE 0", type(request_method), all_params)
-    # print(dict(schema=schema, all_params=all_params, catch_exc=catch_exc, allow_only=allow_only_query, run_sync=run_sync))
 
     results: List[Optional[AwaitableOrValue[ExecutionResult]]] = [
         get_response(
@@ -167,7 +165,6 @@ def run_http_query(
         )
         for params in all_params
     ]
-    # print("GET ROOT VALUE 1")
 
     return GraphQLResponse(results=results, params=all_params)
 
@@ -314,6 +311,55 @@ def assume_not_awaitable(_value: Any) -> bool:
     return False
 
 
+def parse_document(
+    schema: GraphQLSchema,
+    params: GraphQLParams,
+    allow_only_query: bool = False,
+    validation_rules: Optional[Collection[Type[ASTValidationRule]]] = None,
+    max_errors: Optional[int] = None,
+) -> Optional[Dict]:
+    if not params.query:
+        raise HttpQueryError(400, "Must provide query string.")
+
+    if not isinstance(params.query, str) and not isinstance(params.query, DocumentNode):
+        raise HttpQueryError(400, "Unexpected query type.")
+
+    if isinstance(params.query, DocumentNode):
+        return params.query
+    schema_validation_errors = validate_schema(schema)
+    if schema_validation_errors:
+        return ExecutionResult(data=None, errors=schema_validation_errors)
+
+    try:
+        document = parse(params.query)
+    except GraphQLError as e:
+        return ExecutionResult(data=None, errors=[e])
+    except Exception as e:
+        e = GraphQLError(str(e), original_error=e)
+        return ExecutionResult(data=None, errors=[e])
+
+    if allow_only_query:
+        operation_ast = get_operation_ast(document, params.operation_name)
+        if operation_ast:
+            operation = operation_ast.operation.value
+            if operation != OperationType.QUERY.value:
+                raise HttpQueryError(
+                    405,
+                    f"Can only perform a {operation} operation" " from a POST request.",
+                    headers={"Allow": "POST"},
+                )
+
+    validation_errors = validate(
+        schema,
+        document,
+        rules=validation_rules,
+        max_errors=max_errors,
+    )
+    if validation_errors:
+        return ExecutionResult(data=None, errors=validation_errors)
+    return document
+
+
 def get_response(
     schema: GraphQLSchema,
     params: GraphQLParams,
@@ -334,44 +380,18 @@ def get_response(
     belong to an exception class specified by catch_exc.
     """
     # noinspection PyBroadException
+    document = parse_document(
+        schema,
+        params,
+        allow_only_query,
+        validation_rules,
+        max_errors,
+    )
+    if isinstance(document, ExecutionResult):
+        return document
+    if not isinstance(document, DocumentNode):
+        raise Exception("GraphQL query could not be parsed properly.")
     try:
-        if not params.query:
-            raise HttpQueryError(400, "Must provide query string.")
-
-        # Sanity check query
-        if not isinstance(params.query, str):
-            raise HttpQueryError(400, "Unexpected query type.")
-
-        schema_validation_errors = validate_schema(schema)
-        if schema_validation_errors:
-            return ExecutionResult(data=None, errors=schema_validation_errors)
-
-        try:
-            document = parse(params.query)
-        except GraphQLError as e:
-            return ExecutionResult(data=None, errors=[e])
-        except Exception as e:
-            e = GraphQLError(str(e), original_error=e)
-            return ExecutionResult(data=None, errors=[e])
-
-        if allow_only_query:
-            operation_ast = get_operation_ast(document, params.operation_name)
-            if operation_ast:
-                operation = operation_ast.operation.value
-                if operation != OperationType.QUERY.value:
-                    raise HttpQueryError(
-                        405,
-                        f"Can only perform a {operation} operation"
-                        " from a POST request.",
-                        headers={"Allow": "POST"},
-                    )
-
-        validation_errors = validate(
-            schema, document, rules=validation_rules, max_errors=max_errors
-        )
-        if validation_errors:
-            return ExecutionResult(data=None, errors=validation_errors)
-
         execution_result = execute(
             schema,
             document,
