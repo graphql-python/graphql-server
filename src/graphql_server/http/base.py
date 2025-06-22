@@ -31,7 +31,7 @@ class BaseView(Generic[Request]):
             and request.query_params.get("query") is None
             and any(
                 supported_header in request.headers.get("accept", "")
-                for supported_header in ("text/html", "*/*")
+                for supported_header in ("text/html",)
             )
         )
 

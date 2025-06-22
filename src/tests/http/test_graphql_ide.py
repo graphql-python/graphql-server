@@ -6,7 +6,12 @@ import pytest
 from .clients.base import HttpClient
 
 
-@pytest.mark.parametrize("header_value", ["text/html", "*/*"])
+@pytest.mark.parametrize(
+    "header_value",
+    [
+        "text/html",
+    ],
+)
 @pytest.mark.parametrize(
     "graphql_ide_and_title",
     [
@@ -44,7 +49,12 @@ async def test_renders_graphql_ide(
         assert "unpkg.com/graphiql" in response.text
 
 
-@pytest.mark.parametrize("header_value", ["text/html", "*/*"])
+@pytest.mark.parametrize(
+    "header_value",
+    [
+        "text/html",
+    ],
+)
 async def test_renders_graphql_ide_deprecated(
     header_value: str, http_client_class: type[HttpClient]
 ):
