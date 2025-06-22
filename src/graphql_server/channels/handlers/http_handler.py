@@ -300,7 +300,7 @@ class GraphQLHTTPConsumer(
         self, request: ChannelsRequest, request_data: GraphQLRequestData
     ) -> ChannelsResponse:
         return ChannelsResponse(
-            content=self.graphql_ide_html.encode(),
+            content=request_data.to_template_string(self.graphql_ide_html).encode(),
             content_type="text/html; charset=utf-8",
         )
 
@@ -358,7 +358,7 @@ class SyncGraphQLHTTPConsumer(
         self, request: ChannelsRequest, request_data: GraphQLRequestData
     ) -> ChannelsResponse:
         return ChannelsResponse(
-            content=self.graphql_ide_html.encode(),
+            content=request_data.to_template_string(self.graphql_ide_html).encode(),
             content_type="text/html; charset=utf-8",
         )
 

@@ -178,7 +178,10 @@ class GraphQLView(
     async def render_graphql_ide(
         self, request: web.Request, request_data: GraphQLRequestData
     ) -> web.Response:
-        return web.Response(text=self.graphql_ide_html, content_type="text/html")
+        return web.Response(
+            text=request_data.to_template_string(self.graphql_ide_html),
+            content_type="text/html",
+        )
 
     async def get_sub_response(self, request: web.Request) -> web.Response:
         return web.Response()

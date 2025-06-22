@@ -303,7 +303,10 @@ class GraphQLController(
     async def render_graphql_ide(
         self, request: Request[Any, Any, Any], request_data: GraphQLRequestData
     ) -> Response[str]:
-        return Response(self.graphql_ide_html, media_type=MediaType.HTML)
+        return Response(
+            request_data.to_template_string(self.graphql_ide_html),
+            media_type=MediaType.HTML,
+        )
 
     def create_response(
         self, response_data: GraphQLHTTPResponse, sub_response: Response[bytes]

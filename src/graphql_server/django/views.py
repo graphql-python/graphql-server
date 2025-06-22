@@ -251,7 +251,7 @@ class GraphQLView(
                 context=request_data.to_template_context(),
             )
         except TemplateDoesNotExist:
-            content = self.graphql_ide_html
+            content = request_data.to_template_string(self.graphql_ide_html)
 
         return HttpResponse(content)
 
@@ -317,7 +317,7 @@ class AsyncGraphQLView(
                 context=request_data.to_template_context(),
             )
         except TemplateDoesNotExist:
-            content = self.graphql_ide_html
+            content = request_data.to_template_string(self.graphql_ide_html)
 
         return HttpResponse(content=content)
 

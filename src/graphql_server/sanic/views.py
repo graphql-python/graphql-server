@@ -159,7 +159,7 @@ class GraphQLView(
     async def render_graphql_ide(
         self, request: Request, request_data: GraphQLRequestData
     ) -> HTTPResponse:
-        return html(self.graphql_ide_html)
+        return html(request_data.to_template_string(self.graphql_ide_html))
 
     async def get_sub_response(self, request: Request) -> TemporalResponse:
         return TemporalResponse()

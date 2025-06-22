@@ -85,7 +85,7 @@ class GraphQLView(
         self, request: Request, request_data: GraphQLRequestData
     ) -> Response:
         return Response(
-            self.graphql_ide_html,
+            request_data.to_template_string(self.graphql_ide_html),
             headers={"Content-Type": "text/html"},
         )
 

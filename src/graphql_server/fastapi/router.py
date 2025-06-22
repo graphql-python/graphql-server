@@ -265,7 +265,7 @@ class GraphQLRouter(
     async def render_graphql_ide(
         self, request: Request, request_data: GraphQLRequestData
     ) -> HTMLResponse:
-        return HTMLResponse(self.graphql_ide_html)
+        return HTMLResponse(request_data.to_template_string(self.graphql_ide_html))
 
     async def get_context(
         self, request: Union[Request, WebSocket], response: Union[Response, WebSocket]

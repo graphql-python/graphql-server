@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import re
 from dataclasses import dataclass
 from graphql.language import DocumentNode
 from typing import TYPE_CHECKING, Any, Optional
@@ -26,6 +28,24 @@ def process_result(result: ExecutionResult) -> GraphQLHTTPResponse:
     return data
 
 
+def tojson(value):
+    if value not in ["true", "false", "null", "undefined"]:
+        value = json.dumps(value)
+        # value = escape_js_value(value)
+    return value
+
+
+def simple_renderer(template: str, **values: str) -> str:
+    def get_var(match_obj: re.Match[str]) -> str:
+        var_name = match_obj.group(1)
+        if var_name is not None:
+            return values.get(var_name, "")
+        return ""
+
+    pattern = r"{{\s*([^}]+)\s*}}"
+    return re.sub(pattern, get_var, template)
+
+
 @dataclass
 class GraphQLRequestData:
     # query is optional here as it can be added by an extensions
@@ -39,10 +59,13 @@ class GraphQLRequestData:
 
     def to_template_context(self) -> dict[str, Any]:
         return {
-            "query": self.query,
-            "variables": self.variables,
-            "operationName": self.operation_name,
+            "query": tojson(self.query),
+            "variables": tojson(self.variables),
+            "operation_name": tojson(self.operation_name),
         }
+
+    def to_template_string(self, template: str) -> str:
+        return simple_renderer(template, **self.to_template_context())
 
 
 __all__ = [
