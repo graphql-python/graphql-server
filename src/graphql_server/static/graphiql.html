@@ -151,10 +151,10 @@
           otherParams[k] = parameters[k];
         }
       }
-      var fetchURL = locationQuery(otherParams);
+      var fetchURL = window.location.pathname + locationQuery(otherParams);
 
       function httpUrlToWebSockeUrl(url) {
-        const parsedURL = new URL(url);
+        const parsedURL = new URL(url, window.location.href);
         const protocol = parsedURL.protocol === "http:" ? "ws:" : "wss:";
         parsedURL.protocol = protocol;
         parsedURL.hash = "";
