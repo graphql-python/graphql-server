@@ -245,7 +245,11 @@ class GraphQLView(
         self, request: HttpRequest, request_data: GraphQLRequestData
     ) -> HttpResponse:
         try:
-            content = render_to_string("graphql/graphiql.html", request=request)
+            content = render_to_string(
+                "graphql/graphiql.html",
+                request=request,
+                context=request_data.to_template_context(),
+            )
         except TemplateDoesNotExist:
             content = self.graphql_ide_html
 
@@ -307,7 +311,11 @@ class AsyncGraphQLView(
         self, request: HttpRequest, request_data: GraphQLRequestData
     ) -> HttpResponse:
         try:
-            content = render_to_string("graphql/graphiql.html", request=request)
+            content = render_to_string(
+                "graphql/graphiql.html",
+                request=request,
+                context=request_data.to_template_context(),
+            )
         except TemplateDoesNotExist:
             content = self.graphql_ide_html
 

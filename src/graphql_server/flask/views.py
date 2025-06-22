@@ -133,7 +133,14 @@ class GraphQLView(
     def render_graphql_ide(
         self, request: Request, request_data: GraphQLRequestData
     ) -> Response:
-        return render_template_string(self.graphql_ide_html)  # type: ignore
+        return render_template_string(
+            self.graphql_ide_html,
+            **{
+                "query": request_data.query,
+                "variables": request_data.variables,
+                "operationName": request_data.operation_name,
+            },
+        )  # type: ignore
 
 
 class AsyncFlaskHTTPRequestAdapter(AsyncHTTPRequestAdapter):
@@ -198,7 +205,9 @@ class AsyncGraphQLView(
     async def render_graphql_ide(
         self, request: Request, request_data: GraphQLRequestData
     ) -> Response:
-        content = render_template_string(self.graphql_ide_html)
+        content = render_template_string(
+            self.graphql_ide_html, **request_data.to_template_context()
+        )
         return Response(content, status=200, content_type="text/html")
 
     def is_websocket_request(self, request: Request) -> TypeGuard[Request]:

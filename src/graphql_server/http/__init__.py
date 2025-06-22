@@ -37,6 +37,13 @@ class GraphQLRequestData:
     extensions: Optional[dict[str, Any]]
     protocol: Literal["http", "multipart-subscription", "subscription"] = "http"
 
+    def to_template_context(self) -> dict[str, Any]:
+        return {
+            "query": self.query,
+            "variables": self.variables,
+            "operationName": self.operation_name,
+        }
+
 
 __all__ = [
     "GraphQLHTTPResponse",
