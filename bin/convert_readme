@@ -1,6 +1,0 @@
-#!/bin/bash
-
-# the README can be converted from MarkDown to reST
-# with pandoc (https://pandoc.org/)
-
-pandoc README.md --from markdown --to rst -s -o README.rst

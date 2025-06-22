@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>GraphiQL</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,
+        <svg preserveAspectRatio=%22xMidYMid%22 version=%221.1%22 viewBox=%22-23 0 302 302%22 xmlns=%22http://www.w3.org/2000/svg%22>
+          <polygon points=%22127.89 0 149.92 12.893 138.44 19.694 150.24 12.728 150.24 38.762 44.11 101.24 44.11 200.45 44.214 200.39 127.39 248.74 211.93 199.87 211.93 127.47 127.93 176.99 127.93 176.78 106.19 163.84 106.19 138.19 105.74 137.91 233.4 62.946 255.94 75.424 255.98 75.398 255.98 75.449 256 75.46 255.98 75.472 255.98 226.33 128.66 301.5 128.66 301.91 128.31 301.71 127.93 301.93 127.93 301.48 0 225.55 0 74.98 5.623 78.297 0.22642 74.961%22 fill=%22#F25F3F%22></polygon>
+          <polygon points=%22150.24 12.728 150.24 38.762 44.11 101.24 44.11 200.62 22.189 213.26 22.189 88.333%22 fill=%22#F25F3F%22></polygon>
+          <polygon points=%22149.92 12.893 127.89 0 0.22642 74.961 22.259 88.58%22 fill=%22#FFAA5B%22></polygon>
+          <polygon points=%22254.81 200.39 233.02 187.68 127.39 248.74 44.214 200.39 22.109 213.31 105.36 262.64 127.39 276.26%22 fill=%22#FFAA5B%22></polygon>
+          <polygon points=%22256 75.46 233.4 62.946 105.74 137.91 127.77 151.53%22 fill=%22#FFAA5B%22></polygon>
+          <polygon points=%220 74.98 22.312 88.141 22.312 213.21 128.66 275.5 128.66 301.91 0 225.55%22 fill=%22#EB1919%22></polygon>
+          <polyline points=%22211.93 101.82 211.93 200.2 234.27 212.83 234.27 106.58 211.93 101.82%22 fill=%22#EB1919%22></polyline>
+          <polygon transform=%22translate(191.95 188.67) rotate(180) translate(-191.95 -188.67)%22 points=%22255.98 75.398 255.98 101.43 149.85 164.51 149.85 262.91 255.98 200.34 255.98 226.26 127.93 301.93 127.93 151%22 fill=%22#F25F3F%22></polygon>
+          <polygon points=%22106.19 137.7 106.19 163.84 128.04 176.85 128.04 150.97%22 fill=%22#EB1919%22></polygon>
+        </svg>"
+    />
+    <style>
+      body {
+        height: 100%;
+        margin: 0;
+        width: 100%;
+        overflow: hidden;
+      }
+
+      #graphiql {
+        height: 100vh;
+        display: flex;
+      }
+
+      .docExplorerHide {
+        display: none;
+      }
+
+      .doc-explorer-contents {
+        overflow-y: hidden !important;
+      }
+
+      .docExplorerWrap {
+        width: unset !important;
+        min-width: unset !important;
+      }
+
+      .graphiql-explorer-actions select {
+        margin-left: 4px;
+      }
+    </style>
+
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"
+      integrity="sha384-tMH8h3BGESGckSAVGZ82T9n90ztNXxvdwvdM6UoR56cYcf+0iGXBliJ29D+wZ/x8"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"
+      integrity="sha384-bm7MnzvK++ykSwVJ2tynSE5TRdN+xL418osEVF2DE/L/gfWHj91J2Sphe582B1Bh"
+    ></script>
+
+    <script
+      crossorigin
+      src="https://unpkg.com/js-cookie@3.0.5/dist/js.cookie.min.js"
+      integrity="sha384-/vxhYfM1LENRhdpZ8dwEsQn/X4VhpbEZSiU4m/FwR+PVpzar4fkEOw8FP9Y+OfQN"
+    ></script>
+
+    <link
+      crossorigin
+      rel="stylesheet"
+      href="https://unpkg.com/graphiql@3.0.9/graphiql.min.css"
+      integrity="sha384-yz3/sqpuplkA7msMo0FE4ekg0xdwdvZ8JX9MVZREsxipqjU4h8IRfmAMRcb1QpUy"
+    />
+
+    <link
+      crossorigin
+      rel="stylesheet"
+      href="https://unpkg.com/@graphiql/plugin-explorer@1.0.2/dist/style.css"
+      integrity="sha384-5DFJlDPW2tSATRbM8kzoP1j194jexLswuNmClWoRr2Q0x7R68JIQzPHZ02Faktwi"
+    />
+  </head>
+
+  <body>
+    <div id="graphiql" class="graphiql-container">Loading...</div>
+    <script
+      crossorigin
+      src="https://unpkg.com/graphiql@3.0.9/graphiql.min.js"
+      integrity="sha384-Mjte+vxCWz1ZYCzszGHiJqJa5eAxiqI4mc3BErq7eDXnt+UGLXSEW7+i0wmfPiji"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/@graphiql/plugin-explorer@1.0.2/dist/index.umd.js"
+      integrity="sha384-2oonKe47vfHIZnmB6ZZ10vl7T0Y+qrHQF2cmNTaFDuPshpKqpUMGMc9jgj9MLDZ9"
+    ></script>
+    <script>
+      const EXAMPLE_QUERY = `# Welcome to GraphiQL 🍓
+#
+# GraphiQL is an in-browser tool for writing, validating, and
+# testing GraphQL queries.
+#
+# Type queries into this side of the screen, and you will see intelligent
+# typeaheads aware of the current GraphQL type schema and live syntax and
+# validation errors highlighted within the text.
+#
+# GraphQL queries typically start with a "{" character. Lines that starts
+# with a # are ignored.
+#
+# An example GraphQL query might look like:
+#
+#     {
+#       field(arg: "value") {
+#         subField
+#       }
+#     }
+#
+# Keyboard shortcuts:
+#
+#       Run Query:  Ctrl-Enter (or press the play button above)
+#
+#   Auto Complete:  Ctrl-Space (or just start typing)
+#
+`;
+
+      const fetchURL = window.location.href;
+
+      function httpUrlToWebSockeUrl(url) {
+        const parsedURL = new URL(url);
+        const protocol = parsedURL.protocol === "http:" ? "ws:" : "wss:";
+        parsedURL.protocol = protocol;
+        parsedURL.hash = "";
+        return parsedURL.toString();
+      }
+
+      const headers = {};
+      const csrfToken = Cookies.get("csrftoken");
+
+      if (csrfToken) {
+        headers["x-csrftoken"] = csrfToken;
+      }
+
+      const subscriptionUrl = httpUrlToWebSockeUrl(fetchURL);
+
+      const fetcher = GraphiQL.createFetcher({
+        url: fetchURL,
+        headers: headers,
+        subscriptionUrl,
+      });
+
+      const explorerPlugin = GraphiQLPluginExplorer.explorerPlugin();
+
+      const root = ReactDOM.createRoot(document.getElementById("graphiql"));
+
+      root.render(
+        React.createElement(GraphiQL, {
+          fetcher: fetcher,
+          defaultEditorToolsVisibility: true,
+          plugins: [explorerPlugin],
+          inputValueDeprecation: true,
+        }),
+      );
+    </script>
+  </body>
+</html>

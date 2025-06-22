@@ -1,0 +1,341 @@
+[project]
+name = "graphql-server"
+version = "3.0.0b8"
+description = "A library for creating GraphQL APIs"
+authors = [{ name = "Syrus Akbary", email = "me@syrusakbary.com" }]
+license = { text = "MIT" }
+readme = "README.md"
+keywords = ["graphql", "api", "rest", "starlette", "async", "fastapi", "django", "flask", "litestar", "sanic", "channels", "aiohttp", "chalice", "pyright", "mypy", "codeflash"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "License :: OSI Approved :: MIT License",
+]
+requires-python = ">=3.9,<4.0"
+dependencies = [
+  "graphql-core>=3.2.0,<3.4.0",
+]
+
+[project.urls]
+homepage = "https://graphql-server.org/"
+repository = "https://github.com/graphql-python/graphql-server"
+"Changelog" = "https://github.com/graphql-python/graphql-server/changelog"
+
+[project.optional-dependencies]
+aiohttp = ["aiohttp>=3.7.4.post0,<4"]
+asgi = ["starlette>=0.18.0", "python-multipart>=0.0.7"]
+debug = ["rich>=12.0.0", "libcst"]
+debug-server = [
+  "starlette>=0.18.0",
+  "uvicorn>=0.11.6",
+  "websockets>=15.0.1,<16",
+  "python-multipart>=0.0.7",
+  "typer>=0.7.0",
+  "pygments~=2.3",
+  "rich>=12.0.0",
+  "libcst",
+]
+django = ["Django>=3.2", "asgiref~=3.2"]
+channels = ["channels>=3.0.5", "asgiref~=3.2"]
+flask = ["flask>=1.1"]
+quart = ["quart>=0.19.3"]
+opentelemetry = ["opentelemetry-api<2", "opentelemetry-sdk<2"]
+sanic = ["sanic>=20.12.2"]
+fastapi = ["fastapi>=0.65.2", "python-multipart>=0.0.7"]
+chalice = ["chalice~=1.22"]
+litestar = ["litestar>=2; python_version~='3.10'"]
+pyinstrument = ["pyinstrument>=4.0.0"]
+
+[tool.pytest.ini_options]
+# addopts = "--emoji"
+DJANGO_SETTINGS_MODULE = "tests.django.django_settings"
+testpaths = ["tests/"]
+django_find_project = false
+markers = [
+  "aiohttp",
+  "asgi",
+  "chalice",
+  "channels",
+  "django_db",
+  "django",
+  "fastapi",
+  "flaky",
+  "flask",
+  "litestar",
+  "pydantic",
+  "quart",
+  "relay",
+  "sanic",
+  "starlette",
+]
+asyncio_mode = "auto"
+filterwarnings = [
+  "ignore::DeprecationWarning:graphql_server.*.resolver",
+  "ignore:LazyType is deprecated:DeprecationWarning",
+  "ignore::DeprecationWarning:ddtrace.internal",
+  "ignore::DeprecationWarning:django.utils.encoding",
+  # ignoring the text instead of the whole warning because we'd
+  # get an error when django is not installed
+  "ignore:The default value of USE_TZ",
+  "ignore::DeprecationWarning:pydantic_openapi_schema.*",
+  "ignore::DeprecationWarning:graphql.*",
+  "ignore::DeprecationWarning:websockets.*",
+  "ignore::DeprecationWarning:pydantic.*",
+  "ignore::UserWarning:pydantic.*",
+  "ignore::DeprecationWarning:pkg_resources.*",
+]
+
+
+# [tool.autopub]
+# git-username = "GraphQL-bot"
+# git-email = "me@syrusakbary.com"
+# project-name = "GraphQL Server"
+# append-github-contributor = true
+
+[tool.pyright]
+# include = ["graphql_server"]
+exclude = ["**/__pycache__", "**/.venv", "**/.pytest_cache", "**/.nox"]
+reportMissingImports = true
+reportMissingTypeStubs = false
+pythonVersion = "3.9"
+stubPath = ""
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+fix = true
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".hg",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
+  "tests/*/snapshots",
+]
+src = ["src/graphql_server", "src/tests"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  # https://github.com/astral-sh/ruff/pull/4427
+  # equivalent to keep-runtime-typing. We might want to enable those
+  # after we drop support for Python 3.9
+  "UP006",
+  "UP007",
+
+  # we use asserts in tests and to hint mypy
+  "S101",
+
+  # Allow "Any" for annotations. We have too many Any annotations and some
+  # are legit. Maybe reconsider in the future, except for tests?
+  "ANN401",
+
+  # Allow our exceptions to have names that don't end in "Error". Maybe refactor
+  # in the future? But that would be a breaking change.
+  "N818",
+
+  # Allow "type: ignore" without rule code. Because we support both mypy and
+  # pyright, and they have different codes for the same error, we can't properly
+  # fix those issues.
+  "PGH003",
+
+  # Variable `T` in function should be lowercase
+  # this seems a potential bug or opportunity for improvement in ruff
+  "N806",
+
+  # shadowing builtins
+  "A001",
+  "A002",
+  "A003",
+  "A005",
+
+  # Unused arguments
+  "ARG001",
+  "ARG002",
+  "ARG003",
+  "ARG004",
+  "ARG005",
+
+  # Boolean positional arguments
+  "FBT001",
+  "FBT002",
+  "FBT003",
+
+  # Too many arguments/branches/return statements
+  "PLR0913",
+  "PLR0912",
+  "PLR0911",
+
+  # Do not force adding _co to covariant typevars
+  "PLC0105",
+
+  # Allow private access to attributes
+  "SLF001",
+
+  # code complexity
+  "C901",
+
+  # Allow todo/fixme/etc comments
+  "TD002",
+  "TD003",
+  "FIX001",
+  "FIX002",
+
+  # We don't want to add "from __future__ mport annotations" everywhere
+  "FA100",
+
+  # Docstrings, maybe to enable later
+  "D100",
+  "D101",
+  "D102",
+  "D103",
+  "D104",
+  "D105",
+  "D106",
+  "D107",
+  "D412",
+
+  # Allow to define exceptions text in the exception body
+  "TRY003",
+  "EM101",
+  "EM102",
+  "EM103",
+
+  # Allow comparisons with magic numbers
+  "PLR2004",
+
+  # Allow methods to use lru_cache
+  "B019",
+
+  # Don't force if branches to be converted to "or"
+  "SIM114",
+
+  # ruff formatter recommends to disable those, as they conflict with it
+  # we don't need to ever enable those.
+  "COM812",
+  "COM819",
+  "D206",
+  "E111",
+  "E114",
+  "E117",
+  "E501",
+  "ISC001",
+  "Q000",
+  "Q001",
+  "Q002",
+  "Q003",
+  "W191",
+]
+
+[tool.ruff.lint.per-file-ignores]
+".github/*" = ["INP001"]
+"graphql_server/fastapi/*" = ["B008"]
+"graphql_server/annotation.py" = ["RET505"]
+"tests/*" = [
+  "ANN001",
+  "ANN201",
+  "ANN202",
+  "ANN204",
+  "B008",
+  "B018",
+  "D",
+  "DTZ001",
+  "DTZ005",
+  "FA102",
+  "N805",
+  "PLC1901",
+  "PLR2004",
+  "PLW0603",
+  "PT011",
+  "RUF012",
+  "S105",
+  "S106",
+  "S603",
+  "S607",
+  "TCH001",
+  "TCH002",
+  "TCH003",
+  "TRY002",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["graphql_server"]
+known-third-party = ["django", "graphql"]
+extra-standard-library = ["typing_extensions"]
+
+[tool.ruff.format]
+exclude = ['tests/codegen/snapshots/', 'tests/cli/snapshots/']
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.codeflash]
+# All paths are relative to this pyproject.toml's directory.
+module-root = "graphql_server"
+tests-root = "tests"
+test-framework = "pytest"
+ignore-paths = []
+formatter-cmds = ["ruff check --exit-zero --fix $file", "ruff format $file"]
+
+[build-system]
+requires = ["uv_build>=0.7,<0.8"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11.4,<0.12",
+    "asgiref>=3.2,<4.0",
+    "pygments>=2.3,<3.0",
+    "pytest>=7.2,<8.0",
+    "pytest-asyncio>=0.20.3",
+    "pytest-codspeed>=3.0.0 ; python_version>=\"3.9\"",
+    "pytest-cov>=4.0.0,<5.0",
+    "pytest-emoji>=0.2.0,<0.3",
+    "pytest-mock>=3.10,<4.0",
+    "pytest-snapshot>=0.9.0,<1.0",
+    "pytest-xdist[psutil]>=3.1.0,<4.0",
+    "python-multipart>=0.0.7",
+    "sanic-testing>=22.9,<24.0",
+    "poetry-plugin-export>=1.6.0,<2.0 ; python_version<\"4.0\"",
+    "urllib3<2",
+    "inline-snapshot>=0.10.1,<0.11",
+    "types-deprecated>=1.2.15.20241117,<2.0",
+    "types-six>=1.17.0.20250403,<2.0",
+    "mypy>=1.15.0,<2.0",
+    "pyright==1.1.401",
+    "codeflash>=0.9.2",
+    "nox>=2025.5.1",
+]
+integrations = [
+    "aiohttp>=3.7.4.post0,<4.0",
+    "chalice>=1.22,<2.0",
+    "channels>=3.0.5,<5.0.0",
+    "Django>=3.2",
+    "fastapi>=0.65.0",
+    "flask>=1.1",
+    "quart>=0.19.3",
+    "pydantic>=2.0",
+    "pytest-aiohttp>=1.0.3,<2.0",
+    "pytest-django>=4.5,<5.0",
+    "sanic>=20.12.2",
+    "starlette>=0.13.6",
+    "litestar>=2      ; python_version>=\"3.10\" and python_version<\"4.0\"",
+    "uvicorn>=0.11.6",
+    "daphne>=4.0.0,<5.0",
+]

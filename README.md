@@ -11,10 +11,16 @@ for building GraphQL servers or integrations into existing web frameworks using
 
 | Server integration          | Docs                                                                                    |
 | --------------------------- | --------------------------------------------------------------------------------------- |
+| aiohttp                     | [aiohttp](https://github.com/graphql-python/graphql-server/blob/master/docs/aiohttp.md) |
+| asgi                       | [asgi](https://github.com/graphql-python/graphql-server/blob/master/docs/asgi.md)     |
+| Chalice                       | [chalice](https://github.com/graphql-python/graphql-server/blob/master/docs/chalice.md)     |
+| Channels (Django)           | [channels](https://github.com/graphql-python/graphql-server/blob/master/docs/channels.md)     |
+| Django                       | [django](https://github.com/graphql-python/graphql-server/blob/master/docs/django.md)     |
+| FastAPI                       | [fastapi](https://github.com/graphql-python/graphql-server/blob/master/docs/fastapi.md)     |
 | Flask                       | [flask](https://github.com/graphql-python/graphql-server/blob/master/docs/flask.md)     |
+| Litestar                       | [litestar](https://github.com/graphql-python/graphql-server/blob/master/docs/litestar.md)     |
+| Quart                       | [quart](https://github.com/graphql-python/graphql-server/blob/master/docs/quart.md)     |
 | Sanic                       | [sanic](https://github.com/graphql-python/graphql-server/blob/master/docs/sanic.md)     |
-| AIOHTTP                     | [aiohttp](https://github.com/graphql-python/graphql-server/blob/master/docs/aiohttp.md) |
-| WebOb (Pyramid, TurboGears) | [webob](https://github.com/graphql-python/graphql-server/blob/master/docs/webob.md)     |
 
 ## Other integrations built with GraphQL-Server
 
@@ -33,13 +39,9 @@ for building GraphQL servers or integrations into existing web frameworks using
 
 The `graphql_server` package provides these public helper functions:
 
-- `run_http_query`
-- `encode_execution_results`
-- `load_json_body`
-- `json_encode`
-- `json_encode_pretty`
-
-**NOTE:** the `json_encode_pretty` is kept as backward compatibility change as it uses `json_encode` with `pretty` parameter set to `True`.
+- `execute`
+- `execute_sync`
+- `subscribe`
 
 All functions in the package are annotated with type hints and docstrings,
 and you can build HTML documentation from these using `bin/build_docs`.
@@ -52,3 +54,10 @@ Please let us know when you have built something new, so we can list it here.
 ## Contributing
 
 See [CONTRIBUTING.md](https://github.com/graphql-python/graphql-server/blob/master/CONTRIBUTING.md)
+
+## Licensing
+
+The code in this project is licensed under MIT license. See [LICENSE](./LICENSE)
+for more information.
+
+![Recent Activity](https://images.repography.com/0/graphql-python/graphql-server/recent-activity/d751713988987e9331980363e24189ce.svg)
