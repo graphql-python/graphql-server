@@ -244,17 +244,17 @@ class GraphQLHTTPConsumer(
     To use this, place it in your ProtocolTypeRouter for your channels project:
 
     ```
-    from graphql_server.channels import GraphQLHttpRouter
+    from graphql_server.channels import GraphQLHTTPConsumer, GraphQLWSConsumer
     from channels.routing import ProtocolTypeRouter
     from django.core.asgi import get_asgi_application
 
     application = ProtocolTypeRouter({
         "http": URLRouter([
-            re_path("^graphql", GraphQLHTTPRouter(schema=schema)),
+            re_path("^graphql", GraphQLHTTPConsumer.as_asgi(schema=schema)),
             re_path("^", get_asgi_application()),
         ]),
         "websocket": URLRouter([
-            re_path("^ws/graphql", GraphQLWebSocketRouter(schema=schema)),
+            re_path("^ws/graphql", GraphQLWSConsumer.as_asgi(schema=schema)),
         ]),
     })
     ```

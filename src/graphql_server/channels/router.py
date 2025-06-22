@@ -49,8 +49,17 @@ class GraphQLProtocolTypeRouter(ProtocolTypeRouter):
         schema: GraphQLSchema,
         django_application: Optional[str] = None,
         url_pattern: str = "^graphql",
+        http_consumer_class: type[GraphQLHTTPConsumer] = GraphQLHTTPConsumer,
+        ws_consumer_class: type[GraphQLWSConsumer] = GraphQLWSConsumer,
+        *args,
+        **kwargs,
     ) -> None:
-        http_urls = [re_path(url_pattern, GraphQLHTTPConsumer.as_asgi(schema=schema))]
+        http_urls = [
+            re_path(
+                url_pattern,
+                http_consumer_class.as_asgi(*args, **kwargs),
+            )
+        ]
         if django_application is not None:
             http_urls.append(re_path("^", django_application))
 
@@ -59,7 +68,10 @@ class GraphQLProtocolTypeRouter(ProtocolTypeRouter):
                 "http": URLRouter(http_urls),
                 "websocket": URLRouter(
                     [
-                        re_path(url_pattern, GraphQLWSConsumer.as_asgi(schema=schema)),
+                        re_path(
+                            url_pattern,
+                            ws_consumer_class.as_asgi(*args, **kwargs),
+                        ),
                     ]
                 ),
             }
