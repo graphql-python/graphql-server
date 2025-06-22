@@ -6,6 +6,7 @@ from json.decoder import JSONDecodeError
 from typing import TYPE_CHECKING, Callable, ClassVar, Optional, Union, cast
 from typing_extensions import TypeGuard
 
+from graphql_server.http import GraphQLRequestData
 from graphql_server.http.async_base_view import (
     AsyncBaseHTTPView,
     AsyncHTTPRequestAdapter,
@@ -149,7 +150,9 @@ class GraphQLView(
         else:
             self.graphql_ide = graphql_ide
 
-    async def render_graphql_ide(self, request: Request) -> Response:
+    async def render_graphql_ide(
+        self, request: Request, request_data: GraphQLRequestData
+    ) -> Response:
         return Response(self.graphql_ide_html)
 
     def create_response(

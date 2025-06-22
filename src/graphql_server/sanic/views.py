@@ -11,6 +11,7 @@ from typing import (
 )
 from typing_extensions import TypeGuard
 
+from graphql_server.http import GraphQLRequestData
 from graphql_server.http.async_base_view import (
     AsyncBaseHTTPView,
     AsyncHTTPRequestAdapter,
@@ -155,7 +156,9 @@ class GraphQLView(
     ) -> Context:
         return {"request": request, "response": response}  # type: ignore
 
-    async def render_graphql_ide(self, request: Request) -> HTTPResponse:
+    async def render_graphql_ide(
+        self, request: Request, request_data: GraphQLRequestData
+    ) -> HTTPResponse:
         return html(self.graphql_ide_html)
 
     async def get_sub_response(self, request: Request) -> TemporalResponse:

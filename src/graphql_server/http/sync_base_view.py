@@ -7,6 +7,7 @@ from typing import (
     Generic,
     Optional,
     Union,
+    Literal,
 )
 
 from graphql import ExecutionResult, GraphQLError
@@ -93,20 +94,18 @@ class SyncBaseHTTPView(
     ) -> Response: ...
 
     @abc.abstractmethod
-    def render_graphql_ide(self, request: Request) -> Response: ...
+    def render_graphql_ide(
+        self, request: Request, request_data: GraphQLRequestData
+    ) -> Response: ...
 
     def execute_operation(
-        self, request: Request, context: Context, root_value: Optional[RootValue]
+        self,
+        request: Request,
+        request_data: GraphQLRequestData,
+        context: Context,
+        root_value: Optional[RootValue],
     ) -> ExecutionResult:
         request_adapter = self.request_adapter_class(request)
-
-        try:
-            request_data = self.parse_http_body(request_adapter)
-        except json.decoder.JSONDecodeError as e:
-            raise HTTPException(400, "Unable to parse request body as JSON") from e
-            # DO this only when doing files
-        except KeyError as e:
-            raise HTTPException(400, "File(s) missing in form data") from e
 
         allowed_operation_types = operation_type_from_http(request_adapter.method)
 
@@ -135,6 +134,17 @@ class SyncBaseHTTPView(
         except KeyError as e:
             raise HTTPException(400, "File(s) missing in form data") from e
 
+    def get_graphql_request_data(
+        self, data: dict[str, Any], protocol: Literal["http", "multipart-subscription"]
+    ) -> GraphQLRequestData:
+        return GraphQLRequestData(
+            query=data.get("query"),
+            variables=data.get("variables"),
+            operation_name=data.get("operationName"),
+            extensions=data.get("extensions"),
+            protocol=protocol,
+        )
+
     def parse_http_body(self, request: SyncHTTPRequestAdapter) -> GraphQLRequestData:
         content_type, params = parse_content_type(request.content_type or "")
 
@@ -152,12 +162,7 @@ class SyncBaseHTTPView(
         else:
             raise HTTPException(400, "Unsupported content type")
 
-        return GraphQLRequestData(
-            query=data.get("query"),
-            variables=data.get("variables"),
-            operation_name=data.get("operationName"),
-            extensions=data.get("extensions"),
-        )
+        return self.get_graphql_request_data(data, "http")
 
     def _handle_errors(
         self, errors: list[GraphQLError], response_data: GraphQLHTTPResponse
@@ -175,9 +180,17 @@ class SyncBaseHTTPView(
         if not self.is_request_allowed(request_adapter):
             raise HTTPException(405, "GraphQL only supports GET and POST requests.")
 
+        try:
+            request_data = self.parse_http_body(request_adapter)
+        except json.decoder.JSONDecodeError as e:
+            raise HTTPException(400, "Unable to parse request body as JSON") from e
+            # DO this only when doing files
+        except KeyError as e:
+            raise HTTPException(400, "File(s) missing in form data") from e
+
         if self.should_render_graphql_ide(request_adapter):
             if self.graphql_ide:
-                return self.render_graphql_ide(request)
+                return self.render_graphql_ide(request, request_data)
             raise HTTPException(404, "Not Found")
 
         sub_response = self.get_sub_response(request)
@@ -191,6 +204,7 @@ class SyncBaseHTTPView(
         try:
             result = self.execute_operation(
                 request=request,
+                request_data=request_data,
                 context=context,
                 root_value=root_value,
             )

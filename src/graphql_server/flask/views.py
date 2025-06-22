@@ -13,6 +13,7 @@ from typing_extensions import TypeGuard
 
 from flask import Request, Response, render_template_string, request
 from flask.views import View
+from graphql_server.http import GraphQLRequestData
 from graphql_server.http.async_base_view import (
     AsyncBaseHTTPView,
     AsyncHTTPRequestAdapter,
@@ -129,7 +130,9 @@ class GraphQLView(
                 status=e.status_code,
             )
 
-    def render_graphql_ide(self, request: Request) -> Response:
+    def render_graphql_ide(
+        self, request: Request, request_data: GraphQLRequestData
+    ) -> Response:
         return render_template_string(self.graphql_ide_html)  # type: ignore
 
 
@@ -192,7 +195,9 @@ class AsyncGraphQLView(
                 status=e.status_code,
             )
 
-    async def render_graphql_ide(self, request: Request) -> Response:
+    async def render_graphql_ide(
+        self, request: Request, request_data: GraphQLRequestData
+    ) -> Response:
         content = render_template_string(self.graphql_ide_html)
         return Response(content, status=200, content_type="text/html")
 

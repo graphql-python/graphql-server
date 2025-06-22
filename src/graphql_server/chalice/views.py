@@ -4,6 +4,7 @@ import warnings
 from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 from chalice.app import Request, Response
+from graphql_server.http import GraphQLRequestData
 from graphql_server.http.exceptions import HTTPException
 from graphql_server.http.sync_base_view import SyncBaseHTTPView, SyncHTTPRequestAdapter
 from graphql_server.http.temporal_response import TemporalResponse
@@ -80,7 +81,9 @@ class GraphQLView(
     def get_root_value(self, request: Request) -> Optional[RootValue]:
         return None
 
-    def render_graphql_ide(self, request: Request) -> Response:
+    def render_graphql_ide(
+        self, request: Request, request_data: GraphQLRequestData
+    ) -> Response:
         return Response(
             self.graphql_ide_html,
             headers={"Content-Type": "text/html"},

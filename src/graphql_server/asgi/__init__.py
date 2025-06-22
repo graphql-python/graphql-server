@@ -22,6 +22,7 @@ from starlette.responses import (
 )
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
+from graphql_server.http import GraphQLRequestData
 from graphql_server.http.async_base_view import (
     AsyncBaseHTTPView,
     AsyncHTTPRequestAdapter,
@@ -204,7 +205,9 @@ class GraphQL(
 
         return sub_response
 
-    async def render_graphql_ide(self, request: Request) -> Response:
+    async def render_graphql_ide(
+        self, request: Request, request_data: GraphQLRequestData
+    ) -> Response:
         return HTMLResponse(self.graphql_ide_html)
 
     def create_response(

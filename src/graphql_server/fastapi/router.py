@@ -29,6 +29,7 @@ from fastapi import APIRouter, Depends, params
 from fastapi.datastructures import Default
 from fastapi.routing import APIRoute
 from fastapi.utils import generate_unique_id
+from graphql_server.http import GraphQLRequestData
 from graphql_server.asgi import ASGIRequestAdapter, ASGIWebSocketAdapter
 from graphql_server.fastapi.context import BaseContext, CustomContext
 from graphql_server.http.async_base_view import AsyncBaseHTTPView
@@ -261,7 +262,9 @@ class GraphQLRouter(
         ) -> None:
             await self.run(request=websocket, context=context, root_value=root_value)
 
-    async def render_graphql_ide(self, request: Request) -> HTMLResponse:
+    async def render_graphql_ide(
+        self, request: Request, request_data: GraphQLRequestData
+    ) -> HTMLResponse:
         return HTMLResponse(self.graphql_ide_html)
 
     async def get_context(

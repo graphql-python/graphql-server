@@ -19,6 +19,7 @@ from typing_extensions import TypeGuard
 
 from msgspec import Struct
 
+from graphql_server.http import GraphQLRequestData
 from graphql_server.http.async_base_view import (
     AsyncBaseHTTPView,
     AsyncHTTPRequestAdapter,
@@ -300,7 +301,7 @@ class GraphQLController(
             )
 
     async def render_graphql_ide(
-        self, request: Request[Any, Any, Any]
+        self, request: Request[Any, Any, Any], request_data: GraphQLRequestData
     ) -> Response[str]:
         return Response(self.graphql_ide_html, media_type=MediaType.HTML)
 

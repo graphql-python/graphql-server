@@ -27,6 +27,7 @@ from django.template.loader import render_to_string
 from django.utils.decorators import classonlymethod
 from django.views.generic import View
 
+from graphql_server.http import GraphQLRequestData
 from graphql_server.http.async_base_view import (
     AsyncBaseHTTPView,
     AsyncHTTPRequestAdapter,
@@ -240,7 +241,9 @@ class GraphQLView(
                 status=e.status_code,
             )
 
-    def render_graphql_ide(self, request: HttpRequest) -> HttpResponse:
+    def render_graphql_ide(
+        self, request: HttpRequest, request_data: GraphQLRequestData
+    ) -> HttpResponse:
         try:
             content = render_to_string("graphql/graphiql.html", request=request)
         except TemplateDoesNotExist:
@@ -300,7 +303,9 @@ class AsyncGraphQLView(
                 status=e.status_code,
             )
 
-    async def render_graphql_ide(self, request: HttpRequest) -> HttpResponse:
+    async def render_graphql_ide(
+        self, request: HttpRequest, request_data: GraphQLRequestData
+    ) -> HttpResponse:
         try:
             content = render_to_string("graphql/graphiql.html", request=request)
         except TemplateDoesNotExist:

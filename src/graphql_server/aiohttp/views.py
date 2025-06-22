@@ -28,6 +28,7 @@ from graphql_server.http.exceptions import (
     NonTextMessageReceived,
     WebSocketDisconnected,
 )
+from graphql_server.http import GraphQLRequestData
 from graphql_server.http.types import FormData, HTTPMethod, QueryParams
 from graphql_server.http.typevars import (
     Context,
@@ -174,7 +175,9 @@ class GraphQLView(
         else:
             self.graphql_ide = graphql_ide
 
-    async def render_graphql_ide(self, request: web.Request) -> web.Response:
+    async def render_graphql_ide(
+        self, request: web.Request, request_data: GraphQLRequestData
+    ) -> web.Response:
         return web.Response(text=self.graphql_ide_html, content_type="text/html")
 
     async def get_sub_response(self, request: web.Request) -> web.Response:

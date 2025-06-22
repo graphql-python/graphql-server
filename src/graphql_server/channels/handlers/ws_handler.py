@@ -11,6 +11,7 @@ from typing import (
 )
 from typing_extensions import TypeGuard
 
+from graphql_server.http import GraphQLRequestData
 from graphql_server.http.async_base_view import AsyncBaseHTTPView, AsyncWebSocketAdapter
 from graphql_server.http.exceptions import (
     NonJsonMessageReceived,
@@ -175,7 +176,9 @@ class GraphQLWSConsumer(
     ) -> GraphQLWSConsumer:
         raise NotImplementedError
 
-    async def render_graphql_ide(self, request: GraphQLWSConsumer) -> GraphQLWSConsumer:
+    async def render_graphql_ide(
+        self, request: GraphQLWSConsumer, request_data: GraphQLRequestData
+    ) -> GraphQLWSConsumer:
         raise NotImplementedError
 
     def is_websocket_request(

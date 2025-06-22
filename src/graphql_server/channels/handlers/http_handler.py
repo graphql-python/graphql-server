@@ -25,6 +25,7 @@ from graphql_server.http.async_base_view import (
     AsyncBaseHTTPView,
     AsyncHTTPRequestAdapter,
 )
+from graphql_server.http import GraphQLRequestData
 from graphql_server.http.exceptions import HTTPException
 from graphql_server.http.sync_base_view import SyncBaseHTTPView, SyncHTTPRequestAdapter
 from graphql_server.http.temporal_response import TemporalResponse
@@ -295,7 +296,9 @@ class GraphQLHTTPConsumer(
             stream=stream, status=status, headers=response_headers
         )
 
-    async def render_graphql_ide(self, request: ChannelsRequest) -> ChannelsResponse:
+    async def render_graphql_ide(
+        self, request: ChannelsRequest, request_data: GraphQLRequestData
+    ) -> ChannelsResponse:
         return ChannelsResponse(
             content=self.graphql_ide_html.encode(),
             content_type="text/html; charset=utf-8",
@@ -351,7 +354,9 @@ class SyncGraphQLHTTPConsumer(
     def get_sub_response(self, request: ChannelsRequest) -> TemporalResponse:
         return TemporalResponse()
 
-    def render_graphql_ide(self, request: ChannelsRequest) -> ChannelsResponse:
+    def render_graphql_ide(
+        self, request: ChannelsRequest, request_data: GraphQLRequestData
+    ) -> ChannelsResponse:
         return ChannelsResponse(
             content=self.graphql_ide_html.encode(),
             content_type="text/html; charset=utf-8",

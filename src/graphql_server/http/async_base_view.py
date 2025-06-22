@@ -16,7 +16,7 @@ from typing import (
 from typing_extensions import Literal, TypeGuard
 
 from graphql import ExecutionResult, GraphQLError
-from graphql.language import OperationType
+from graphql.language import OperationType, DocumentNode
 from graphql.type import GraphQLSchema
 
 from graphql_server import execute, subscribe
@@ -171,7 +171,9 @@ class AsyncBaseHTTPView(
     ) -> Response: ...
 
     @abc.abstractmethod
-    async def render_graphql_ide(self, request: Request) -> Response: ...
+    async def render_graphql_ide(
+        self, request: Request, request_data: GraphQLRequestData
+    ) -> Response: ...
 
     async def create_streaming_response(
         self,
@@ -198,17 +200,13 @@ class AsyncBaseHTTPView(
     ) -> WebSocketResponse: ...
 
     async def execute_operation(
-        self, request: Request, context: Context, root_value: Optional[RootValue]
+        self,
+        request: Request,
+        request_data: GraphQLRequestData,
+        context: Context,
+        root_value: Optional[RootValue],
     ) -> ExecutionResult:
         request_adapter = self.request_adapter_class(request)
-
-        try:
-            request_data = await self.parse_http_body(request_adapter)
-        except json.decoder.JSONDecodeError as e:
-            raise HTTPException(400, "Unable to parse request body as JSON") from e
-            # DO this only when doing files
-        except KeyError as e:
-            raise HTTPException(400, "File(s) missing in form data") from e
 
         allowed_operation_types = operation_type_from_http(request_adapter.method)
 
@@ -343,14 +341,25 @@ class AsyncBaseHTTPView(
         if not self.is_request_allowed(request_adapter):
             raise HTTPException(405, "GraphQL only supports GET and POST requests.")
 
+        try:
+            request_data = await self.parse_http_body(request_adapter)
+        except json.decoder.JSONDecodeError as e:
+            raise HTTPException(400, "Unable to parse request body as JSON") from e
+            # DO this only when doing files
+        except KeyError as e:
+            raise HTTPException(400, "File(s) missing in form data") from e
+
         if self.should_render_graphql_ide(request_adapter):
             if self.graphql_ide:
-                return await self.render_graphql_ide(request)
+                return await self.render_graphql_ide(request, request_data)
             raise HTTPException(404, "Not Found")
 
         try:
             result = await self.execute_operation(
-                request=request, context=context, root_value=root_value
+                request=request,
+                request_data=request_data,
+                context=context,
+                root_value=root_value,
             )
         except GraphQLValidationError as e:
             result = ExecutionResult(data=None, errors=e.errors)
@@ -529,6 +538,17 @@ class AsyncBaseHTTPView(
 
         return self.parse_json(await request.get_body())
 
+    async def get_graphql_request_data(
+        self, data: dict[str, Any], protocol: Literal["http", "multipart-subscription"]
+    ) -> GraphQLRequestData:
+        return GraphQLRequestData(
+            query=data.get("query"),
+            variables=data.get("variables"),
+            operation_name=data.get("operationName"),
+            extensions=data.get("extensions"),
+            protocol=protocol,
+        )
+
     async def parse_http_body(
         self, request: AsyncHTTPRequestAdapter
     ) -> GraphQLRequestData:
@@ -550,13 +570,7 @@ class AsyncBaseHTTPView(
         else:
             raise HTTPException(400, "Unsupported content type")
 
-        return GraphQLRequestData(
-            query=data.get("query"),
-            variables=data.get("variables"),
-            operation_name=data.get("operationName"),
-            extensions=data.get("extensions"),
-            protocol=protocol,
-        )
+        return await self.get_graphql_request_data(data, protocol)
 
     async def process_result(
         self, request: Request, result: ExecutionResult
