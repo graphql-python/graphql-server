@@ -155,6 +155,7 @@ def _parse_and_validate(
     allowed_operation_types: Optional[Set[OperationType]],
     validation_rules: Optional[tuple[type[ASTValidationRule], ...]] = None,
     operation_name: Optional[str] = None,
+    validate_document: Optional[bool] = None,
     # extensions_runner: SchemaExtensionsRunner
 ) -> DocumentNode:
     if allowed_operation_types is None:
@@ -171,8 +172,14 @@ def _parse_and_validate(
     try:
         if isinstance(query, str):
             document_node = parse(query)
+            if validate_document is None:
+                # Validate the document by default for string queries
+                validate_document = True
         else:
             document_node = query
+            if validate_document is None:
+                # Don't validate the document by default for DocumentNode queries
+                validate_document = False
     except GraphQLError as e:
         raise GraphQLValidationError([e]) from e
 
@@ -211,6 +218,7 @@ async def execute(
     custom_context_kwargs: Optional[dict[str, Any]] = None,
     execution_context_class: type[ExecutionContext] | None = None,
     validation_rules: Optional[tuple[type[ASTValidationRule], ...]] = None,
+    validate_document: Optional[bool] = None,
 ) -> ExecutionResult:
     if allowed_operation_types is None:
         allowed_operation_types = DEFAULT_ALLOWED_OPERATION_TYPES
@@ -234,6 +242,7 @@ async def execute(
             allowed_operation_types,
             validation_rules,
             operation_name,
+            validate_document,
         )
 
         #     async with extensions_runner.executing():
@@ -274,6 +283,7 @@ def execute_sync(
     custom_context_kwargs: Optional[dict[str, Any]] = None,
     execution_context_class: type[ExecutionContext] | None = None,
     validation_rules: Optional[tuple[type[ASTValidationRule], ...]] = None,
+    validate_document: Optional[bool] = None,
 ) -> ExecutionResult:
     if custom_context_kwargs is None:
         custom_context_kwargs = {}
@@ -296,6 +306,7 @@ def execute_sync(
             allowed_operation_types,
             validation_rules,
             operation_name,
+            validate_document,
         )
 
         # with extensions_runner.executing():
@@ -344,6 +355,7 @@ async def subscribe(
     execution_context_class: Optional[type[ExecutionContext]] = None,
     operation_extensions: Optional[dict[str, Any]] = None,
     validation_rules: Optional[tuple[type[ASTValidationRule], ...]] = None,
+    validate_document: Optional[bool] = None,
 ) -> AsyncGenerator[ExecutionResult, None]:
     allowed_operation_types = {
         OperationType.SUBSCRIPTION,
@@ -354,6 +366,7 @@ async def subscribe(
         allowed_operation_types,
         validation_rules,
         operation_name,
+        validate_document,
     )
     return _subscribe_generator(
         schema,
