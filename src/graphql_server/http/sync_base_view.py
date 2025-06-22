@@ -116,7 +116,7 @@ class SyncBaseHTTPView(
 
         return execute_sync(
             schema=self.schema,
-            query=request_data.query,
+            query=request_data.document or request_data.query,
             root_value=root_value,
             variable_values=request_data.variables,
             context_value=context,
@@ -139,6 +139,7 @@ class SyncBaseHTTPView(
     ) -> GraphQLRequestData:
         return GraphQLRequestData(
             query=data.get("query"),
+            document=None,
             variables=data.get("variables"),
             operation_name=data.get("operationName"),
             extensions=data.get("extensions"),

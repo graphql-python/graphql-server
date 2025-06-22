@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from graphql.language import DocumentNode
 from typing import TYPE_CHECKING, Any, Optional
 from typing_extensions import Literal, TypedDict
 
@@ -30,10 +31,11 @@ class GraphQLRequestData:
     # query is optional here as it can be added by an extensions
     # (for example an extension for persisted queries)
     query: Optional[str]
+    document: Optional[DocumentNode]
     variables: Optional[dict[str, Any]]
     operation_name: Optional[str]
     extensions: Optional[dict[str, Any]]
-    protocol: Literal["http", "multipart-subscription"] = "http"
+    protocol: Literal["http", "multipart-subscription", "subscription"] = "http"
 
 
 __all__ = [

@@ -18,6 +18,7 @@ from graphql.language import OperationType
 
 from graphql_server import execute, subscribe
 from graphql_server.exceptions import ConnectionRejectionError, GraphQLValidationError
+from graphql_server.http import GraphQLRequestData
 from graphql_server.http.exceptions import (
     NonJsonMessageReceived,
     NonTextMessageReceived,
@@ -253,13 +254,15 @@ class BaseGraphQLTransportWSHandler(Generic[Context, RootValue]):
                 message["payload"].get("variables"),
             )
 
+        request_data = await self.view.get_graphql_request_data(
+            message["payload"], "subscription"
+        )
+
         operation = Operation(
             self,
             message["id"],
             operation_type,
-            message["payload"]["query"],
-            message["payload"].get("variables"),
-            message["payload"].get("operationName"),
+            request_data,
         )
 
         operation.task = asyncio.create_task(self.run_operation(operation))
@@ -274,7 +277,8 @@ class BaseGraphQLTransportWSHandler(Generic[Context, RootValue]):
             if operation.operation_type == OperationType.SUBSCRIPTION:
                 result_source = await subscribe(
                     schema=self.schema,
-                    query=operation.query,
+                    query=operation.request_data.document
+                    or operation.request_data.query,
                     variable_values=operation.variables,
                     operation_name=operation.operation_name,
                     context_value=self.context,
@@ -284,7 +288,8 @@ class BaseGraphQLTransportWSHandler(Generic[Context, RootValue]):
             else:
                 result_source = await execute(
                     schema=self.schema,
-                    query=operation.query,
+                    query=operation.request_data.document
+                    or operation.request_data.query,
                     variable_values=operation.variables,
                     context_value=self.context,
                     root_value=self.root_value,
@@ -378,11 +383,9 @@ class Operation(Generic[Context, RootValue]):
         "completed",
         "handler",
         "id",
-        "operation_name",
         "operation_type",
-        "query",
+        "request_data",
         "task",
-        "variables",
     ]
 
     def __init__(
@@ -390,18 +393,26 @@ class Operation(Generic[Context, RootValue]):
         handler: BaseGraphQLTransportWSHandler[Context, RootValue],
         id: str,
         operation_type: OperationType,
-        query: str,
-        variables: Optional[dict[str, object]],
-        operation_name: Optional[str],
+        request_data: GraphQLRequestData,
     ) -> None:
         self.handler = handler
         self.id = id
         self.operation_type = operation_type
-        self.query = query
-        self.variables = variables
-        self.operation_name = operation_name
+        self.request_data = request_data
         self.completed = False
         self.task: Optional[asyncio.Task] = None
+
+    @property
+    def query(self) -> Optional[str]:
+        return self.request_data.query
+
+    @property
+    def variables(self) -> Optional[dict[str, Any]]:
+        return self.request_data.variables
+
+    @property
+    def operation_name(self) -> Optional[str]:
+        return self.request_data.operation_name
 
     async def send_operation_message(self, message: Message) -> None:
         if self.completed:

@@ -218,7 +218,7 @@ class AsyncBaseHTTPView(
         if request_data.protocol == "multipart-subscription":
             return await subscribe(
                 schema=self.schema,
-                query=request_data.query,  # type: ignore
+                query=request_data.document or request_data.query,  # type: ignore
                 variable_values=request_data.variables,
                 context_value=context,
                 root_value=root_value,
@@ -228,7 +228,7 @@ class AsyncBaseHTTPView(
 
         return await execute(
             schema=self.schema,
-            query=request_data.query,
+            query=request_data.document or request_data.query,
             root_value=root_value,
             variable_values=request_data.variables,
             context_value=context,
@@ -539,10 +539,13 @@ class AsyncBaseHTTPView(
         return self.parse_json(await request.get_body())
 
     async def get_graphql_request_data(
-        self, data: dict[str, Any], protocol: Literal["http", "multipart-subscription"]
+        self,
+        data: dict[str, Any],
+        protocol: Literal["http", "multipart-subscription", "subscription"],
     ) -> GraphQLRequestData:
         return GraphQLRequestData(
             query=data.get("query"),
+            document=None,
             variables=data.get("variables"),
             operation_name=data.get("operationName"),
             extensions=data.get("extensions"),
