@@ -39,7 +39,7 @@ def simple_renderer(template: str, **values: str) -> str:
     def get_var(match_obj: re.Match[str]) -> str:
         var_name = match_obj.group(1)
         if var_name is not None:
-            return values.get(var_name, "")
+            return values.get(var_name) or tojson("")
         return ""
 
     pattern = r"{{\s*([^}]+)\s*}}"
