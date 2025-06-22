@@ -163,6 +163,10 @@ def _parse_and_validate(
     # async with extensions_runner.parsing():
     if not query:
         raise GraphQLError("No GraphQL query found in the request")
+    elif not isinstance(query, str) and not isinstance(query, DocumentNode):
+        raise GraphQLError(
+            f"Provided GraphQL query must be a string or DocumentNode, got {type(query)}"
+        )
 
     try:
         if isinstance(query, str):
