@@ -40,7 +40,7 @@ from graphql.execution import execute as graphql_execute
 from graphql.execution import execute_sync as graphql_execute_sync
 from graphql.execution import subscribe as graphql_subscribe
 from graphql.execution.middleware import MiddlewareManager
-from graphql.language import OperationType
+from graphql.language import DocumentNode, OperationType
 from graphql.type import GraphQLSchema
 from graphql.type.directives import specified_directives
 from graphql.validation import validate
@@ -56,7 +56,6 @@ if TYPE_CHECKING:
     from typing_extensions import TypeAlias
 
     from graphql.execution.collect_fields import FieldGroup  # type: ignore
-    from graphql.language import DocumentNode
     from graphql.pyutils import Path
     from graphql.type import GraphQLResolveInfo
     from graphql.validation import ASTValidationRule
