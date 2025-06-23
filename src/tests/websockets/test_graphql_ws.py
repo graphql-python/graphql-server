@@ -21,6 +21,7 @@ from graphql_server.subscriptions.protocols.graphql_ws.types import (
     ErrorMessage,
     StartMessage,
 )
+from tests.views.schema import Subscription
 
 if TYPE_CHECKING:
     from tests.http.clients.base import HttpClient, WebSocketClient
@@ -48,7 +49,7 @@ async def ws(ws_raw: WebSocketClient) -> AsyncGenerator[WebSocketClient, None]:
 
     await ws.send_legacy_message({"type": "connection_terminate"})
     # make sure the WebSocket is disconnected now
-    await ws.receive(timeout=2)  # receive close
+    await ws.receive(timeout=1)  # receive close
     assert ws.closed
 
 
@@ -400,7 +401,7 @@ async def test_subscription_errors(ws: WebSocketClient):
     data_message: DataMessage = await ws.receive_json()
     assert data_message["type"] == "data"
     assert data_message["id"] == "demo"
-    assert data_message["payload"]["data"] is None
+    assert data_message["payload"]["data"]["error"] is None
 
     assert "errors" in data_message["payload"]
     assert data_message["payload"]["errors"] is not None
@@ -653,7 +654,7 @@ async def test_resolving_enums(ws: WebSocketClient):
     assert complete_message["id"] == "demo"
 
 
-@pytest.mark.xfail(reason="flaky test")
+# @pytest.mark.xfail(reason="flaky test")
 async def test_task_cancellation_separation(http_client: HttpClient):
     # Note Python 3.7 does not support Task.get_name/get_coro so we have to use
     # repr(Task) to check whether expected tasks are running.
@@ -862,7 +863,7 @@ async def test_unexpected_client_disconnects_are_gracefully_handled(
         assert Subscription.active_infinity_subscriptions == 1
 
         await ws.close()
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.5)
 
         assert not process_errors.called
         assert Subscription.active_infinity_subscriptions == 0

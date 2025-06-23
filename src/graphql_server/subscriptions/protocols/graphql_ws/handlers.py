@@ -205,15 +205,27 @@ class BaseGraphQLWSHandler(Generic[Context, RootValue]):
             from graphql_server.runtime import process_errors
 
             processed_errors = process_errors(e.errors)
+            # for error in e.errors:
+            error = e.errors[0]
             await self.send_message(
                 ErrorMessage(
                     type="error",
                     id=operation_id,
-                    payload={"message": str(e)},
+                    payload=error.formatted,
                 )
             )
         except asyncio.CancelledError:
             await self.send_message(CompleteMessage(type="complete", id=operation_id))
+        except Exception as e:
+            with suppress(Exception):
+                await self.send_message(
+                    ErrorMessage(
+                        type="error",
+                        id=operation_id,
+                        payload={"message": str(e)},
+                    )
+                )
+            raise
 
     async def cleanup_operation(self, operation_id: str) -> None:
         if operation_id in self.subscriptions:

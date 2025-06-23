@@ -296,13 +296,7 @@ class BaseGraphQLTransportWSHandler(Generic[Context, RootValue]):
                     operation_name=operation.operation_name,
                 )
 
-            # TODO: maybe change PreExecutionError to an exception that can be caught
-
             if isinstance(result_source, ExecutionResult):
-                # if isinstance(result_source, PreExecutionError):
-                #     assert result_source.errors
-                #     await operation.send_initial_errors(result_source.errors)
-                # else:
                 await operation.send_next(result_source)
             else:
                 is_first_result = True

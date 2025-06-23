@@ -1095,14 +1095,14 @@ async def test_error_handler_for_timeout(http_client: HttpClient):
     """Test that the error handler is called when the timeout
     task encounters an error.
     """
-    with contextlib.suppress(ImportError):
-        from tests.http.clients.channels import ChannelsHttpClient
+    # with contextlib.suppress(ImportError):
+    #     from tests.http.clients.channels import ChannelsHttpClient
 
-        if isinstance(http_client, ChannelsHttpClient):
-            pytest.skip("Can't patch on_init for this client")
+    #     if isinstance(http_client, ChannelsHttpClient):
+    #         pytest.skip("Can't patch on_init for this client")
 
-    if not AsyncMock:
-        pytest.skip("Don't have AsyncMock")
+    # if not AsyncMock:
+    #     pytest.skip("Don't have AsyncMock")
 
     ws = ws_raw
     handler = None
@@ -1210,11 +1210,11 @@ async def test_unexpected_client_disconnects_are_gracefully_handled(
                 "payload": {"query": 'subscription { infinity(message: "Hi") }'},
             }
         )
-        await ws.receive(timeout=2)
+        await ws.receive(timeout=1)
         assert Subscription.active_infinity_subscriptions == 1
 
         await ws.close()
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.5)
 
         assert not process_errors.called
         assert Subscription.active_infinity_subscriptions == 0

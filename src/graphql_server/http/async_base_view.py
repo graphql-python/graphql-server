@@ -145,9 +145,6 @@ class AsyncBaseHTTPView(
         context: Context,
         root_value: Optional[RootValue],
     ) -> None:
-        if connection_params is None:
-            return
-
         if isinstance(context, dict):
             context["connection_params"] = connection_params
         elif hasattr(context, "connection_params"):
