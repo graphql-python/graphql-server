@@ -255,7 +255,7 @@ class BaseGraphQLTransportWSHandler(Generic[Context, RootValue]):
             )
 
         request_data = await self.view.get_graphql_request_data(
-            message["payload"], "subscription"
+            self.context, message["payload"], "subscription"
         )
 
         operation = Operation(

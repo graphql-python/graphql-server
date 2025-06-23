@@ -327,12 +327,18 @@ class AsyncBaseHTTPView(
         request = cast("Request", request)
 
         request_adapter = self.request_adapter_class(request)
+        sub_response = await self.get_sub_response(request)
+        context = (
+            await self.get_context(request, response=sub_response)
+            if context is UNSET
+            else context
+        )
 
         if not self.is_request_allowed(request_adapter):
             raise HTTPException(405, "GraphQL only supports GET and POST requests.")
 
         try:
-            request_data = await self.parse_http_body(request_adapter)
+            request_data = await self.parse_http_body(context, request_adapter)
         except json.decoder.JSONDecodeError as e:
             raise HTTPException(400, "Unable to parse request body as JSON") from e
             # DO this only when doing files
@@ -349,13 +355,6 @@ class AsyncBaseHTTPView(
 
             if self.graphql_ide and self.should_render_graphql_ide(request_adapter):
                 return await self.render_graphql_ide(request, request_data)
-
-        sub_response = await self.get_sub_response(request)
-        context = (
-            await self.get_context(request, response=sub_response)
-            if context is UNSET
-            else context
-        )
 
         try:
             result = await self.execute_operation(
@@ -544,6 +543,7 @@ class AsyncBaseHTTPView(
 
     async def get_graphql_request_data(
         self,
+        context: Context,
         data: dict[str, Any],
         protocol: Literal["http", "multipart-subscription", "subscription"],
     ) -> GraphQLRequestData:
@@ -557,7 +557,7 @@ class AsyncBaseHTTPView(
         )
 
     async def parse_http_body(
-        self, request: AsyncHTTPRequestAdapter
+        self, context: Context, request: AsyncHTTPRequestAdapter
     ) -> GraphQLRequestData:
         headers = {key.lower(): value for key, value in request.headers.items()}
         content_type, _ = parse_content_type(request.content_type or "")
@@ -577,7 +577,7 @@ class AsyncBaseHTTPView(
         else:
             raise HTTPException(400, "Unsupported content type")
 
-        return await self.get_graphql_request_data(data, protocol)
+        return await self.get_graphql_request_data(context, data, protocol)
 
     async def process_result(
         self, request: Request, result: ExecutionResult

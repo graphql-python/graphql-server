@@ -194,7 +194,6 @@ async def test_connection_init_timeout_cancellation(
     )
 
 
-@pytest.mark.xfail(reason="This test is flaky")
 async def test_close_twice(mocker: MockerFixture, http_client_class: type[HttpClient]):
     test_client = http_client_class(
         connection_init_wait_timeout=timedelta(seconds=0.25)
@@ -1049,9 +1048,6 @@ async def test_rejects_connection_params_with_wrong_type(
     assert ws.close_reason == "Invalid connection init payload"
 
 
-# timings can sometimes fail currently.  Until this test is rewritten when
-# generator based subscriptions are implemented, mark it as flaky
-@pytest.mark.xfail(reason="This test is flaky, see comment above")
 async def test_subsciption_cancel_finalization_delay(ws: WebSocketClient):
     # Test that when we cancel a subscription, the websocket isn't blocked
     # while some complex finalization takes place.

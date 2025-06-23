@@ -123,35 +123,20 @@
 
       // Collect the URL parameters
       var parameters = {};
-      window.location.search.substr(1).split('&').forEach(function (entry) {
-        var eq = entry.indexOf('=');
-        if (eq >= 0) {
-          parameters[decodeURIComponent(entry.slice(0, eq))] =
-            decodeURIComponent(entry.slice(eq + 1));
-        }
-      });
-      // Produce a Location query string from a parameter object.
-      function locationQuery(params) {
-        return '?' + Object.keys(params).filter(function (key) {
-          return Boolean(params[key]);
-        }).map(function (key) {
-          return encodeURIComponent(key) + '=' +
-            encodeURIComponent(params[key]);
-        }).join('&');
-      }
       // Derive a fetch URL from the current URL, sans the GraphQL parameters.
       var graphqlParamNames = {
         query: true,
         variables: true,
         operationName: true
       };
-      var otherParams = {};
-      for (var k in parameters) {
-        if (parameters.hasOwnProperty(k) && graphqlParamNames[k] !== true) {
-          otherParams[k] = parameters[k];
+      var currentURL = new URL(window.location.href);
+      var newParams = new URLSearchParams();
+      for (var [k, v] of currentURL.searchParams.entries()) {
+        if (graphqlParamNames[k] !== true) {
+          newParams.append(k, v);
         }
       }
-      var fetchURL = window.location.pathname + locationQuery(otherParams);
+      var fetchURL = window.location.pathname + '?' + newParams.toString();
 
       function httpUrlToWebSockeUrl(url) {
         const parsedURL = new URL(url, window.location.href);
@@ -208,15 +193,15 @@
           defaultEditorToolsVisibility: true,
           plugins: [explorerPlugin],
           inputValueDeprecation: true,
+          query: {{query}},
+          variables: '{{variables}}',
+          headers: parameters.headers,
+          operationName: {{operation_name}},
+          defaultQuery: EXAMPLE_QUERY,
           onEditQuery: onEditQuery,
           onEditVariables: onEditVariables,
           onEditHeaders: onEditHeaders,
           onEditOperationName: onEditOperationName,
-          query: {{query}},
-          variables: {{variables}},
-          headers: parameters.headers,
-          operationName: {{operation_name}},
-          defaultQuery: EXAMPLE_QUERY,
         }),
       );
     </script>

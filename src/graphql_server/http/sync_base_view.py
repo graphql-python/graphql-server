@@ -131,7 +131,10 @@ class SyncBaseHTTPView(
             raise HTTPException(400, "File(s) missing in form data") from e
 
     def get_graphql_request_data(
-        self, data: dict[str, Any], protocol: Literal["http", "multipart-subscription"]
+        self,
+        context: Context,
+        data: dict[str, Any],
+        protocol: Literal["http", "multipart-subscription"],
     ) -> GraphQLRequestData:
         return GraphQLRequestData(
             query=data.get("query"),
@@ -142,7 +145,9 @@ class SyncBaseHTTPView(
             protocol=protocol,
         )
 
-    def parse_http_body(self, request: SyncHTTPRequestAdapter) -> GraphQLRequestData:
+    def parse_http_body(
+        self, context: Context, request: SyncHTTPRequestAdapter
+    ) -> GraphQLRequestData:
         content_type, params = parse_content_type(request.content_type or "")
 
         if request.method == "GET":
@@ -159,7 +164,7 @@ class SyncBaseHTTPView(
         else:
             raise HTTPException(400, "Unsupported content type")
 
-        return self.get_graphql_request_data(data, "http")
+        return self.get_graphql_request_data(context, data, "http")
 
     def _handle_errors(
         self, errors: list[GraphQLError], response_data: GraphQLHTTPResponse
@@ -177,8 +182,15 @@ class SyncBaseHTTPView(
         if not self.is_request_allowed(request_adapter):
             raise HTTPException(405, "GraphQL only supports GET and POST requests.")
 
+        sub_response = self.get_sub_response(request)
+        context = (
+            self.get_context(request, response=sub_response)
+            if context is UNSET
+            else context
+        )
+
         try:
-            request_data = self.parse_http_body(request_adapter)
+            request_data = self.parse_http_body(context, request_adapter)
         except json.decoder.JSONDecodeError as e:
             raise HTTPException(400, "Unable to parse request body as JSON") from e
             # DO this only when doing files
@@ -196,12 +208,6 @@ class SyncBaseHTTPView(
             if self.graphql_ide and self.should_render_graphql_ide(request_adapter):
                 return self.render_graphql_ide(request, request_data)
 
-        sub_response = self.get_sub_response(request)
-        context = (
-            self.get_context(request, response=sub_response)
-            if context is UNSET
-            else context
-        )
         root_value = self.get_root_value(request) if root_value is UNSET else root_value
 
         try:
