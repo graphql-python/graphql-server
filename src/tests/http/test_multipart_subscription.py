@@ -26,7 +26,6 @@ def http_client(http_client_class: type[HttpClient]) -> HttpClient:
     with contextlib.suppress(ImportError):
         from .clients.channels import SyncChannelsHttpClient
 
-        # TODO: why do we have a sync channels client?
         if http_client_class is SyncChannelsHttpClient:
             pytest.skip(
                 reason="SyncChannelsHttpClient doesn't support multipart subscriptions"
