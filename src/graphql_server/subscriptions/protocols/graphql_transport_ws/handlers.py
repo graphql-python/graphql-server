@@ -334,7 +334,11 @@ class BaseGraphQLTransportWSHandler(Generic[Context, RootValue]):
             raise
         finally:
             # add this task to a list to be reaped later
-            task = asyncio.current_task()
+            try:
+                task = asyncio.current_task()
+            except RuntimeError:
+                # If there's no running loop
+                return
             assert task is not None
             self.completed_tasks.append(task)
 
