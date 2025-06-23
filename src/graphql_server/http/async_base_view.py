@@ -347,14 +347,8 @@ class AsyncBaseHTTPView(
                     OperationType.QUERY
                 }
 
-            if self.graphql_ide:
-                if self.should_render_graphql_ide(request_adapter):
-                    return await self.render_graphql_ide(request, request_data)
-            elif (
-                not request_adapter.content_type
-                or "application/json" not in request_adapter.content_type
-            ):
-                raise HTTPException(404, "Not Found")  # pragma: no cover
+            if self.graphql_ide and self.should_render_graphql_ide(request_adapter):
+                return await self.render_graphql_ide(request, request_data)
 
         sub_response = await self.get_sub_response(request)
         context = (
