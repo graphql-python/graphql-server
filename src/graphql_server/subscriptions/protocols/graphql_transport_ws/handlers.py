@@ -307,7 +307,6 @@ class BaseGraphQLTransportWSHandler(Generic[Context, RootValue]):
             else:
                 is_first_result = True
                 async for result in result_source:
-                    print("RESULT SOURCE", result, is_first_result)
                     if (
                         is_first_result
                         and result.errors

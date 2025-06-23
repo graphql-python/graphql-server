@@ -200,6 +200,9 @@ class SyncBaseHTTPView(
         except KeyError as e:
             raise HTTPException(400, "File(s) missing in form data") from e
 
+        if request_data.variables is not None and not isinstance(request_data.variables, dict):
+            raise HTTPException(400, "Variables must be a JSON object")
+
         allowed_operation_types = operation_type_from_http(request_adapter.method)
 
         if request_adapter.method == "GET":
