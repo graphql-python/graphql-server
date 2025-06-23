@@ -160,10 +160,6 @@ async def test_9c48(http_client):
     assert 400 <= response.status_code <= 499
 
 
-@pytest.mark.xfail(
-    reason="OPTIONAL - currently supported by Channels, Chalice, Django, and Sanic",
-    raises=AssertionError,
-)
 async def test_9abe(http_client):
     """
     MAY respond with 4xx status code if content-type is not supplied on POST requests
@@ -171,7 +167,7 @@ async def test_9abe(http_client):
     response = await http_client.post(
         url="/graphql",
         headers={},
-        json={"query": "{ __typename }"},
+        data=b'{"query": "{ __typename }"}',
     )
     assert 400 <= response.status_code <= 499
 
