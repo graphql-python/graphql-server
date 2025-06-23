@@ -205,13 +205,9 @@ class AsyncBaseHTTPView(
         request_data: GraphQLRequestData,
         context: Context,
         root_value: Optional[RootValue],
+        allowed_operation_types: set[OperationType],
     ) -> ExecutionResult:
         request_adapter = self.request_adapter_class(request)
-
-        allowed_operation_types = operation_type_from_http(request_adapter.method)
-
-        if not self.allow_queries_via_get and request_adapter.method == "GET":
-            allowed_operation_types = allowed_operation_types - {OperationType.QUERY}
 
         assert self.schema
 
@@ -331,12 +327,6 @@ class AsyncBaseHTTPView(
         request = cast("Request", request)
 
         request_adapter = self.request_adapter_class(request)
-        sub_response = await self.get_sub_response(request)
-        context = (
-            await self.get_context(request, response=sub_response)
-            if context is UNSET
-            else context
-        )
 
         if not self.is_request_allowed(request_adapter):
             raise HTTPException(405, "GraphQL only supports GET and POST requests.")
@@ -349,10 +339,30 @@ class AsyncBaseHTTPView(
         except KeyError as e:
             raise HTTPException(400, "File(s) missing in form data") from e
 
-        if self.should_render_graphql_ide(request_adapter):
+        allowed_operation_types = operation_type_from_http(request_adapter.method)
+
+        if not self.allow_queries_via_get and request_adapter.method == "GET":
+            allowed_operation_types = allowed_operation_types - {OperationType.QUERY}
+
+        if request_adapter.method == "GET":
+            if not self.allow_queries_via_get:
+                allowed_operation_types = allowed_operation_types - {
+                    OperationType.QUERY
+                }
+
+            should_render_graphql_ide = self.should_render_graphql_ide(request_adapter)
             if self.graphql_ide:
-                return await self.render_graphql_ide(request, request_data)
-            raise HTTPException(404, "Not Found")
+                if should_render_graphql_ide:
+                    return await self.render_graphql_ide(request, request_data)
+            elif should_render_graphql_ide:
+                raise HTTPException(404, "Not Found")  # pragma: no cover
+
+        sub_response = await self.get_sub_response(request)
+        context = (
+            await self.get_context(request, response=sub_response)
+            if context is UNSET
+            else context
+        )
 
         try:
             result = await self.execute_operation(
@@ -360,6 +370,7 @@ class AsyncBaseHTTPView(
                 request_data=request_data,
                 context=context,
                 root_value=root_value,
+                allowed_operation_types=allowed_operation_types,
             )
         except GraphQLValidationError as e:
             result = ExecutionResult(data=None, errors=e.errors)

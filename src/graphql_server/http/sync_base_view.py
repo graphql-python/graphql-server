@@ -104,13 +104,9 @@ class SyncBaseHTTPView(
         request_data: GraphQLRequestData,
         context: Context,
         root_value: Optional[RootValue],
+        allowed_operation_types: set[OperationType],
     ) -> ExecutionResult:
         request_adapter = self.request_adapter_class(request)
-
-        allowed_operation_types = operation_type_from_http(request_adapter.method)
-
-        if not self.allow_queries_via_get and request_adapter.method == "GET":
-            allowed_operation_types = allowed_operation_types - {OperationType.QUERY}
 
         assert self.schema
 
@@ -189,10 +185,20 @@ class SyncBaseHTTPView(
         except KeyError as e:
             raise HTTPException(400, "File(s) missing in form data") from e
 
-        if self.should_render_graphql_ide(request_adapter):
+        allowed_operation_types = operation_type_from_http(request_adapter.method)
+
+        if request_adapter.method == "GET":
+            if not self.allow_queries_via_get:
+                allowed_operation_types = allowed_operation_types - {
+                    OperationType.QUERY
+                }
+
+            should_render_graphql_ide = self.should_render_graphql_ide(request_adapter)
             if self.graphql_ide:
-                return self.render_graphql_ide(request, request_data)
-            raise HTTPException(404, "Not Found")
+                if should_render_graphql_ide:
+                    return self.render_graphql_ide(request, request_data)
+            elif should_render_graphql_ide:
+                raise HTTPException(404, "Not Found")  # pragma: no cover
 
         sub_response = self.get_sub_response(request)
         context = (
@@ -208,6 +214,7 @@ class SyncBaseHTTPView(
                 request_data=request_data,
                 context=context,
                 root_value=root_value,
+                allowed_operation_types=allowed_operation_types,
             )
         except HTTPException:
             raise
