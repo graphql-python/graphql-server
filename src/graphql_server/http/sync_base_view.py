@@ -193,11 +193,13 @@ class SyncBaseHTTPView(
                     OperationType.QUERY
                 }
 
-            should_render_graphql_ide = self.should_render_graphql_ide(request_adapter)
             if self.graphql_ide:
-                if should_render_graphql_ide:
+                if self.should_render_graphql_ide(request_adapter):
                     return self.render_graphql_ide(request, request_data)
-            elif should_render_graphql_ide:
+            elif (
+                not request_adapter.content_type
+                or "application/json" not in request_adapter.content_type
+            ):
                 raise HTTPException(404, "Not Found")  # pragma: no cover
 
         sub_response = self.get_sub_response(request)
