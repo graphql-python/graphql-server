@@ -132,6 +132,7 @@ class SyncBaseHTTPView(
 
     def get_graphql_request_data(
         self,
+        request: SyncHTTPRequestAdapter,
         context: Context,
         data: dict[str, Any],
         protocol: Literal["http", "multipart-subscription"],
@@ -146,7 +147,9 @@ class SyncBaseHTTPView(
         )
 
     def parse_http_body(
-        self, context: Context, request: SyncHTTPRequestAdapter
+        self,
+        request: SyncHTTPRequestAdapter,
+        context: Context,
     ) -> GraphQLRequestData:
         content_type, params = parse_content_type(request.content_type or "")
 
@@ -164,7 +167,7 @@ class SyncBaseHTTPView(
         else:
             raise HTTPException(400, "Unsupported content type")
 
-        return self.get_graphql_request_data(context, data, "http")
+        return self.get_graphql_request_data(request, context, data, "http")
 
     def _handle_errors(
         self, errors: list[GraphQLError], response_data: GraphQLHTTPResponse
@@ -190,7 +193,7 @@ class SyncBaseHTTPView(
         )
 
         try:
-            request_data = self.parse_http_body(context, request_adapter)
+            request_data = self.parse_http_body(request_adapter, context)
         except json.decoder.JSONDecodeError as e:
             raise HTTPException(400, "Unable to parse request body as JSON") from e
             # DO this only when doing files

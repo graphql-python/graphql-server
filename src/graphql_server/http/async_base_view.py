@@ -338,7 +338,7 @@ class AsyncBaseHTTPView(
             raise HTTPException(405, "GraphQL only supports GET and POST requests.")
 
         try:
-            request_data = await self.parse_http_body(context, request_adapter)
+            request_data = await self.parse_http_body(request_adapter, context)
         except json.decoder.JSONDecodeError as e:
             raise HTTPException(400, "Unable to parse request body as JSON") from e
             # DO this only when doing files
@@ -543,6 +543,7 @@ class AsyncBaseHTTPView(
 
     async def get_graphql_request_data(
         self,
+        request: Union[AsyncHTTPRequestAdapter, WebSocketRequest],
         context: Context,
         data: dict[str, Any],
         protocol: Literal["http", "multipart-subscription", "subscription"],
@@ -557,7 +558,9 @@ class AsyncBaseHTTPView(
         )
 
     async def parse_http_body(
-        self, context: Context, request: AsyncHTTPRequestAdapter
+        self,
+        request: AsyncHTTPRequestAdapter,
+        context: Context,
     ) -> GraphQLRequestData:
         headers = {key.lower(): value for key, value in request.headers.items()}
         content_type, _ = parse_content_type(request.content_type or "")
@@ -577,7 +580,7 @@ class AsyncBaseHTTPView(
         else:
             raise HTTPException(400, "Unsupported content type")
 
-        return await self.get_graphql_request_data(context, data, protocol)
+        return await self.get_graphql_request_data(request, context, data, protocol)
 
     async def process_result(
         self, request: Request, result: ExecutionResult
