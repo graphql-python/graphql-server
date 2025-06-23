@@ -94,12 +94,12 @@ class DebuggableGraphQLHTTPConsumer(GraphQLHTTPConsumer[dict[str, object], objec
         return get_context(context)
 
     async def process_result(
-        self, request: ChannelsRequest, result: ExecutionResult
+        self, request: ChannelsRequest, result: ExecutionResult, strict: bool = False
     ) -> GraphQLHTTPResponse:
         if self.result_override:
             return self.result_override(result)
 
-        return await super().process_result(request, result)
+        return await super().process_result(request, result, strict)
 
 
 class DebuggableSyncGraphQLHTTPConsumer(
@@ -120,12 +120,12 @@ class DebuggableSyncGraphQLHTTPConsumer(
         return get_context(context)
 
     def process_result(
-        self, request: ChannelsRequest, result: ExecutionResult
+        self, request: ChannelsRequest, result: ExecutionResult, strict: bool = False
     ) -> GraphQLHTTPResponse:
         if self.result_override:
             return self.result_override(result)
 
-        return super().process_result(request, result)
+        return super().process_result(request, result, strict)
 
 
 class DebuggableGraphQLWSConsumer(

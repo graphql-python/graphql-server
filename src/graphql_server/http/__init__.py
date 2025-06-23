@@ -17,8 +17,13 @@ class GraphQLHTTPResponse(TypedDict, total=False):
     extensions: Optional[dict[str, object]]
 
 
-def process_result(result: ExecutionResult) -> GraphQLHTTPResponse:
-    data: GraphQLHTTPResponse = {"data": result.data}
+def process_result(
+    result: ExecutionResult, strict: bool = False
+) -> GraphQLHTTPResponse:
+    if strict and not result.data:
+        data: GraphQLHTTPResponse = {}
+    else:
+        data: GraphQLHTTPResponse = {"data": result.data}
 
     if result.errors:
         data["errors"] = [err.formatted for err in result.errors]
@@ -55,7 +60,9 @@ class GraphQLRequestData:
     variables: Optional[dict[str, Any]]
     operation_name: Optional[str]
     extensions: Optional[dict[str, Any]]
-    protocol: Literal["http", "multipart-subscription", "subscription"] = "http"
+    protocol: Literal[
+        "http", "http-strict", "multipart-subscription", "subscription"
+    ] = "http"
 
     def to_template_context(self) -> dict[str, Any]:
         return {

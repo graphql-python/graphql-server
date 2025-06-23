@@ -345,7 +345,9 @@ class AsyncBaseHTTPView(
         except KeyError as e:
             raise HTTPException(400, "File(s) missing in form data") from e
 
-        if request_data.variables is not None and not isinstance(request_data.variables, dict):
+        if request_data.variables is not None and not isinstance(
+            request_data.variables, dict
+        ):
             raise HTTPException(400, "Variables must be a JSON object")
 
         allowed_operation_types = operation_type_from_http(request_adapter.method)
@@ -359,6 +361,7 @@ class AsyncBaseHTTPView(
             if self.graphql_ide and self.should_render_graphql_ide(request_adapter):
                 return await self.render_graphql_ide(request, request_data)
 
+        is_strict = request_data.protocol == "http-strict"
         try:
             result = await self.execute_operation(
                 request=request,
@@ -368,6 +371,9 @@ class AsyncBaseHTTPView(
                 allowed_operation_types=allowed_operation_types,
             )
         except GraphQLValidationError as e:
+            if is_strict:
+                sub_response.status_code = 400  # type: ignore
+                # sub_response.headers["content-type"] = "application/graphql-response+json"
             result = ExecutionResult(data=None, errors=e.errors)
         except HTTPException:
             raise
@@ -391,7 +397,9 @@ class AsyncBaseHTTPView(
                 },
             )
 
-        response_data = await self.process_result(request=request, result=result)
+        response_data = await self.process_result(
+            request=request, result=result, strict=is_strict
+        )
 
         if result.errors:
             self._handle_errors(result.errors, response_data)
@@ -549,7 +557,9 @@ class AsyncBaseHTTPView(
         request: Union[AsyncHTTPRequestAdapter, WebSocketRequest],
         context: Context,
         data: dict[str, Any],
-        protocol: Literal["http", "multipart-subscription", "subscription"],
+        protocol: Literal[
+            "http", "http-strict", "multipart-subscription", "subscription"
+        ],
     ) -> GraphQLRequestData:
         return GraphQLRequestData(
             query=data.get("query"),
@@ -567,12 +577,15 @@ class AsyncBaseHTTPView(
     ) -> GraphQLRequestData:
         headers = {key.lower(): value for key, value in request.headers.items()}
         content_type, _ = parse_content_type(request.content_type or "")
-        accept = headers.get("accept", "")
+        accept = headers.get("accept", "") or headers.get("http-accept", "")
 
-        protocol: Literal["http", "multipart-subscription"] = "http"
+        accept_type = parse_content_type(accept)
+        protocol: Literal["http", "http-strict", "multipart-subscription"] = "http"
 
-        if self._is_multipart_subscriptions(*parse_content_type(accept)):
+        if self._is_multipart_subscriptions(*accept_type):
             protocol = "multipart-subscription"
+        elif "application/graphql-response+json" in accept_type:
+            protocol = "http-strict"
 
         if request.method == "GET":
             data = self.parse_query_params(request.query_params)
@@ -586,9 +599,9 @@ class AsyncBaseHTTPView(
         return await self.get_graphql_request_data(request, context, data, protocol)
 
     async def process_result(
-        self, request: Request, result: ExecutionResult
+        self, request: Request, result: ExecutionResult, strict: bool = False
     ) -> GraphQLHTTPResponse:
-        return process_result(result)
+        return process_result(result, strict)
 
     async def on_ws_connect(
         self, context: Context

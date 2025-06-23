@@ -222,10 +222,13 @@ class GraphQLView(
     def create_response(
         self, response_data: GraphQLHTTPResponse, sub_response: web.Response
     ) -> web.Response:
-        sub_response.text = self.encode_json(response_data)
-        sub_response.content_type = "application/json"
-
-        return sub_response
+        status_code = getattr(sub_response, "status_code", None)
+        return web.Response(
+            text=self.encode_json(response_data),
+            content_type="application/json",
+            headers=sub_response.headers,
+            status=status_code or sub_response.status,
+        )
 
     async def create_streaming_response(
         self,

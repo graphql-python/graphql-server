@@ -120,14 +120,9 @@ class GraphQLView(
     def create_response(
         self, response_data: GraphQLHTTPResponse, sub_response: TemporalResponse
     ) -> Response:
-        status_code = 200
-
-        if sub_response.status_code != 200:
-            status_code = sub_response.status_code
-
         return Response(
             body=self.encode_json(response_data),
-            status_code=status_code,
+            status_code=sub_response.status_code,
             headers={
                 "Content-Type": "application/json",
                 **sub_response.headers,

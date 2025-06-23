@@ -35,12 +35,12 @@ class GraphQLView(BaseGraphQLView[dict[str, object], object]):
         return get_context(context)
 
     def process_result(
-        self, request: HttpRequest, result: ExecutionResult
+        self, request: HttpRequest, result: ExecutionResult, strict: bool = False
     ) -> GraphQLHTTPResponse:
         if self.result_override:
             return self.result_override(result)
 
-        return super().process_result(request, result)
+        return super().process_result(request, result, strict)
 
 
 class DjangoHttpClient(HttpClient):

@@ -87,12 +87,12 @@ class LitestarHttpClient(HttpClient):
             graphql_ws_handler_class = DebuggableGraphQLWSHandler
 
             async def process_result(
-                self, request: Request, result: ExecutionResult
+                self, request: Request, result: ExecutionResult, strict: bool = False
             ) -> GraphQLHTTPResponse:
                 if result_override:
                     return result_override(result)
 
-                return await super().process_result(request, result)
+                return await super().process_result(request, result, strict)
 
         self.app = Litestar(route_handlers=[GraphQLController])
         self.client = TestClient(self.app)

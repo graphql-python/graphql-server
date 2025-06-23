@@ -32,12 +32,12 @@ class AsyncGraphQLView(BaseAsyncGraphQLView[dict[str, object], object]):
         return get_context(context)
 
     async def process_result(
-        self, request: HttpRequest, result: ExecutionResult
+        self, request: HttpRequest, result: ExecutionResult, strict: bool = False
     ) -> GraphQLHTTPResponse:
         if self.result_override:
             return self.result_override(result)
 
-        return await super().process_result(request, result)
+        return await super().process_result(request, result, strict)
 
 
 class AsyncDjangoHttpClient(DjangoHttpClient):

@@ -54,12 +54,12 @@ class GraphQLView(OnWSConnectMixin, BaseGraphQLView[dict[str, object], object]):
         return Query()
 
     async def process_result(
-        self, request: web.Request, result: ExecutionResult
+        self, request: web.Request, result: ExecutionResult, strict: bool = False
     ) -> GraphQLHTTPResponse:
         if self.result_override:
             return self.result_override(result)
 
-        return await super().process_result(request, result)
+        return await super().process_result(request, result, strict)
 
 
 class AioHttpClient(HttpClient):

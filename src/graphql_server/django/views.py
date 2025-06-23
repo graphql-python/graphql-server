@@ -170,10 +170,10 @@ class BaseView:
         self, response_data: GraphQLHTTPResponse, sub_response: HttpResponse
     ) -> HttpResponseBase:
         data = self.encode_json(response_data)
-
         response = HttpResponse(
             data,
             content_type="application/json",
+            status=sub_response.status_code,
         )
 
         for name, value in sub_response.items():

@@ -215,17 +215,13 @@ class GraphQL(
     ) -> Response:
         response = Response(
             self.encode_json(response_data),
-            status_code=status.HTTP_200_OK,
+            status_code=sub_response.status_code or status.HTTP_200_OK,
+            headers=sub_response.headers,
             media_type="application/json",
         )
 
-        response.headers.raw.extend(sub_response.headers.raw)
-
         if sub_response.background:
             response.background = sub_response.background
-
-        if sub_response.status_code:
-            response.status_code = sub_response.status_code
 
         return response
 

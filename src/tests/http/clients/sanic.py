@@ -39,12 +39,12 @@ class GraphQLView(BaseGraphQLView[object, Query]):
         return get_context(context)
 
     async def process_result(
-        self, request: SanicRequest, result: ExecutionResult
+        self, request: SanicRequest, result: ExecutionResult, strict: bool = False
     ) -> GraphQLHTTPResponse:
         if self.result_override:
             return self.result_override(result)
 
-        return await super().process_result(request, result)
+        return await super().process_result(request, result, strict)
 
 
 class SanicHttpClient(HttpClient):

@@ -634,9 +634,6 @@ async def test_7b9b(http_client):
     assert response.status_code == 200
 
 
-@pytest.mark.xfail(
-    reason="Currently results in status 200 with GraphQL errors", raises=AssertionError
-)
 async def test_865d(http_client):
     """
     SHOULD use 4xx or 5xx status codes on document parsing failure when accepting application/graphql-response+json
@@ -652,9 +649,6 @@ async def test_865d(http_client):
     assert 400 <= response.status_code <= 599
 
 
-@pytest.mark.xfail(
-    reason="Currently results in status 200 with GraphQL errors", raises=AssertionError
-)
 async def test_556a(http_client):
     """
     SHOULD use 400 status code on document parsing failure when accepting application/graphql-response+json
@@ -670,9 +664,6 @@ async def test_556a(http_client):
     assert response.status_code == 400
 
 
-@pytest.mark.xfail(
-    reason="Currently results in status 200 with GraphQL errors", raises=AssertionError
-)
 async def test_d586(http_client):
     """
     SHOULD NOT contain the data entry on document parsing failure when accepting application/graphql-response+json
@@ -689,9 +680,6 @@ async def test_d586(http_client):
     assert "data" not in response.json
 
 
-@pytest.mark.xfail(
-    reason="Currently results in status 200 with GraphQL errors", raises=AssertionError
-)
 async def test_51fe(http_client):
     """
     SHOULD use 4xx or 5xx status codes on document validation failure when accepting application/graphql-response+json
@@ -709,9 +697,6 @@ async def test_51fe(http_client):
     assert 400 <= response.status_code <= 599
 
 
-@pytest.mark.xfail(
-    reason="Currently results in status 200 with GraphQL errors", raises=AssertionError
-)
 async def test_74ff(http_client):
     """
     SHOULD use 400 status code on document validation failure when accepting application/graphql-response+json
@@ -729,9 +714,6 @@ async def test_74ff(http_client):
     assert response.status_code == 400
 
 
-@pytest.mark.xfail(
-    reason="Currently results in status 200 with GraphQL errors", raises=AssertionError
-)
 async def test_5e5b(http_client):
     """
     SHOULD NOT contain the data entry on document validation failure when accepting application/graphql-response+json
@@ -750,9 +732,6 @@ async def test_5e5b(http_client):
     assert "data" not in response.json
 
 
-@pytest.mark.xfail(
-    reason="Currently results in status 200 with GraphQL errors", raises=AssertionError
-)
 async def test_86ee(http_client):
     """
     SHOULD use a status code of 400 on variable coercion failure when accepting application/graphql-response+json

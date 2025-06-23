@@ -135,7 +135,7 @@ class SyncBaseHTTPView(
         request: SyncHTTPRequestAdapter,
         context: Context,
         data: dict[str, Any],
-        protocol: Literal["http", "multipart-subscription"],
+        protocol: Literal["http", "http-strict", "multipart-subscription"],
     ) -> GraphQLRequestData:
         return GraphQLRequestData(
             query=data.get("query"),
@@ -151,7 +151,14 @@ class SyncBaseHTTPView(
         request: SyncHTTPRequestAdapter,
         context: Context,
     ) -> GraphQLRequestData:
+        accept_type = request.headers.get("accept", "") or request.headers.get(
+            "http-accept", ""
+        )
         content_type, params = parse_content_type(request.content_type or "")
+
+        protocol = "http"
+        if "application/graphql-response+json" in accept_type:
+            protocol = "http-strict"
 
         if request.method == "GET":
             data = self.parse_query_params(request.query_params)
@@ -167,7 +174,7 @@ class SyncBaseHTTPView(
         else:
             raise HTTPException(400, "Unsupported content type")
 
-        return self.get_graphql_request_data(request, context, data, "http")
+        return self.get_graphql_request_data(request, context, data, protocol)
 
     def _handle_errors(
         self, errors: list[GraphQLError], response_data: GraphQLHTTPResponse
@@ -200,7 +207,9 @@ class SyncBaseHTTPView(
         except KeyError as e:
             raise HTTPException(400, "File(s) missing in form data") from e
 
-        if request_data.variables is not None and not isinstance(request_data.variables, dict):
+        if request_data.variables is not None and not isinstance(
+            request_data.variables, dict
+        ):
             raise HTTPException(400, "Variables must be a JSON object")
 
         allowed_operation_types = operation_type_from_http(request_adapter.method)
@@ -215,7 +224,7 @@ class SyncBaseHTTPView(
                 return self.render_graphql_ide(request, request_data)
 
         root_value = self.get_root_value(request) if root_value is UNSET else root_value
-
+        is_strict = request_data.protocol == "http-strict"
         try:
             result = self.execute_operation(
                 request=request,
@@ -227,6 +236,8 @@ class SyncBaseHTTPView(
         except HTTPException:
             raise
         except GraphQLValidationError as e:
+            if is_strict:
+                sub_response.status_code = 400  # type: ignore
             result = ExecutionResult(data=None, errors=e.errors)
         except InvalidOperationTypeError as e:
             raise HTTPException(
@@ -235,7 +246,9 @@ class SyncBaseHTTPView(
         except Exception as e:
             raise HTTPException(400, str(e)) from e
 
-        response_data = self.process_result(request=request, result=result)
+        response_data = self.process_result(
+            request=request, result=result, strict=is_strict
+        )
 
         if result.errors:
             self._handle_errors(result.errors, response_data)
@@ -245,9 +258,9 @@ class SyncBaseHTTPView(
         )
 
     def process_result(
-        self, request: Request, result: ExecutionResult
+        self, request: Request, result: ExecutionResult, strict: bool = False
     ) -> GraphQLHTTPResponse:
-        return process_result(result)
+        return process_result(result, strict)
 
 
 __all__ = ["SyncBaseHTTPView"]

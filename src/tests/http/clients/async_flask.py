@@ -38,12 +38,12 @@ class GraphQLView(BaseAsyncGraphQLView[dict[str, object], object]):
         return get_context(context)
 
     async def process_result(
-        self, request: FlaskRequest, result: ExecutionResult
+        self, request: FlaskRequest, result: ExecutionResult, strict: bool = False
     ) -> GraphQLHTTPResponse:
         if self.result_override:
             return self.result_override(result)
 
-        return await super().process_result(request, result)
+        return await super().process_result(request, result, strict)
 
 
 class AsyncFlaskHttpClient(FlaskHttpClient):
