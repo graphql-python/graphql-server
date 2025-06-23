@@ -350,6 +350,11 @@ class AsyncBaseHTTPView(
         ):
             raise HTTPException(400, "Variables must be a JSON object")
 
+        if request_data.extensions is not None and not isinstance(
+            request_data.extensions, dict
+        ):
+            raise HTTPException(400, "Extensions must be a JSON object")
+
         allowed_operation_types = operation_type_from_http(request_adapter.method)
 
         if request_adapter.method == "GET":
