@@ -67,7 +67,9 @@ class GraphQLRequestData:
     def to_template_context(self) -> dict[str, Any]:
         return {
             "query": tojson(self.query),
-            "variables": tojson(self.variables),
+            "variables": tojson(
+                tojson(self.variables) if self.variables is not None else ""
+            ),
             "operation_name": tojson(self.operation_name),
         }
 
