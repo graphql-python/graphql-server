@@ -100,14 +100,12 @@ class SyncBaseHTTPView(
 
     def execute_operation(
         self,
-        request: Request,
+        request_adapter: SyncHTTPRequestAdapter,
         request_data: GraphQLRequestData,
         context: Context,
         root_value: Optional[RootValue],
         allowed_operation_types: set[OperationType],
     ) -> ExecutionResult:
-        request_adapter = self.request_adapter_class(request)
-
         assert self.schema
 
         return execute_sync(
@@ -188,6 +186,10 @@ class SyncBaseHTTPView(
         root_value: Optional[RootValue] = UNSET,
     ) -> Response:
         request_adapter = self.request_adapter_class(request)
+        if request_adapter.method == "OPTIONS":
+            # We are in a CORS preflight request, we can return a 200 OK by default
+            # as further checks will need to be done by the middleware
+            raise HTTPException(200, "")
 
         if not self.is_request_allowed(request_adapter):
             raise HTTPException(405, "GraphQL only supports GET and POST requests.")
@@ -232,7 +234,7 @@ class SyncBaseHTTPView(
         is_strict = request_data.protocol == "http-strict"
         try:
             result = self.execute_operation(
-                request=request,
+                request_adapter=request_adapter,
                 request_data=request_data,
                 context=context,
                 root_value=root_value,

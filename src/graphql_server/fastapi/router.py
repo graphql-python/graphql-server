@@ -254,6 +254,13 @@ class GraphQLRouter(
                     status_code=e.status_code,
                 )
 
+        @self.options(path)
+        async def handle_http_options(  # pyright: ignore
+            request: Request,
+            response: Response,
+        ) -> Response:
+            return Response(status_code=200)
+
         @self.websocket(path)
         async def websocket_endpoint(  # pyright: ignore
             websocket: WebSocket,

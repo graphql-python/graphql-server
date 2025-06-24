@@ -194,6 +194,9 @@ class GraphQLView(
         except HTTPException as e:
             return HTTPResponse(e.reason, status=e.status_code)
 
+    async def options(self, request: Request) -> HTTPResponse:
+        return HTTPResponse(status=200)
+
     async def create_streaming_response(
         self,
         request: Request,

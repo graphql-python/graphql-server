@@ -3,6 +3,8 @@ from typing import Any
 from graphql_server.litestar import make_graphql_controller
 from litestar import Litestar, Request
 from litestar.di import Provide
+from litestar.config.cors import CORSConfig
+
 from tests.views.schema import schema
 
 
@@ -27,9 +29,12 @@ def create_app(schema=schema, **kwargs: Any):
         **kwargs,
     )
 
+    cors_config = CORSConfig(allow_origins=["*"])
+
     return Litestar(
         route_handlers=[GraphQLController],
         dependencies={
             "app_dependency": Provide(custom_context_dependency, sync_to_thread=True)
         },
+        cors_config=cors_config,
     )

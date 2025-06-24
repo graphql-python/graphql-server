@@ -30,3 +30,10 @@ async def test_the_http_handler_uses_the_views_decode_json_method(
     assert data["hello"] == "Hello world"
 
     assert spy.call_count == 1
+
+
+async def test_does_allow_http_options(
+    http_client: HttpClient,
+):
+    response = await http_client.request(url="/graphql", method="options")
+    assert response.status_code in (200, 204)
