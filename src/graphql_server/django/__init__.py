@@ -1,3 +1,3 @@
-from .views import GraphQLView, AsyncGraphQLView
+from .views import AsyncGraphQLView, GraphQLView
 
-__all__ = ["GraphQLView", "AsyncGraphQLView"]
+__all__ = ["AsyncGraphQLView", "GraphQLView"]

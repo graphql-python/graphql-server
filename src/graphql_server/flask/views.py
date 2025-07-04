@@ -135,11 +135,7 @@ class GraphQLView(
     ) -> Response:
         return render_template_string(
             self.graphql_ide_html,
-            **{
-                "query": request_data.query,
-                "variables": request_data.variables,
-                "operationName": request_data.operation_name,
-            },
+            query=request_data.query, variables=request_data.variables, operationName=request_data.operation_name,
         )  # type: ignore
 
 

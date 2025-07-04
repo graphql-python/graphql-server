@@ -2,9 +2,8 @@ from typing import Any
 
 from graphql_server.litestar import make_graphql_controller
 from litestar import Litestar, Request
-from litestar.di import Provide
 from litestar.config.cors import CORSConfig
-
+from litestar.di import Provide
 from tests.views.schema import schema
 
 

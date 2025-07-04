@@ -13,7 +13,6 @@ from typing import (
 )
 
 from graphql import ExecutionResult, GraphQLError, GraphQLSyntaxError, parse
-
 from graphql.language import OperationType
 
 from graphql_server import execute, subscribe

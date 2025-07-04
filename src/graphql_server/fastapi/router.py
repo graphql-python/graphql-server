@@ -29,9 +29,9 @@ from fastapi import APIRouter, Depends, params
 from fastapi.datastructures import Default
 from fastapi.routing import APIRoute
 from fastapi.utils import generate_unique_id
-from graphql_server.http import GraphQLRequestData
 from graphql_server.asgi import ASGIRequestAdapter, ASGIWebSocketAdapter
 from graphql_server.fastapi.context import BaseContext, CustomContext
+from graphql_server.http import GraphQLRequestData
 from graphql_server.http.async_base_view import AsyncBaseHTTPView
 from graphql_server.http.exceptions import HTTPException
 from graphql_server.http.typevars import Context, RootValue

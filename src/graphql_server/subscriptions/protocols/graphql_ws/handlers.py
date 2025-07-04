@@ -25,7 +25,6 @@ from graphql_server.subscriptions.protocols.graphql_ws.types import (
     StartMessage,
     StopMessage,
 )
-
 from graphql_server.types.unset import UnsetType
 from graphql_server.utils.debug import pretty_print_graphql_operation
 

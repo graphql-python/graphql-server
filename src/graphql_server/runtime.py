@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-import warnings
 from asyncio import ensure_future
-from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Iterable
-from functools import cached_property, lru_cache
+from collections.abc import AsyncGenerator, AsyncIterator, Awaitable
 from inspect import isawaitable
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    NamedTuple,
     Optional,
     Set,
     Union,
@@ -19,21 +16,12 @@ from typing import (
 from graphql import (
     ExecutionContext,
     ExecutionResult,
-    FieldNode,
-    FragmentDefinitionNode,
-    GraphQLBoolean,
     GraphQLError,
-    GraphQLField,
-    GraphQLNamedType,
-    GraphQLNonNull,
-    GraphQLObjectType,
-    GraphQLOutputType,
     GraphQLSchema,
     OperationDefinitionNode,
     get_introspection_query,
     parse,
     print_schema,
-    validate_schema,
 )
 from graphql.error import GraphQLError
 from graphql.execution import execute as graphql_execute
@@ -42,7 +30,6 @@ from graphql.execution import subscribe as graphql_subscribe
 from graphql.execution.middleware import MiddlewareManager
 from graphql.language import DocumentNode, OperationType
 from graphql.type import GraphQLSchema
-from graphql.type.directives import specified_directives
 from graphql.validation import validate
 
 from graphql_server.exceptions import GraphQLValidationError, InvalidOperationTypeError
@@ -52,12 +39,8 @@ from graphql_server.utils.await_maybe import await_maybe
 from graphql_server.utils.logs import GraphQLServerLogger
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping
     from typing_extensions import TypeAlias
 
-    from graphql.execution.collect_fields import FieldGroup  # type: ignore
-    from graphql.pyutils import Path
-    from graphql.type import GraphQLResolveInfo
     from graphql.validation import ASTValidationRule
 
 SubscriptionResult: TypeAlias = AsyncGenerator[ExecutionResult, None]
@@ -163,7 +146,7 @@ def _parse_and_validate(
     # async with extensions_runner.parsing():
     if not query:
         raise GraphQLError("No GraphQL query found in the request")
-    elif not isinstance(query, str) and not isinstance(query, DocumentNode):
+    if not isinstance(query, str) and not isinstance(query, DocumentNode):
         raise GraphQLError(
             f"Provided GraphQL query must be a string or DocumentNode, got {type(query)}"
         )
@@ -187,7 +170,8 @@ def _parse_and_validate(
         raise InvalidOperationTypeError(operation_type, allowed_operation_types)
 
     # async with extensions_runner.validation():
-    _run_validation(schema, document_node, validation_rules)
+    if validate_document:
+        _run_validation(schema, document_node, validation_rules)
 
     return document_node
 

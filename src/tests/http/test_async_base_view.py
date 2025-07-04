@@ -21,8 +21,7 @@ from graphql_server.http.async_base_view import AsyncBaseHTTPView
 async def test_stream_with_heartbeat_should_yield_items_correctly(
     expected: list[str],
 ) -> None:
-    """
-    Verifies _stream_with_heartbeat reliably delivers all items in correct order.
+    """Verifies _stream_with_heartbeat reliably delivers all items in correct order.
 
     Tests three critical stream properties:
     1. Completeness: All source items appear in output (especially the last item)
@@ -34,7 +33,6 @@ async def test_stream_with_heartbeat_should_yield_items_correctly(
     targets race conditions between the drain task and queue consumer that could
     cause missing items, duplicates, or reordering.
     """
-
     assert len(set(expected)) == len(expected), "Test requires unique elements"
 
     class MockAsyncBaseHTTPView:

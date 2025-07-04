@@ -374,6 +374,19 @@ class GraphQLController(
             root_value=root_value,
         )
 
+    @websocket()
+    async def websocket_endpoint(
+        self,
+        socket: WebSocket,
+        context_ws: Any,
+        root_value: Any,
+    ) -> None:
+        await self.run(
+            request=socket,
+            context=context_ws,
+            root_value=root_value,
+        )
+
     async def get_context(
         self,
         request: Union[Request[Any, Any, Any], WebSocket],

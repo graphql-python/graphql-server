@@ -16,7 +16,7 @@ from typing import (
 from typing_extensions import Literal, TypeGuard
 
 from graphql import ExecutionResult, GraphQLError
-from graphql.language import OperationType, DocumentNode
+from graphql.language import OperationType
 from graphql.type import GraphQLSchema
 
 from graphql_server import execute, subscribe

@@ -5,9 +5,9 @@ from typing import (
     Any,
     Callable,
     Generic,
+    Literal,
     Optional,
     Union,
-    Literal,
 )
 
 from graphql import ExecutionResult, GraphQLError

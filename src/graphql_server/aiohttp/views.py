@@ -17,6 +17,7 @@ from typing_extensions import TypeGuard
 
 from aiohttp import http, web
 from aiohttp.multipart import BodyPartReader
+from graphql_server.http import GraphQLRequestData
 from graphql_server.http.async_base_view import (
     AsyncBaseHTTPView,
     AsyncHTTPRequestAdapter,
@@ -28,7 +29,6 @@ from graphql_server.http.exceptions import (
     NonTextMessageReceived,
     WebSocketDisconnected,
 )
-from graphql_server.http import GraphQLRequestData
 from graphql_server.http.types import FormData, HTTPMethod, QueryParams
 from graphql_server.http.typevars import (
     Context,

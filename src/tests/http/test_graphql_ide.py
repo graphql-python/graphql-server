@@ -1,6 +1,6 @@
-from urllib.parse import quote
 from typing import Union
 from typing_extensions import Literal
+from urllib.parse import quote
 
 import pytest
 

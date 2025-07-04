@@ -3,9 +3,10 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
-from graphql.language import DocumentNode
 from typing import TYPE_CHECKING, Any, Optional
 from typing_extensions import Literal, TypedDict
+
+from graphql.language import DocumentNode
 
 if TYPE_CHECKING:
     from graphql import ExecutionResult

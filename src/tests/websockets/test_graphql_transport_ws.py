@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import json
 import time
 from collections.abc import AsyncGenerator
@@ -56,8 +55,7 @@ def assert_next(
     data: dict[str, object],
     extensions: Optional[dict[str, object]] = None,
 ):
-    """
-    Assert that the NextMessage payload contains the provided data.
+    """Assert that the NextMessage payload contains the provided data.
     If extensions is provided, it will also assert that the
     extensions are present
     """
