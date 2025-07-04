@@ -19,6 +19,7 @@ for building GraphQL servers or integrations into existing web frameworks using
 | FastAPI                       | [fastapi](https://github.com/graphql-python/graphql-server/blob/master/docs/fastapi.md)     |
 | Flask                       | [flask](https://github.com/graphql-python/graphql-server/blob/master/docs/flask.md)     |
 | Litestar                       | [litestar](https://github.com/graphql-python/graphql-server/blob/master/docs/litestar.md)     |
+| WebOb                       | [webob](https://github.com/graphql-python/graphql-server/blob/master/docs/webob.md)     |
 | Quart                       | [quart](https://github.com/graphql-python/graphql-server/blob/master/docs/quart.md)     |
 | Sanic                       | [sanic](https://github.com/graphql-python/graphql-server/blob/master/docs/sanic.md)     |
 

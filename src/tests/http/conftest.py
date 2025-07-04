@@ -18,6 +18,7 @@ def _get_http_client_classes() -> Generator[Any, None, None]:
         ("DjangoHttpClient", "django", [pytest.mark.django]),
         ("FastAPIHttpClient", "fastapi", [pytest.mark.fastapi]),
         ("FlaskHttpClient", "flask", [pytest.mark.flask]),
+        ("WebobHttpClient", "webob", [pytest.mark.webob]),
         ("QuartHttpClient", "quart", [pytest.mark.quart]),
         ("SanicHttpClient", "sanic", [pytest.mark.sanic]),
         ("LitestarHttpClient", "litestar", [pytest.mark.litestar]),
