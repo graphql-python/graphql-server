@@ -20,10 +20,6 @@ except ImportError:
     SanicHttpClient = type(None)
 
 
-@pytest.mark.xfail(
-    reason="Our integrations currently only return application/json",
-    raises=AssertionError,
-)
 async def test_22eb(http_client):
     """SHOULD accept application/graphql-response+json and match the content-type"""
     response = await http_client.query(

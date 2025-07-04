@@ -156,10 +156,15 @@ class GraphQLView(
         return Response(request_data.to_template_string(self.graphql_ide_html))
 
     def create_response(
-        self, response_data: "GraphQLHTTPResponse", sub_response: Response
+        self,
+        response_data: "GraphQLHTTPResponse",
+        sub_response: Response,
+        is_strict: bool,
     ) -> Response:
         sub_response.set_data(self.encode_json(response_data))
-
+        sub_response.headers["content-type"] = (
+            "application/graphql-response+json" if is_strict else "application/json"
+        )
         return sub_response
 
     async def get_context(

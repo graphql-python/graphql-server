@@ -191,11 +191,17 @@ class BaseGraphQLHTTPConsumer(ChannelsConsumer, AsyncHttpConsumer):
         super().__init__(**kwargs)
 
     def create_response(
-        self, response_data: GraphQLHTTPResponse, sub_response: TemporalResponse
+        self,
+        response_data: GraphQLHTTPResponse,
+        sub_response: TemporalResponse,
+        is_strict: bool,
     ) -> ChannelsResponse:
         return ChannelsResponse(
             content=json.dumps(response_data).encode(),
             status=sub_response.status_code,
+            content_type="application/graphql-response+json"
+            if is_strict
+            else "application/json",
             headers={k.encode(): v.encode() for k, v in sub_response.headers.items()},
         )
 

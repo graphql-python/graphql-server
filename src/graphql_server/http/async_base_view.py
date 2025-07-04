@@ -164,7 +164,10 @@ class AsyncBaseHTTPView(
 
     @abc.abstractmethod
     def create_response(
-        self, response_data: GraphQLHTTPResponse, sub_response: SubResponse
+        self,
+        response_data: GraphQLHTTPResponse,
+        sub_response: SubResponse,
+        is_strict: bool,
     ) -> Response: ...
 
     @abc.abstractmethod
@@ -383,7 +386,6 @@ class AsyncBaseHTTPView(
         except GraphQLValidationError as e:
             if is_strict:
                 sub_response.status_code = 400  # type: ignore
-                # sub_response.headers["content-type"] = "application/graphql-response+json"
             result = ExecutionResult(data=None, errors=e.errors)
         except HTTPException:
             raise
@@ -415,7 +417,7 @@ class AsyncBaseHTTPView(
             self._handle_errors(result.errors, response_data)
 
         return self.create_response(
-            response_data=response_data, sub_response=sub_response
+            response_data=response_data, sub_response=sub_response, is_strict=is_strict
         )
 
     def encode_multipart_data(self, data: Any, separator: str) -> str:

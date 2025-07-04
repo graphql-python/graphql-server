@@ -309,12 +309,17 @@ class GraphQLController(
         )
 
     def create_response(
-        self, response_data: GraphQLHTTPResponse, sub_response: Response[bytes]
+        self,
+        response_data: GraphQLHTTPResponse,
+        sub_response: Response[bytes],
+        is_strict: bool,
     ) -> Response[bytes]:
         response = Response(
             self.encode_json(response_data).encode(),
             status_code=HTTP_200_OK,
-            media_type=MediaType.JSON,
+            media_type="application/graphql-response+json"
+            if is_strict
+            else MediaType.JSON,
         )
 
         response.headers.update(sub_response.headers)

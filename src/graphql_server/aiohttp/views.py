@@ -220,12 +220,17 @@ class GraphQLView(
         return {"request": request, "response": response}  # type: ignore
 
     def create_response(
-        self, response_data: GraphQLHTTPResponse, sub_response: web.Response
+        self,
+        response_data: GraphQLHTTPResponse,
+        sub_response: web.Response,
+        is_strict: bool,
     ) -> web.Response:
         status_code = getattr(sub_response, "status_code", None)
         return web.Response(
             text=self.encode_json(response_data),
-            content_type="application/json",
+            content_type="application/graphql-response+json"
+            if is_strict
+            else "application/json",
             headers=sub_response.headers,
             status=status_code or sub_response.status,
         )

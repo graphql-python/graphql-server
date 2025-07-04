@@ -211,13 +211,18 @@ class GraphQL(
         return HTMLResponse(request_data.to_template_string(self.graphql_ide_html))
 
     def create_response(
-        self, response_data: GraphQLHTTPResponse, sub_response: Response
+        self,
+        response_data: GraphQLHTTPResponse,
+        sub_response: Response,
+        is_strict: bool,
     ) -> Response:
         response = Response(
             self.encode_json(response_data),
             status_code=sub_response.status_code or status.HTTP_200_OK,
             headers=sub_response.headers,
-            media_type="application/json",
+            media_type="application/graphql-response+json"
+            if is_strict
+            else "application/json",
         )
 
         if sub_response.background:

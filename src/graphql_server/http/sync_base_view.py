@@ -90,7 +90,10 @@ class SyncBaseHTTPView(
 
     @abc.abstractmethod
     def create_response(
-        self, response_data: GraphQLHTTPResponse, sub_response: SubResponse
+        self,
+        response_data: GraphQLHTTPResponse,
+        sub_response: SubResponse,
+        is_strict: bool,
     ) -> Response: ...
 
     @abc.abstractmethod
@@ -261,7 +264,7 @@ class SyncBaseHTTPView(
             self._handle_errors(result.errors, response_data)
 
         return self.create_response(
-            response_data=response_data, sub_response=sub_response
+            response_data=response_data, sub_response=sub_response, is_strict=is_strict
         )
 
     def process_result(

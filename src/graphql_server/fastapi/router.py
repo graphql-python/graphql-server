@@ -288,11 +288,16 @@ class GraphQLRouter(
         return self.temporal_response
 
     def create_response(
-        self, response_data: GraphQLHTTPResponse, sub_response: Response
+        self,
+        response_data: GraphQLHTTPResponse,
+        sub_response: Response,
+        is_strict: bool,
     ) -> Response:
         response = Response(
             self.encode_json(response_data),
-            media_type="application/json",
+            media_type="application/graphql-response+json"
+            if is_strict
+            else "application/json",
             status_code=sub_response.status_code or status.HTTP_200_OK,
         )
 

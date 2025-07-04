@@ -167,12 +167,14 @@ class BaseView:
         super().__init__(**kwargs)
 
     def create_response(
-        self, response_data: GraphQLHTTPResponse, sub_response: HttpResponse
+        self,
+        response_data: GraphQLHTTPResponse,
+        sub_response: HttpResponse,
+        is_strict: bool,
     ) -> HttpResponseBase:
         data = self.encode_json(response_data)
         response = HttpResponse(
             data,
-            content_type="application/json",
             status=sub_response.status_code,
         )
 
@@ -181,6 +183,10 @@ class BaseView:
 
         if sub_response.status_code:
             response.status_code = sub_response.status_code
+
+        response.headers["content-type"] = (
+            "application/graphql-response+json" if is_strict else "application/json"
+        )
 
         for name, value in sub_response.cookies.items():
             response.cookies[name] = value

@@ -96,10 +96,15 @@ class BaseGraphQLView:
             self.graphql_ide = graphql_ide
 
     def create_response(
-        self, response_data: GraphQLHTTPResponse, sub_response: Response
+        self,
+        response_data: GraphQLHTTPResponse,
+        sub_response: Response,
+        is_strict: bool,
     ) -> Response:
         sub_response.set_data(self.encode_json(response_data))  # type: ignore
-
+        sub_response.headers["content-type"] = (
+            "application/graphql-response+json" if is_strict else "application/json"
+        )
         return sub_response
 
 

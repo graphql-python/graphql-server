@@ -118,13 +118,18 @@ class GraphQLView(
         return {"request": request, "response": response}  # type: ignore
 
     def create_response(
-        self, response_data: GraphQLHTTPResponse, sub_response: TemporalResponse
+        self,
+        response_data: GraphQLHTTPResponse,
+        sub_response: TemporalResponse,
+        is_strict: bool,
     ) -> Response:
         return Response(
             body=self.encode_json(response_data),
             status_code=sub_response.status_code,
             headers={
-                "Content-Type": "application/json",
+                "Content-Type": "application/graphql-response+json"
+                if is_strict
+                else "application/json",
                 **sub_response.headers,
             },
         )

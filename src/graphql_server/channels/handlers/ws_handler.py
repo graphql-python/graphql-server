@@ -172,7 +172,10 @@ class GraphQLWSConsumer(
         raise NotImplementedError
 
     def create_response(
-        self, response_data: GraphQLHTTPResponse, sub_response: GraphQLWSConsumer
+        self,
+        response_data: GraphQLHTTPResponse,
+        sub_response: GraphQLWSConsumer,
+        is_strict: bool,
     ) -> GraphQLWSConsumer:
         raise NotImplementedError
 
