@@ -1,0 +1,104 @@
+name: 🔂 Unit tests
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "noxfile.py"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/test.yml"
+
+jobs:
+  generate-jobs-tests:
+    name: 💻 Generate test matrix
+    runs-on: ubuntu-latest
+    outputs:
+      sessions: ${{ steps.set-matrix.outputs.sessions }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      - run: uv venv
+      - run: uv pip install nox
+      - id: set-matrix
+        shell: bash
+        run: |
+          . .venv/bin/activate
+          echo sessions=$(
+            nox --json -t tests -l |
+            jq 'map(
+              {
+                session,
+                name: "\( .name ) on \( .python )\( if .call_spec != {} then " (\(.call_spec | to_entries | map("\(.key)=\(.value)") | join(", ")))" else "" end )"
+              }
+            )'
+          ) | tee --append $GITHUB_OUTPUT
+
+  unit-tests:
+    name: 🔬 ${{ matrix.session.name }}
+    needs: [generate-jobs-tests]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        session: ${{ fromJson(needs.generate-jobs-tests.outputs.sessions) }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: |
+            3.9
+            3.10
+            3.11
+            3.12
+            3.13
+
+      - run: pip install nox uv
+      - run: nox -r -t tests -s "${{ matrix.session.session }}"
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: coverage-${{ matrix.session.session }}
+          path: coverage.xml
+
+  upload-coverage:
+    name: 🆙 Upload Coverage
+    needs: [unit-tests]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v4
+      - uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          verbose: true
+
+  # lint:
+  #   name: ✨ Lint
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - run: pipx install coverage
+  #     - uses: actions/setup-python@v5
+  #       id: setup-python
+  #       with:
+  #         python-version: "3.12"
+
+  #     - run: poetry install --with integrations
+  #       if: steps.setup-python.outputs.cache-hit != 'true'
+
+  #     - run: |
+  #         mkdir .mypy_cache
+
+  #         uv run mypy --install-types --non-interactive --cache-dir=.mypy_cache/ --config-file mypy.ini
