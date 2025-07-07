@@ -4,7 +4,7 @@ Adds GraphQL support to your Flask application.
 
 ## Installation
 
-To install the integration with Flask, run the below command on your terminal.
+To install the integration with Flask, run the following command in your terminal.
 
 `pip install graphql-server[flask]`
 
