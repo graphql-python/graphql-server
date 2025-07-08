@@ -216,13 +216,20 @@ class BaseGraphQLTransportWSHandler(Generic[Context, RootValue]):
             await self.websocket.close(code=4401, reason="Unauthorized")
             return
 
-        try:
-            graphql_document = parse(message["payload"]["query"])
-        except GraphQLSyntaxError as exc:
-            await self.websocket.close(code=4400, reason=exc.message)
-            return
+        request_data = await self.view.get_graphql_request_data(
+            self.websocket, self.context, message["payload"], "subscription"
+        )
 
-        operation_name = message["payload"].get("operationName")
+        if request_data.document is not None:
+            graphql_document = request_data.document
+        else:
+            try:
+                graphql_document = parse(request_data.query)
+            except GraphQLSyntaxError as exc:
+                await self.websocket.close(code=4400, reason=exc.message)
+                return
+
+        operation_name = request_data.operation_name
 
         try:
             operation_type = get_operation_type(graphql_document, operation_name)
@@ -248,14 +255,10 @@ class BaseGraphQLTransportWSHandler(Generic[Context, RootValue]):
 
         if self.debug:  # pragma: no cover
             pretty_print_graphql_operation(
-                message["payload"].get("operationName"),
-                message["payload"]["query"],
-                message["payload"].get("variables"),
+                request_data.operation_name,
+                request_data.query,
+                request_data.variables,
             )
-
-        request_data = await self.view.get_graphql_request_data(
-            self.websocket, self.context, message["payload"], "subscription"
-        )
 
         operation = Operation(
             self,
