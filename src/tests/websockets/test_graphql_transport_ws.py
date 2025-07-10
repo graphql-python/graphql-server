@@ -422,8 +422,8 @@ async def test_duplicated_operation_ids(ws: WebSocketClient):
 
 
 async def test_reused_operation_ids(ws: WebSocketClient):
-    """Test that an operation id can be re-used after it has been
-    previously used for a completed operation.
+    """Test that an operation id can be reused after it has been
+        previously used for a completed operation.
     """
     # Use sub1 as an id for an operation
     await ws.send_message(
@@ -1126,7 +1126,7 @@ async def test_error_handler_for_timeout(http_client: HttpClient):
             assert connection_ack_message == {"type": "connection_ack"}
             await ws.close()
 
-    # the error hander should have been called
+    # the error handler should have been called
     assert handler
     errorhandler.assert_called_once()
     args = errorhandler.call_args

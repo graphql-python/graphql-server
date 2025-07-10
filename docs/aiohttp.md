@@ -4,7 +4,7 @@ Adds GraphQL support to your aiohttp application.
 
 ## Installation
 
-To install the integration with aiohttp, run the below command on your terminal.
+To install the integration with aiohttp, run the following command in your terminal.
 
 `pip install graphql-server[aiohttp]`
 

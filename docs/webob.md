@@ -4,7 +4,7 @@ Adds GraphQL support to your WebOb (Pyramid, Pylons, ...) application.
 
 ## Installation
 
-To install the integration with WebOb, run the below command on your terminal.
+To install the integration with WebOb, run the following command in your terminal.
 
 `pip install graphql-server[webob]`
 
