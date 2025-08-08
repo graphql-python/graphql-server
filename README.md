@@ -6,6 +6,9 @@
 GraphQL-Server is a base library that serves as a helper
 for building GraphQL servers or integrations into existing web frameworks using
 [GraphQL-Core](https://github.com/graphql-python/graphql-core).
+* ✅ It passes all the GraphQL spec tests
+* Supports 💾 `Upload`s, 🔁 Sync, 🔀 Async views and 🔄 Subscriptions through WebSockets.
+* 🚀 It integrates seamlessly with all HTTP/Websocket Python servers
 
 ## Integrations built with GraphQL-Server
 
@@ -19,22 +22,9 @@ for building GraphQL servers or integrations into existing web frameworks using
 | FastAPI                       | [fastapi](https://github.com/graphql-python/graphql-server/blob/master/docs/fastapi.md)     |
 | Flask                       | [flask](https://github.com/graphql-python/graphql-server/blob/master/docs/flask.md)     |
 | Litestar                       | [litestar](https://github.com/graphql-python/graphql-server/blob/master/docs/litestar.md)     |
-| WebOb                       | [webob](https://github.com/graphql-python/graphql-server/blob/master/docs/webob.md)     |
 | Quart                       | [quart](https://github.com/graphql-python/graphql-server/blob/master/docs/quart.md)     |
 | Sanic                       | [sanic](https://github.com/graphql-python/graphql-server/blob/master/docs/sanic.md)     |
-
-## Other integrations built with GraphQL-Server
-
-| Server integration | Package                                                                                                 |
-| ------------------ | ------------------------------------------------------------------------------------------------------- |
-| WSGI               | [wsgi-graphql](https://github.com/moritzmhmk/wsgi-graphql)                                              |
-| Responder          | [responder.ext.graphql](https://github.com/kennethreitz/responder/blob/master/responder/ext/graphql.py) |
-
-## Other integrations using GraphQL-Core or Graphene
-
-| Server integration | Package                                                               |
-| ------------------ | --------------------------------------------------------------------- |
-| Django             | [graphene-django](https://github.com/graphql-python/graphene-django/) |
+| WebOb                       | [webob](https://github.com/graphql-python/graphql-server/blob/master/docs/webob.md)     |
 
 ## Documentation
 

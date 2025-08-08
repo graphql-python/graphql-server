@@ -10,8 +10,15 @@ This repository provides a base library for building GraphQL servers across mult
 - `noxfile.py` holds automation sessions for linting and testing.
 
 ## Running Tests
+
 Run the full test suite with:
 
 ```bash
 uv run pytest
+```
+
+You can check the tests coverage by adding the `--cov` flag from `pytest-cov` when running `pytest`.
+
+```bash
+uv run pytest --cov
 ```
