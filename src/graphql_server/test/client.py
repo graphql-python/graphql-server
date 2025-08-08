@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 from typing_extensions import Literal, TypedDict
 
 if TYPE_CHECKING:
-    from collections.abc import Coroutine, Mapping
+    from collections.abc import Coroutine, Mapping  # pragma: no cover
 
-    from graphql import GraphQLFormattedError
+    from graphql import GraphQLFormattedError  # pragma: no cover
 
 
 @dataclass
@@ -77,7 +77,7 @@ class BaseGraphQLTestClient(ABC):
         headers: Optional[dict[str, object]] = None,
         files: Optional[dict[str, object]] = None,
     ) -> Any:
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def _build_body(
         self,

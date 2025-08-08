@@ -39,9 +39,9 @@ from graphql_server.utils.await_maybe import await_maybe
 from graphql_server.utils.logs import GraphQLServerLogger
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
+    from typing_extensions import TypeAlias  # pragma: no cover
 
-    from graphql.validation import ASTValidationRule
+    from graphql.validation import ASTValidationRule  # pragma: no cover
 
 SubscriptionResult: TypeAlias = AsyncGenerator[ExecutionResult, None]
 
