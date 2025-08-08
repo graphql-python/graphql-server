@@ -179,7 +179,7 @@ async def test_423l(http_client):
 
 @pytest.mark.parametrize(
     "invalid",
-    [{"obj": "ect"}, 0, False, ["array"]],
+    [{"obj": "etc"}, 0, False, ["array"]],
     ids=["LKJ0", "LKJ1", "LKJ2", "LKJ3"],
 )
 async def test_lkj_(http_client, invalid):
@@ -222,7 +222,7 @@ async def test_13ee(http_client):
 
 @pytest.mark.parametrize(
     "invalid",
-    [{"obj": "ect"}, 0, False, ["array"]],
+    [{"obj": "etc"}, 0, False, ["array"]],
     ids=["6C00", "6C01", "6C02", "6C03"],
 )
 async def test_6c0_(http_client, invalid):

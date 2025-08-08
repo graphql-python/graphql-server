@@ -311,8 +311,8 @@ async def test_sends_keep_alive(http_client_class: type[HttpClient]):
         ack_message: ConnectionAckMessage = await ws.receive_json()
         assert ack_message["type"] == "connection_ack"
 
-        # we can't be sure how many keep-alives exactly we
-        # get but they should be more than one.
+        # We can't be sure how many keep-alive messages exactly we
+        # get, but there should be more than one.
         keepalive_count = 0
         while True:
             ka_or_data_message: Union[
