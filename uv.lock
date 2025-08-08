@@ -1347,6 +1347,9 @@ quart = [
 sanic = [
     { name = "sanic" },
 ]
+webob = [
+    { name = "webob" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -1390,6 +1393,7 @@ integrations = [
     { name = "sanic" },
     { name = "starlette" },
     { name = "uvicorn" },
+    { name = "webob" },
 ]
 
 [package.metadata]
@@ -1421,9 +1425,10 @@ requires-dist = [
     { name = "starlette", marker = "extra == 'debug-server'", specifier = ">=0.18.0" },
     { name = "typer", marker = "extra == 'debug-server'", specifier = ">=0.7.0" },
     { name = "uvicorn", marker = "extra == 'debug-server'", specifier = ">=0.11.6" },
+    { name = "webob", marker = "extra == 'webob'", specifier = ">=1.8" },
     { name = "websockets", marker = "extra == 'debug-server'", specifier = ">=15.0.1,<16" },
 ]
-provides-extras = ["aiohttp", "asgi", "debug", "debug-server", "django", "channels", "flask", "quart", "opentelemetry", "sanic", "fastapi", "chalice", "litestar", "pyinstrument"]
+provides-extras = ["aiohttp", "asgi", "debug", "debug-server", "django", "channels", "flask", "quart", "opentelemetry", "sanic", "fastapi", "chalice", "litestar", "pyinstrument", "webob"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -1466,6 +1471,7 @@ integrations = [
     { name = "sanic", specifier = ">=20.12.2" },
     { name = "starlette", specifier = ">=0.13.6" },
     { name = "uvicorn", specifier = ">=0.11.6" },
+    { name = "webob", specifier = ">=1.8" },
 ]
 
 [[package]]
@@ -1858,6 +1864,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/70/09/d904a6e96f76ff214be59e7aa6ef7190008f52a0ab6689760a98de0bf37d/keyring-25.6.0.tar.gz", hash = "sha256:0b39998aa941431eb3d9b0d4b2460bc773b9df6fed7621c2dfb291a7e0187a66", size = 62750, upload-time = "2024-12-25T15:26:45.782Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d3/32/da7f44bcb1105d3e88a0b74ebdca50c59121d2ddf71c9e34ba47df7f3a56/keyring-25.6.0-py3-none-any.whl", hash = "sha256:552a3f7af126ece7ed5c89753650eec89c7eaae8617d0aa4d9ad2b75111266bd", size = 39085, upload-time = "2024-12-25T15:26:44.377Z" },
+]
+
+[[package]]
+name = "legacy-cgi"
+version = "2.6.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a6/ed/300cabc9693209d5a03e2ebc5eb5c4171b51607c08ed84a2b71c9015e0f3/legacy_cgi-2.6.3.tar.gz", hash = "sha256:4c119d6cb8e9d8b6ad7cc0ddad880552c62df4029622835d06dfd18f438a8154", size = 24401, upload-time = "2025-03-27T00:48:56.957Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5a/33/68c6c38193684537757e0d50a7ccb4f4656e5c2f7cd2be737a9d4a1bff71/legacy_cgi-2.6.3-py3-none-any.whl", hash = "sha256:6df2ea5ae14c71ef6f097f8b6372b44f6685283dc018535a75c924564183cdab", size = 19851, upload-time = "2025-03-27T00:48:55.366Z" },
 ]
 
 [[package]]
@@ -4248,6 +4263,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/6c/63/53559446a878410fc5a5974feb13d31d78d752eb18aeba59c7fef1af7598/wcwidth-0.2.13.tar.gz", hash = "sha256:72ea0c06399eb286d978fdedb6923a9eb47e1c486ce63e9b4e64fc18303972b5", size = 101301, upload-time = "2024-01-06T02:10:57.829Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fd/84/fd2ba7aafacbad3c4201d395674fc6348826569da3c0937e75505ead3528/wcwidth-0.2.13-py2.py3-none-any.whl", hash = "sha256:3da69048e4540d84af32131829ff948f1e022c1c6bdb8d6102117aac784f6859", size = 34166, upload-time = "2024-01-06T02:10:55.763Z" },
+]
+
+[[package]]
+name = "webob"
+version = "1.8.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "legacy-cgi", marker = "python_full_version >= '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/85/0b/1732085540b01f65e4e7999e15864fe14cd18b12a95731a43fd6fd11b26a/webob-1.8.9.tar.gz", hash = "sha256:ad6078e2edb6766d1334ec3dee072ac6a7f95b1e32ce10def8ff7f0f02d56589", size = 279775, upload-time = "2024-10-24T03:19:20.651Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/50/bd/c336448be43d40be28e71f2e0f3caf7ccb28e2755c58f4c02c065bfe3e8e/WebOb-1.8.9-py2.py3-none-any.whl", hash = "sha256:45e34c58ed0c7e2ecd238ffd34432487ff13d9ad459ddfd77895e67abba7c1f9", size = 115364, upload-time = "2024-10-24T03:19:18.642Z" },
 ]
 
 [[package]]

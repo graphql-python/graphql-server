@@ -6,19 +6,22 @@ import functools
 import json
 import urllib.parse
 from io import BytesIO
+from json import dumps
 from typing import Any, Optional, Union
 from typing_extensions import Literal
 
 from graphql import ExecutionResult
-from webob import Request, Response
+from urllib3 import encode_multipart_formdata
 
 from graphql_server.http import GraphQLHTTPResponse
 from graphql_server.http.ides import GraphQL_IDE
 from graphql_server.webob import GraphQLView as BaseGraphQLView
 from tests.http.context import get_context
 from tests.views.schema import Query, schema
+from webob import Request, Response
 
-from .base import JSON, HttpClient, Response as ClientResponse, ResultOverrideFunction
+from .base import JSON, HttpClient, ResultOverrideFunction
+from .base import Response as ClientResponse
 
 
 class GraphQLView(BaseGraphQLView[dict[str, object], object]):
@@ -82,18 +85,16 @@ class WebobHttpClient(HttpClient):
 
         url = "/graphql"
 
-        if body and files:
-            body.update({name: (file, name) for name, file in files.items()})
+        headers = self._get_headers(method=method, headers=headers, files=files)
 
         if method == "get":
             body_encoded = urllib.parse.urlencode(body or {})
             url = f"{url}?{body_encoded}"
-        else:
-            if body:
-                data = body if files else json.dumps(body)
-            kwargs["body"] = data
-
-        headers = self._get_headers(method=method, headers=headers, files=files)
+        elif body:
+            if files:
+                header_pairs, body = create_multipart_request_body(body, files)
+                headers = dict(header_pairs)
+            kwargs["body"] = body
 
         return await self.request(url, method, headers=headers, **kwargs)
 
@@ -104,9 +105,11 @@ class WebobHttpClient(HttpClient):
         headers: Optional[dict[str, str]] = None,
         **kwargs: Any,
     ) -> ClientResponse:
-        body = kwargs.get("body", None)
+        body = kwargs.pop("body", None)
+        if isinstance(body, dict):
+            body = json.dumps(body).encode("utf-8")
         req = Request.blank(
-            url, method=method.upper(), headers=headers or {}, body=body
+            url, method=method.upper(), headers=headers or {}, body=body, **kwargs
         )
         resp = self.view.dispatch_request(req)
         return ClientResponse(
@@ -139,5 +142,26 @@ class WebobHttpClient(HttpClient):
         json: Optional[JSON] = None,
         headers: Optional[dict[str, str]] = None,
     ) -> ClientResponse:
-        body = json if json is not None else data
+        body = dumps(json).encode("utf-8") if json is not None else data
         return await self.request(url, "post", headers=headers, body=body)
+
+
+def create_multipart_request_body(
+    body: dict[str, object], files: dict[str, BytesIO]
+) -> tuple[list[tuple[str, str]], bytes]:
+    fields = {
+        "operations": body["operations"],
+        "map": body["map"],
+    }
+
+    for filename, data in files.items():
+        fields[filename] = (filename, data.read().decode(), "text/plain")
+
+    request_body, content_type_header = encode_multipart_formdata(fields)
+
+    headers = [
+        ("Content-Type", content_type_header),
+        ("Content-Length", f"{len(request_body)}"),
+    ]
+
+    return headers, request_body

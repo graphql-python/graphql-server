@@ -28,13 +28,10 @@ def _get_http_client_classes() -> Generator[Any, None, None]:
             [pytest.mark.channels, pytest.mark.django_db],
         ),
     ]:
-        try:
-            client_class = getattr(
-                importlib.import_module(f".{module}", package="tests.http.clients"),
-                client,
-            )
-        except ImportError:
-            client_class = None
+        client_class = getattr(
+            importlib.import_module(f".{module}", package="tests.http.clients"),
+            client,
+        )
 
         yield pytest.param(
             client_class,

@@ -340,4 +340,5 @@ integrations = [
     "litestar>=2      ; python_version>=\"3.10\" and python_version<\"4.0\"",
     "uvicorn>=0.11.6",
     "daphne>=4.0.0,<5.0",
+    "WebOb>=1.8",
 ]

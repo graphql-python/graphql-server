@@ -1,19 +1,19 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Mapping, Optional, Union, cast
-from typing_extensions import TypeGuard
-
-from webob import Request, Response
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 from graphql_server.http import GraphQLRequestData
 from graphql_server.http.exceptions import HTTPException
 from graphql_server.http.sync_base_view import SyncBaseHTTPView, SyncHTTPRequestAdapter
-from graphql_server.http.typevars import Context, RootValue
 from graphql_server.http.types import HTTPMethod, QueryParams
+from graphql_server.http.typevars import Context, RootValue
+from webob import Request, Response
 
 if TYPE_CHECKING:
     from graphql.type import GraphQLSchema
+
     from graphql_server.http import GraphQLHTTPResponse
     from graphql_server.http.ides import GraphQL_IDE
 

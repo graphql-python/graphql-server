@@ -32,6 +32,14 @@ def http_client(http_client_class: type[HttpClient]) -> HttpClient:
             )
 
     with contextlib.suppress(ImportError):
+        from .clients.webob import WebobHttpClient
+
+        if http_client_class is WebobHttpClient:
+            pytest.skip(
+                reason="WebobHttpClient doesn't support multipart subscriptions"
+            )
+
+    with contextlib.suppress(ImportError):
         from .clients.async_flask import AsyncFlaskHttpClient
         from .clients.flask import FlaskHttpClient
 
