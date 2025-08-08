@@ -4,9 +4,9 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from typing import Final
+    from typing import Final  # pragma: no cover
 
-    from graphql.error import GraphQLError
+    from graphql.error import GraphQLError  # pragma: no cover
 
 
 class GraphQLServerLogger:
