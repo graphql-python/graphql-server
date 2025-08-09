@@ -10,23 +10,11 @@ from .clients.base import HttpClient
 
 @pytest.fixture
 def http_client(http_client_class: type[HttpClient]) -> HttpClient:
-    with contextlib.suppress(ImportError):
-        from .clients.chalice import ChaliceHttpClient
-
-        if http_client_class is ChaliceHttpClient:
-            pytest.xfail(reason="Chalice does not support uploads")
-
     return http_client_class()
 
 
 @pytest.fixture
 def enabled_http_client(http_client_class: type[HttpClient]) -> HttpClient:
-    with contextlib.suppress(ImportError):
-        from .clients.chalice import ChaliceHttpClient
-
-        if http_client_class is ChaliceHttpClient:
-            pytest.xfail(reason="Chalice does not support uploads")
-
     return http_client_class(multipart_uploads_enabled=True)
 
 
@@ -46,6 +34,17 @@ async def test_multipart_uploads_are_disabled_by_default(http_client: HttpClient
     )
 
     assert response.status_code == 400
+
+    with contextlib.suppress(ImportError):
+        from .clients.chalice import ChaliceHttpClient
+
+        if isinstance(http_client, ChaliceHttpClient):
+            assert response.json == {
+                "Code": "BadRequestError",
+                "Message": "Unsupported content type",
+            }
+            return
+
     assert response.data == b"Unsupported content type"
 
 

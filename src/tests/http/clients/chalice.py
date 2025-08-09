@@ -7,6 +7,7 @@ from typing import Any, Optional, Union
 from typing_extensions import Literal
 
 from graphql import ExecutionResult
+from urllib3 import encode_multipart_formdata
 
 from chalice.app import Chalice
 from chalice.app import Request as ChaliceRequest
@@ -60,11 +61,14 @@ class ChaliceHttpClient(HttpClient):
             graphiql=graphiql,
             graphql_ide=graphql_ide,
             allow_queries_via_get=allow_queries_via_get,
+            multipart_uploads_enabled=multipart_uploads_enabled,
         )
         view.result_override = result_override
 
         @self.app.route(
-            "/graphql", methods=["GET", "POST"], content_types=["application/json"]
+            "/graphql",
+            methods=["GET", "POST"],
+            content_types=["application/json", "multipart/form-data"],
         )
         def handle_graphql():
             assert self.app.current_request is not None
@@ -80,7 +84,7 @@ class ChaliceHttpClient(HttpClient):
         headers: Optional[dict[str, str]] = None,
         extensions: Optional[dict[str, Any]] = None,
         **kwargs: Any,
-    ) -> Response:
+        ) -> Response:
         body = self._build_body(
             query=query,
             operation_name=operation_name,
@@ -90,27 +94,27 @@ class ChaliceHttpClient(HttpClient):
             extensions=extensions,
         )
 
-        data: Union[dict[str, object], str, None] = None
-
-        if body and files:
-            body.update({name: (file, name) for name, file in files.items()})
-
         url = "/graphql"
+        headers = self._get_headers(method=method, headers=headers, files=files)
 
         if method == "get":
             body_encoded = urllib.parse.urlencode(body or {})
             url = f"{url}?{body_encoded}"
-        else:
-            if body:
-                data = body if files else dumps(body)
-            kwargs["body"] = data
+        elif body:
+            if files:
+                fields = {"operations": body["operations"], "map": body["map"]}
+                for filename, file in files.items():
+                    fields[filename] = (filename, file.read(), "text/plain")
+                data, content_type = encode_multipart_formdata(fields)
+                headers.update(
+                    {"Content-Type": content_type, "Content-Length": f"{len(data)}"}
+                )
+                kwargs["body"] = data
+            else:
+                kwargs["body"] = dumps(body)
 
         with Client(self.app) as client:
-            response = getattr(client.http, method)(
-                url,
-                headers=self._get_headers(method=method, headers=headers, files=files),
-                **kwargs,
-            )
+            response = getattr(client.http, method)(url, headers=headers, **kwargs)
 
         return Response(
             status_code=response.status_code,

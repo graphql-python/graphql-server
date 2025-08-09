@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import warnings
+from io import BytesIO
 from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 from chalice.app import Request, Response
@@ -23,6 +24,8 @@ if TYPE_CHECKING:
 class ChaliceHTTPRequestAdapter(SyncHTTPRequestAdapter):
     def __init__(self, request: Request) -> None:
         self.request = request
+        self._post_data: Optional[dict[str, Union[str, bytes]]] = None
+        self._files: Optional[dict[str, Any]] = None
 
     @property
     def query_params(self) -> QueryParams:
@@ -42,11 +45,49 @@ class ChaliceHTTPRequestAdapter(SyncHTTPRequestAdapter):
 
     @property
     def post_data(self) -> Mapping[str, Union[str, bytes]]:
-        raise NotImplementedError
+        if self._post_data is None:
+            self._parse_body()
+        return self._post_data or {}
 
     @property
     def files(self) -> Mapping[str, Any]:
-        raise NotImplementedError
+        if self._files is None:
+            self._parse_body()
+        return self._files or {}
+
+    def _parse_body(self) -> None:
+        self._post_data = {}
+        self._files = {}
+
+        content_type = self.content_type or ""
+
+        if "multipart/form-data" in content_type:
+            import cgi
+
+            fp = BytesIO(self.request.raw_body)
+            environ = {
+                "REQUEST_METHOD": "POST",
+                "CONTENT_TYPE": content_type,
+                "CONTENT_LENGTH": str(len(self.request.raw_body)),
+            }
+            fs = cgi.FieldStorage(fp=fp, environ=environ, keep_blank_values=True)
+            for key in fs.keys():
+                field = fs[key]
+                if isinstance(field, list):
+                    field = field[0]
+                if getattr(field, "filename", None):
+                    data = field.file.read()
+                    self._files[key] = BytesIO(data)
+                else:
+                    self._post_data[key] = field.value
+        elif "application/x-www-form-urlencoded" in content_type:
+            from urllib.parse import parse_qs
+
+            data = parse_qs(self.request.raw_body.decode())
+            self._post_data = {k: v[0] for k, v in data.items()}
+        else:
+            self._post_data = {}
+            self._files = {}
 
     @property
     def content_type(self) -> Optional[str]:
@@ -65,9 +106,11 @@ class GraphQLView(
         graphiql: Optional[bool] = None,
         graphql_ide: Optional[GraphQL_IDE] = "graphiql",
         allow_queries_via_get: bool = True,
+        multipart_uploads_enabled: bool = False,
     ) -> None:
         self.allow_queries_via_get = allow_queries_via_get
         self.schema = schema
+        self.multipart_uploads_enabled = multipart_uploads_enabled
         if graphiql is not None:
             warnings.warn(
                 "The `graphiql` argument is deprecated in favor of `graphql_ide`",
