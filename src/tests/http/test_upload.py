@@ -1,4 +1,3 @@
-import contextlib
 import json
 from io import BytesIO
 
@@ -10,23 +9,11 @@ from .clients.base import HttpClient
 
 @pytest.fixture
 def http_client(http_client_class: type[HttpClient]) -> HttpClient:
-    with contextlib.suppress(ImportError):
-        from .clients.chalice import ChaliceHttpClient
-
-        if http_client_class is ChaliceHttpClient:
-            pytest.xfail(reason="Chalice does not support uploads")
-
     return http_client_class()
 
 
 @pytest.fixture
 def enabled_http_client(http_client_class: type[HttpClient]) -> HttpClient:
-    with contextlib.suppress(ImportError):
-        from .clients.chalice import ChaliceHttpClient
-
-        if http_client_class is ChaliceHttpClient:
-            pytest.xfail(reason="Chalice does not support uploads")
-
     return http_client_class(multipart_uploads_enabled=True)
 
 

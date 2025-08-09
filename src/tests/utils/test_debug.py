@@ -2,7 +2,10 @@ import builtins
 
 import pytest
 
-from graphql_server.utils.debug import GraphQLJSONEncoder, pretty_print_graphql_operation
+from graphql_server.utils.debug import (
+    GraphQLJSONEncoder,
+    pretty_print_graphql_operation,
+)
 
 
 def test_graphql_json_encoder_default():

@@ -17,8 +17,18 @@ Run the full test suite with:
 uv run pytest
 ```
 
-You can check the tests coverage by adding the `--cov` flag from `pytest-cov` when running `pytest`.
+You can check the tests coverage by adding the `--cov` and `--cov-report=term-missing` (to report the missing lines in the command output) flags from `pytest-cov` when running `pytest`.
 
 ```bash
-uv run pytest --cov
+uv run pytest --cov --cov-report=term-missing
+```
+
+## Before commiting
+
+All files must be properly formatted before creating a PR, so we can merge it upstream.
+
+You can run `ruff` for formatting automatically all the files of the project:
+
+```bash
+uv run ruff format
 ```
