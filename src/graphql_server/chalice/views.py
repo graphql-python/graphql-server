@@ -138,7 +138,6 @@ class GraphQLView(
     @staticmethod
     def error_response(
         message: str,
-        error_code: str,
         http_status_code: int,
         headers: Optional[dict[str, str | list[str]]] = None,
     ) -> Response:
@@ -153,9 +152,7 @@ class GraphQLView(
         Returns:
             An errors response.
         """
-        body = {"Code": error_code, "Message": message}
-
-        return Response(body=body, status_code=http_status_code, headers=headers)
+        return Response(body=message, status_code=http_status_code, headers=headers)
 
     def get_context(self, request: Request, response: TemporalResponse) -> Context:
         return {"request": request, "response": response}  # type: ignore
@@ -181,18 +178,7 @@ class GraphQLView(
         try:
             return self.run(request=request)
         except HTTPException as e:
-            error_code_map = {
-                400: "BadRequestError",
-                401: "UnauthorizedError",
-                403: "ForbiddenError",
-                404: "NotFoundError",
-                409: "ConflictError",
-                429: "TooManyRequestsError",
-                500: "ChaliceViewError",
-            }
-
             return self.error_response(
-                error_code=error_code_map.get(e.status_code, "ChaliceViewError"),
                 message=e.reason,
                 http_status_code=e.status_code,
             )

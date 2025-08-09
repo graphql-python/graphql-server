@@ -289,15 +289,7 @@ async def test_invalid_operation_selection(http_client: HttpClient, operation_na
     )
 
     assert response.status_code == 400
-
-    if isinstance(http_client, ChaliceHttpClient):
-        # Our Chalice integration purposely wraps errors messages with a JSON object
-        assert response.json == {
-            "Code": "BadRequestError",
-            "Message": f'Unknown operation named "{operation_name}".',
-        }
-    else:
-        assert response.data == f'Unknown operation named "{operation_name}".'.encode()
+    assert response.data == f'Unknown operation named "{operation_name}".'.encode()
 
 
 async def test_operation_selection_without_operations(http_client: HttpClient):
@@ -308,12 +300,4 @@ async def test_operation_selection_without_operations(http_client: HttpClient):
     )
 
     assert response.status_code == 400
-
-    if isinstance(http_client, ChaliceHttpClient):
-        # Our Chalice integration purposely wraps errors messages with a JSON object
-        assert response.json == {
-            "Code": "BadRequestError",
-            "Message": "Can't get GraphQL operation type",
-        }
-    else:
-        assert response.data == b"Can't get GraphQL operation type"
+    assert response.data == b"Can't get GraphQL operation type"
