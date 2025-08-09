@@ -14,4 +14,4 @@ def test_deprecated_is_unset_and_getattr():
     with pytest.warns(DeprecationWarning):
         assert unset.is_unset(unset.UNSET)
     with pytest.raises(AttributeError):
-        getattr(unset, "missing")
+        unset.missing

@@ -8,7 +8,9 @@ from graphql_server.test.client import BaseGraphQLTestClient
 
 class DummyClient(BaseGraphQLTestClient):
     def request(self, body, headers=None, files=None):
-        return types.SimpleNamespace(content=json.dumps(body).encode(), json=lambda: body)
+        return types.SimpleNamespace(
+            content=json.dumps(body).encode(), json=lambda: body
+        )
 
 
 def test_build_body_with_variables_and_files():

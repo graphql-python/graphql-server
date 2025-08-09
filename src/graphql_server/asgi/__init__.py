@@ -45,7 +45,12 @@ from graphql_server.subscriptions import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator, AsyncIterator, Mapping, Sequence  # pragma: no cover
+    from collections.abc import (  # pragma: no cover
+        AsyncGenerator,
+        AsyncIterator,
+        Mapping,
+        Sequence,
+    )
 
     from graphql.type import GraphQLSchema  # pragma: no cover
     from starlette.types import Receive, Scope, Send  # pragma: no cover
@@ -112,7 +117,9 @@ class ASGIWebSocketAdapter(AsyncWebSocketAdapter):
     async def send_json(self, message: Mapping[str, object]) -> None:
         try:
             await self.ws.send_text(self.view.encode_json(message))
-        except WebSocketDisconnect as exc:  # pragma: no cover - network errors mocked elsewhere
+        except (
+            WebSocketDisconnect
+        ) as exc:  # pragma: no cover - network errors mocked elsewhere
             raise WebSocketDisconnected from exc
 
     async def close(self, code: int, reason: str) -> None:

@@ -3,7 +3,7 @@ from __future__ import annotations
 import urllib.parse
 from io import BytesIO
 from json import dumps
-from typing import Any, Optional, Union
+from typing import Any, Optional
 from typing_extensions import Literal
 
 from graphql import ExecutionResult
@@ -84,7 +84,7 @@ class ChaliceHttpClient(HttpClient):
         headers: Optional[dict[str, str]] = None,
         extensions: Optional[dict[str, Any]] = None,
         **kwargs: Any,
-        ) -> Response:
+    ) -> Response:
         body = self._build_body(
             query=query,
             operation_name=operation_name,

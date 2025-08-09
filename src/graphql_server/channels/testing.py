@@ -71,7 +71,9 @@ class GraphQLWebsocketCommunicator(WebsocketCommunicator):
             subprotocols: an ordered list of preferred subprotocols to be sent to the server.
             **kwargs: additional arguments to be passed to the `WebsocketCommunicator` constructor.
         """
-        if connection_params is None:  # pragma: no cover - tested via custom initialisation
+        if (
+            connection_params is None
+        ):  # pragma: no cover - tested via custom initialisation
             connection_params = {}
         self.protocol = protocol
         subprotocols = kwargs.get("subprotocols", [])
@@ -139,7 +141,9 @@ class GraphQLWebsocketCommunicator(WebsocketCommunicator):
                 },
             }
 
-            if variables is not None:  # pragma: no cover - exercised in higher-level tests
+            if (
+                variables is not None
+            ):  # pragma: no cover - exercised in higher-level tests
                 start_message["payload"]["variables"] = variables
 
             await self.send_json_to(start_message)
@@ -155,7 +159,9 @@ class GraphQLWebsocketCommunicator(WebsocketCommunicator):
                     ret.errors = self.process_errors(payload.get("errors") or [])
                 ret.extensions = payload.get("extensions", None)
                 yield ret
-            elif message["type"] == "error":  # pragma: no cover - network failures untested
+            elif (
+                message["type"] == "error"
+            ):  # pragma: no cover - network failures untested
                 error_payload = message["payload"]
                 yield ExecutionResult(
                     data=None, errors=self.process_errors(error_payload)

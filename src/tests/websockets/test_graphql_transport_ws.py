@@ -423,7 +423,7 @@ async def test_duplicated_operation_ids(ws: WebSocketClient):
 
 async def test_reused_operation_ids(ws: WebSocketClient):
     """Test that an operation id can be reused after it has been
-        previously used for a completed operation.
+    previously used for a completed operation.
     """
     # Use sub1 as an id for an operation
     await ws.send_message(
