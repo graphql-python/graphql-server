@@ -49,7 +49,7 @@ def http_client(http_client_class: type[HttpClient]) -> HttpClient:
             )
 
         if http_client_class is AsyncFlaskHttpClient:
-            pytest.xfail(
+            pytest.skip(
                 reason="AsyncFlaskHttpClient doesn't support multipart subscriptions"
             )
 
