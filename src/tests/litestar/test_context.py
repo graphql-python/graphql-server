@@ -134,47 +134,6 @@ def test_without_context_getter():
     assert response.json() == {"data": {"abc": "abc"}}
 
 
-@pytest.mark.skip(reason="This is no longer supported")
-def test_with_invalid_context_getter():
-    def custom_context_dependency() -> str:
-        return "rocks"
-
-    async def get_context(custom_context_dependency: str) -> str:
-        return custom_context_dependency
-
-    def resolve_abc(_root, info):
-        assert info.context.get("request") is not None
-        assert info.context.get("teststring") is None
-        return "abc"
-
-    Query = GraphQLObjectType(
-        name="Query",
-        fields={
-            "abc": GraphQLField(
-                GraphQLString,
-                resolve=resolve_abc,
-            )
-        },
-    )
-
-    schema = GraphQLSchema(query=Query)
-    graphql_controller = make_graphql_controller(
-        path="/graphql", schema=schema, context_getter=get_context
-    )
-    app = Litestar(
-        route_handlers=[graphql_controller],
-        dependencies={
-            "custom_context_dependency": Provide(
-                custom_context_dependency, sync_to_thread=True
-            )
-        },
-    )
-    test_client = TestClient(app, raise_server_exceptions=True)
-    response = test_client.post("/graphql", json={"query": "{ abc }"})
-    assert response.status_code == 500
-    assert response.json()["detail"] == "Internal Server Error"
-
-
 def test_custom_context():
     from tests.litestar.app import create_app
 
