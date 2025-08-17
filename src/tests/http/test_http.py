@@ -1,3 +1,4 @@
+import contextlib
 from typing import Literal
 
 import pytest
@@ -35,5 +36,11 @@ async def test_the_http_handler_uses_the_views_decode_json_method(
 async def test_does_allow_http_options(
     http_client: HttpClient,
 ):
+    with contextlib.suppress(ImportError):
+        from .clients.chalice import ChaliceHttpClient
+
+        if isinstance(http_client, ChaliceHttpClient):
+            pytest.xfail("Chalice doesn't support options requests")
+
     response = await http_client.request(url="/graphql", method="options")
     assert response.status_code in (200, 204)
