@@ -1,7 +1,7 @@
 [project]
 name = "graphql-server"
-version = "3.0.0b8"
-description = "A library for creating GraphQL APIs"
+version = "3.0.0"
+description = "A library setting up a GraphQL server in a variety of frameworks"
 authors = [{ name = "Syrus Akbary", email = "me@syrusakbary.com" }]
 license = { text = "MIT" }
 readme = "README.md"
